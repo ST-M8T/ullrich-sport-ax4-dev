@@ -8,7 +8,7 @@
 > `scripts/system-kartographie-gen.php`. Dieses Dokument ist die manuelle
 > Befunds- und Ticket-Liste, die das Generator-Output ergänzt.
 
-Stand: 2026-05-08 (nach Cleanup-Welle 1 + 2 + 3 + 4 + 5 + 6 + 7)
+Stand: 2026-05-10 (nach Cleanup-Welle 1–8 + Finale Doku-Synchronisation)
 
 ---
 
@@ -171,9 +171,40 @@ Stand: 2026-05-08 (nach Cleanup-Welle 1 + 2 + 3 + 4 + 5 + 6 + 7)
 | ~~**TEST-1**~~ | ~~Tests für `domain:cache:warm` + `performance:benchmark`~~ | — | ✅ in C-66 erledigt |
 | ~~**ARCH-9**~~ | ~~`testConnection()` echt umsetzen~~ | — | ✅ in C-68 erledigt: `Http::head()`-Erreichbarkeitstest in 3 Providern |
 
+## A-8. Cleanup-Welle 8 — Finale Doku-Synchronisation (2026-05-10, t28)
+
+| ID | Befund | Maßnahme | Status |
+|----|--------|----------|--------|
+| C-71 | SYSTEM_ROUTE_*, SYSTEM_VIEW_*, SYSTEM_AUDIT_REPORT.md, SYSTEM_MENU_ROLE_MATRIX.md, SYSTEM_PERMISSION_MATRIX.md, SYSTEM_REORGANISATION_ROADMAP.md waren auf Stand 2026-05-08, nicht auf aktuellem Stand. | Generator `php scripts/system-kartographie-gen.php` ausgeführt. Alle 7 SYSTEM_*-Dokumente auf 2026-05-10 21:54 aktualisiert. | ✅ erledigt |
+| C-72 | SYSTEM_CLEANUP_BACKLOG.md Stand nicht aktualisiert (2026-05-08, Wave 7). | Stand auf 2026-05-10 aktualisiert, Welle 8 dokumentiert. | ✅ erledigt |
+| C-73 | SERVICE_INVENTORY.md (Stand 2026-05-08) und UI_COMPONENT_REFERENCE.md (Stand 2026-05-08) waren bereits aktuell — keine Änderung nötig. | Geprüft, keine Aktion erforderlich. | ✅ geprüft |
+
 ---
 
-## C. Architektur-Snapshot (nach Welle 1)
+## B-5 — Verbleibende A11y-Fundstellen aus t32 (Phase C)
+
+> Die CI A11y-Pipeline (C-62) fand bei 4 Hauptseiten (Login, Aufträge, Kommissionierlisten, Settings) mehrere WCAG 2.1 AA Verstöße. Die unten stehenden Items sind nach Priorität sortiert. Siehe `npm run audit:a11y` fuer die vollständige Liste der Fundstellen pro Seite.
+
+| ID | Beschreibung | Priorität | Aufwand | Anmerkung |
+|----|--------------|----------|---------|-----------|
+| **A11Y-1** | `button` und `a`-Elemente ohne interaktiven Text (button-name violation) — Mehrere Stellen in fulfillment.orders.show, dispatch.lists.index, configuration.settings.index wo Icon-only-Buttons kein `aria-label` haben. | **P0** | ~1h | Härtetes A11y-Widget `<x-ui.action-link>` ist bereits compliant. Problem liegt in manuellen `btn`-Buttons an Tabellenspalten-Aktionen. |
+| **A11Y-2** | `color-contrast` — mehrere Texte genügen nicht dem 4.5:1-Verhältnis (z.B. Placeholder in Input-Feldern, deaktivierte Labels). | **P0** | ~2h | Betrifft `configuration.mail-templates.create/edit`, `identity.users.create`, mehrere Fulfillment-Masterdata-Formulare. |
+| **A11Y-3** | `D1` heading-skip — Seite hat mehrere `h2` aber kein `h1` am Anfang; Assistive-Technologien können die Überschriftenstruktur nicht korrekt interpretieren. | **P0** | ~30min | Betrifft: `fulfillment.masterdata.index`, `fulfillment.masterdata.packaging.index`, `fulfillment.masterdata.assembly.index`. Pattern: Masterdata-Index-Seiten rendern Sections ohne page-header. |
+| **A11Y-4** | `aria-required` — Formulare nutzen `aria-required="true"` statt `required` Attribut, teils inkonsistent. | **P1** | ~1h | Betrifft: `configuration.integrations.show`, `identity.users.create/edit`. |
+| **A11Y-5** | `label` — einzelne Inputs haben kein zugeordnetes `<label>` (z.B. Icon-only Filter-Buttons). | **P1** | ~1h | Betrifft: `fulfillment.orders.index` (Filter-Block). |
+
+---
+
+## B-6 — Weitere offene Tickets
+
+| ID | Beschreibung | Priorität | Aufwand | Anmerkung |
+|----|--------------|----------|---------|-----------|
+| **ARCH-10** | `t32 Phase C` — Routen und Controller für Masterdata-Sections (`/admin/fulfillment/masterdata/sender-rules`, `/admin/fulfillment/masterdata/variation-profiles`) heißen aktuell `sender-rules` und `variation-profiles`. Fachlich besser: `sender-regeln` und `varianten-profile` (deutliche Worttrennung). | **P2** | ~2h | Routing-Rename + Redirects für alte URLs + ViewComposer-Namespace-Anpassung. |
+| **DOC-11** | README.md Quality-Gate-Tabelle aktualisieren: PhpStan Level 8, nicht Level 5. | **P3** | ~10min | Minor. |
+
+---
+
+## C. Architektur-Snapshot (nach Welle 8)
 
 ### Bounded Contexts (klar geschnitten)
 - `Configuration` — System-Settings, Mail-Templates, Notifications, Integrations
@@ -194,7 +225,7 @@ Stand: 2026-05-08 (nach Cleanup-Welle 1 + 2 + 3 + 4 + 5 + 6 + 7)
 | Shared / Support | `app/Support/`, `app/Support/UI/`, `app/Domain/Shared/` | Cross-Cutting Helpers (Circuit Breaker, UI-Services, Value Objects) |
 
 ### Kennzahlen
-| Metrik | Vor Welle 1 | Nach Welle 7 |
+| Metrik | Vor Welle 1 | Nach Welle 8 |
 |---|---|---|
 | Blade-Views gesamt | 132 | 82 |
 | Tote Komponenten/Composer/Interfaces/Methoden | ≥24 | 0 |
@@ -206,7 +237,7 @@ Stand: 2026-05-08 (nach Cleanup-Welle 1 + 2 + 3 + 4 + 5 + 6 + 7)
 | `Identifier::generate()`-Phantom-Calls | 3 (Runtime-Bugs) | 0 |
 | Generator-Warnungen | 1 | 0 |
 | Generator API-Auth-Erkennung | hartcodiert | per AST |
-| **PhpStan-Level** | 0 | **5** (ohne Baseline; via `MapsEloquentModels`-Trait gelöst) |
+| **PhpStan-Level** | 0 | **8** (via `MapsEloquentModels`-Trait, keine Baseline) |
 | `phpstan-baseline.neon` | n/a | nicht benötigt (alle Generics gelöst) |
 | **PHPUnit** | 19 Fail / 4 Depr | **309 Tests / 1796 Assertions / 0 Fail / 0 Depr** |
 | **Pint Style** | 9+ Verstöße | **clean (589 files)** |
@@ -226,7 +257,7 @@ Stand: 2026-05-08 (nach Cleanup-Welle 1 + 2 + 3 + 4 + 5 + 6 + 7)
 | `docs/openapi.yaml` | — | OpenAPI 3.1, 7 Endpunkte |
 | `docs/SERVICE_INVENTORY.md` | — | 43 Services |
 | `docs/UX_GUIDELINES.md` | März 2025 | 2026-05-08 |
-| README Quality-Gate-Tabelle | veraltet | Stand Welle 7 |
+| README Quality-Gate-Tabelle | veraltet | Stand Welle 8 |
 
 ---
 

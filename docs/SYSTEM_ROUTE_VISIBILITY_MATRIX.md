@@ -1,20 +1,20 @@
 # Routen-Sichtbarkeitsmatrix (Routen zu Rollen und Menüs)
-Stand: 2026-05-10 08:54:13
+Stand: 2026-05-10 19:54:15
 
 ## 1) Sichtbarkeit je Route
 | Oberfläche | URI | Route | Berechtigungen | Ungeschützt | Rollen | Menü |
 | --- | --- | --- | --- | --- | --- | --- |
-| api | /admin/log-files | (/admin/log-files) | — | Ja | — | — |
-| api | /admin/log-files/{file} | (/admin/log-files/{file}) | — | Ja | — | — |
-| api | /admin/log-files/{file} | (/admin/log-files/{file}) | — | Ja | — | — |
-| api | /admin/log-files/{file}/actions/download | (/admin/log-files/{file}/actions/download) | — | Ja | — | — |
-| api | /admin/log-files/{file}/entries | (/admin/log-files/{file}/entries) | — | Ja | — | — |
-| api | /admin/system-settings | (/admin/system-settings) | — | Ja | — | — |
-| api | /admin/system-settings | (/admin/system-settings) | — | Ja | — | — |
-| api | /admin/system-settings/{settingKey} | (/admin/system-settings/{settingKey}) | — | Ja | — | — |
-| api | /admin/system-settings/{settingKey} | (/admin/system-settings/{settingKey}) | — | Ja | — | — |
-| api | /admin/system-settings/{settingKey} | (/admin/system-settings/{settingKey}) | — | Ja | — | — |
-| api | /admin/system-status | (/admin/system-status) | — | Ja | — | — |
+| api | /admin/log-files | (/admin/log-files) | admin.logs.view | Nein | admin, leiter, support | — |
+| api | /admin/log-files/{file} | (/admin/log-files/{file}) | admin.logs.view | Nein | admin, leiter, support | — |
+| api | /admin/log-files/{file} | (/admin/log-files/{file}) | admin.logs.view | Nein | admin, leiter, support | — |
+| api | /admin/log-files/{file}/actions/download | (/admin/log-files/{file}/actions/download) | admin.logs.view | Nein | admin, leiter, support | — |
+| api | /admin/log-files/{file}/entries | (/admin/log-files/{file}/entries) | admin.logs.view | Nein | admin, leiter, support | — |
+| api | /admin/system-settings | (/admin/system-settings) | configuration.settings.manage | Nein | admin, configuration | — |
+| api | /admin/system-settings | (/admin/system-settings) | configuration.settings.manage | Nein | admin, configuration | — |
+| api | /admin/system-settings/{settingKey} | (/admin/system-settings/{settingKey}) | configuration.settings.manage | Nein | admin, configuration | — |
+| api | /admin/system-settings/{settingKey} | (/admin/system-settings/{settingKey}) | configuration.settings.manage | Nein | admin, configuration | — |
+| api | /admin/system-settings/{settingKey} | (/admin/system-settings/{settingKey}) | configuration.settings.manage | Nein | admin, configuration | — |
+| api | /admin/system-status | (/admin/system-status) | admin.setup.view | Nein | admin, configuration, leiter | — |
 | api | /v1/dispatch-lists | (/v1/dispatch-lists) | — | Ja | — | — |
 | api | /v1/dispatch-lists/{list}/scans | api.dispatch-lists.scans | — | Ja | — | — |
 | api | /v1/dispatch-lists/{list}/scans | api.dispatch-lists.scans.store | — | Ja | — | — |
@@ -25,10 +25,10 @@ Stand: 2026-05-10 08:54:13
 | api | /v1/tracking-alerts | (/v1/tracking-alerts) | — | Ja | — | — |
 | api | /v1/tracking-jobs | (/v1/tracking-jobs) | — | Ja | — | — |
 | web | / | (/) | — | Ja | — | — |
-| web | /admin/configuration/integrations | configuration-integrations | admin.access, configuration.settings.manage | Nein | admin, configuration | — |
-| web | /admin/configuration/integrations/{integrationKey} | configuration-integrations.show | admin.access, configuration.settings.manage | Nein | admin, configuration | — |
-| web | /admin/configuration/integrations/{integrationKey} | configuration-integrations.update | admin.access, configuration.settings.manage | Nein | admin, configuration | — |
-| web | /admin/configuration/integrations/{integrationKey}/test | configuration-integrations.test | admin.access, configuration.settings.manage | Nein | admin, configuration | — |
+| web | /admin/configuration/integrations | configuration-integrations | admin.access, configuration.integrations.manage | Nein | admin, configuration, leiter | — |
+| web | /admin/configuration/integrations/{integrationKey} | configuration-integrations.show | admin.access, configuration.integrations.manage | Nein | admin, configuration, leiter | — |
+| web | /admin/configuration/integrations/{integrationKey} | configuration-integrations.update | admin.access, configuration.integrations.manage | Nein | admin, configuration, leiter | — |
+| web | /admin/configuration/integrations/{integrationKey}/test | configuration-integrations.test | admin.access, configuration.integrations.manage | Nein | admin, configuration, leiter | — |
 | web | /admin/configuration/mail-templates | configuration-mail-templates | admin.access, configuration.mail_templates.manage | Nein | admin, configuration, leiter | — |
 | web | /admin/configuration/mail-templates | configuration-mail-templates.store | admin.access, configuration.mail_templates.manage | Nein | admin, configuration, leiter | — |
 | web | /admin/configuration/mail-templates/create | configuration-mail-templates.create | admin.access, configuration.mail_templates.manage | Nein | admin, configuration, leiter | — |
@@ -41,20 +41,20 @@ Stand: 2026-05-10 08:54:13
 | web | /admin/configuration/notifications/dispatch | configuration-notifications.dispatch | admin.access, configuration.notifications.manage | Nein | admin, configuration, leiter | Verwaltung · notifications |
 | web | /admin/configuration/notifications/settings | configuration-notifications.settings | admin.access, configuration.notifications.manage | Nein | admin, configuration, leiter | Verwaltung · notifications |
 | web | /admin/configuration/notifications/{notification}/redispatch | configuration-notifications.redispatch | admin.access, configuration.notifications.manage | Nein | admin, configuration, leiter | Verwaltung · notifications |
-| web | /admin/configuration/settings | configuration-settings | admin.access, configuration.settings.manage | Nein | admin, configuration | Systemeinstellungen |
-| web | /admin/configuration/settings | configuration-settings.store | admin.access, configuration.settings.manage | Nein | admin, configuration | Systemeinstellungen |
-| web | /admin/configuration/settings/create | configuration-settings.create | admin.access, configuration.settings.manage | Nein | admin, configuration | Systemeinstellungen |
-| web | /admin/configuration/settings/groups/{group} | configuration-settings.group-update | admin.access, configuration.settings.manage | Nein | admin, configuration | Systemeinstellungen |
-| web | /admin/configuration/settings/{settingKey} | configuration-settings.update | admin.access, configuration.settings.manage | Nein | admin, configuration | Systemeinstellungen |
-| web | /admin/configuration/settings/{settingKey}/edit | configuration-settings.edit | admin.access, configuration.settings.manage | Nein | admin, configuration | Systemeinstellungen |
-| web | /admin/csv-export | csv-export | admin.access, fulfillment.csv_export.manage | Nein | admin, leiter, operations | CSV-Export |
-| web | /admin/csv-export | csv-export.trigger | admin.access, fulfillment.csv_export.manage | Nein | admin, leiter, operations | CSV-Export |
-| web | /admin/csv-export/download | csv-export.download | admin.access, fulfillment.csv_export.manage | Nein | admin, leiter, operations | CSV-Export |
-| web | /admin/csv-export/{job}/retry | csv-export.retry | admin.access, fulfillment.csv_export.manage | Nein | admin, leiter, operations | CSV-Export |
-| web | /admin/dispatch/lists | dispatch-lists | admin.access, dispatch.lists.manage | Nein | admin, leiter, operations | Kommissionierlisten |
-| web | /admin/dispatch/lists/{list}/close | dispatch-lists.close | admin.access, dispatch.lists.manage | Nein | admin, leiter, operations | Kommissionierlisten |
-| web | /admin/dispatch/lists/{list}/export | dispatch-lists.export | admin.access, dispatch.lists.manage | Nein | admin, leiter, operations | Kommissionierlisten |
-| web | /admin/dispatch/lists/{list}/scans | dispatch-lists.scans | admin.access, dispatch.lists.manage | Nein | admin, leiter, operations | Kommissionierlisten |
+| web | /admin/configuration/settings | configuration-settings | admin.access, configuration.settings.manage | Nein | admin, configuration | — |
+| web | /admin/configuration/settings | configuration-settings.store | admin.access, configuration.settings.manage | Nein | admin, configuration | — |
+| web | /admin/configuration/settings/create | configuration-settings.create | admin.access, configuration.settings.manage | Nein | admin, configuration | — |
+| web | /admin/configuration/settings/groups/{group} | configuration-settings.group-update | admin.access, configuration.settings.manage | Nein | admin, configuration | — |
+| web | /admin/configuration/settings/{settingKey} | configuration-settings.update | admin.access, configuration.settings.manage | Nein | admin, configuration | — |
+| web | /admin/configuration/settings/{settingKey}/edit | configuration-settings.edit | admin.access, configuration.settings.manage | Nein | admin, configuration | — |
+| web | /admin/csv-export | csv-export | admin.access, fulfillment.csv_export.manage | Nein | admin, leiter, operations | — |
+| web | /admin/csv-export | csv-export.trigger | admin.access, fulfillment.csv_export.manage | Nein | admin, leiter, operations | — |
+| web | /admin/csv-export/download | csv-export.download | admin.access, fulfillment.csv_export.manage | Nein | admin, leiter, operations | — |
+| web | /admin/csv-export/{job}/retry | csv-export.retry | admin.access, fulfillment.csv_export.manage | Nein | admin, leiter, operations | — |
+| web | /admin/dispatch/lists | dispatch-lists | admin.access, dispatch.lists.manage | Nein | admin, leiter, operations | — |
+| web | /admin/dispatch/lists/{list}/close | dispatch-lists.close | admin.access, dispatch.lists.manage | Nein | admin, leiter, operations | — |
+| web | /admin/dispatch/lists/{list}/export | dispatch-lists.export | admin.access, dispatch.lists.manage | Nein | admin, leiter, operations | — |
+| web | /admin/dispatch/lists/{list}/scans | dispatch-lists.scans | admin.access, dispatch.lists.manage | Nein | admin, leiter, operations | — |
 | web | /admin/fulfillment/masterdata | fulfillment-masterdata | admin.access, fulfillment.masterdata.manage | Nein | admin, leiter, operations | — |
 | web | /admin/fulfillment/masterdata/assembly-options | fulfillment.masterdata.assembly.index | admin.access, fulfillment.masterdata.manage | Nein | admin, leiter, operations | — |
 | web | /admin/fulfillment/masterdata/assembly-options | fulfillment.masterdata.assembly.store | admin.access, fulfillment.masterdata.manage | Nein | admin, leiter, operations | — |
@@ -92,18 +92,18 @@ Stand: 2026-05-10 08:54:13
 | web | /admin/fulfillment/masterdata/variation-profiles/{variationProfile} | fulfillment.masterdata.variations.destroy | admin.access, fulfillment.masterdata.manage | Nein | admin, leiter, operations | — |
 | web | /admin/fulfillment/masterdata/variation-profiles/{variationProfile} | fulfillment.masterdata.variations.update | admin.access, fulfillment.masterdata.manage | Nein | admin, leiter, operations | — |
 | web | /admin/fulfillment/masterdata/variation-profiles/{variationProfile}/edit | fulfillment.masterdata.variations.edit | admin.access, fulfillment.masterdata.manage | Nein | admin, leiter, operations | — |
-| web | /admin/fulfillment/orders | fulfillment-orders | admin.access, fulfillment.orders.view | Nein | admin, leiter, operations, viewer | Aufträge |
-| web | /admin/fulfillment/orders/actions/manual-sync | fulfillment-orders.sync-manual | admin.access, fulfillment.orders.view | Nein | admin, leiter, operations, viewer | Aufträge |
-| web | /admin/fulfillment/orders/actions/sync-booked | fulfillment-orders.sync-booked | admin.access, fulfillment.orders.view | Nein | admin, leiter, operations, viewer | Aufträge |
-| web | /admin/fulfillment/orders/actions/sync-visible | fulfillment-orders.sync-visible | admin.access, fulfillment.orders.view | Nein | admin, leiter, operations, viewer | Aufträge |
-| web | /admin/fulfillment/orders/{order} | fulfillment-orders.show | admin.access, fulfillment.orders.view | Nein | admin, leiter, operations, viewer | Aufträge |
-| web | /admin/fulfillment/orders/{order}/book | fulfillment-orders.book | admin.access, fulfillment.orders.view | Nein | admin, leiter, operations, viewer | Aufträge |
-| web | /admin/fulfillment/orders/{order}/dhl/book | fulfillment-orders.dhl.book | admin.access, fulfillment.orders.view | Nein | admin, leiter, operations, viewer | Aufträge |
-| web | /admin/fulfillment/orders/{order}/dhl/label | fulfillment-orders.dhl.label | admin.access, fulfillment.orders.view | Nein | admin, leiter, operations, viewer | Aufträge |
-| web | /admin/fulfillment/orders/{order}/dhl/price-quote | fulfillment-orders.dhl.price-quote | admin.access, fulfillment.orders.view | Nein | admin, leiter, operations, viewer | Aufträge |
-| web | /admin/fulfillment/orders/{order}/tracking-transfer | fulfillment-orders.transfer | admin.access, fulfillment.orders.view | Nein | admin, leiter, operations, viewer | Aufträge |
-| web | /admin/fulfillment/shipments | fulfillment-shipments | admin.access, fulfillment.shipments.manage | Nein | admin, leiter, operations | Sendungen |
-| web | /admin/fulfillment/shipments/{shipment}/sync | fulfillment-shipments.sync | admin.access, fulfillment.shipments.manage | Nein | admin, leiter, operations | Sendungen |
+| web | /admin/fulfillment/orders | fulfillment-orders | admin.access, fulfillment.orders.view | Nein | admin, leiter, operations, viewer | — |
+| web | /admin/fulfillment/orders/actions/manual-sync | fulfillment-orders.sync-manual | admin.access, fulfillment.orders.view | Nein | admin, leiter, operations, viewer | — |
+| web | /admin/fulfillment/orders/actions/sync-booked | fulfillment-orders.sync-booked | admin.access, fulfillment.orders.view | Nein | admin, leiter, operations, viewer | — |
+| web | /admin/fulfillment/orders/actions/sync-visible | fulfillment-orders.sync-visible | admin.access, fulfillment.orders.view | Nein | admin, leiter, operations, viewer | — |
+| web | /admin/fulfillment/orders/{order} | fulfillment-orders.show | admin.access, fulfillment.orders.view | Nein | admin, leiter, operations, viewer | — |
+| web | /admin/fulfillment/orders/{order}/book | fulfillment-orders.book | admin.access, fulfillment.orders.view | Nein | admin, leiter, operations, viewer | — |
+| web | /admin/fulfillment/orders/{order}/dhl/book | fulfillment-orders.dhl.book | admin.access, fulfillment.orders.view | Nein | admin, leiter, operations, viewer | — |
+| web | /admin/fulfillment/orders/{order}/dhl/label | fulfillment-orders.dhl.label | admin.access, fulfillment.orders.view | Nein | admin, leiter, operations, viewer | — |
+| web | /admin/fulfillment/orders/{order}/dhl/price-quote | fulfillment-orders.dhl.price-quote | admin.access, fulfillment.orders.view | Nein | admin, leiter, operations, viewer | — |
+| web | /admin/fulfillment/orders/{order}/tracking-transfer | fulfillment-orders.transfer | admin.access, fulfillment.orders.view | Nein | admin, leiter, operations, viewer | — |
+| web | /admin/fulfillment/shipments | fulfillment-shipments | admin.access, fulfillment.shipments.manage | Nein | admin, leiter, operations | — |
+| web | /admin/fulfillment/shipments/{shipment}/sync | fulfillment-shipments.sync | admin.access, fulfillment.shipments.manage | Nein | admin, leiter, operations | — |
 | web | /admin/identity/users | identity-users | admin.access, identity.users.manage | Nein | admin, identity, leiter | Verwaltung · identity-users |
 | web | /admin/identity/users | identity-users.store | admin.access, identity.users.manage | Nein | admin, identity, leiter | Verwaltung · identity-users |
 | web | /admin/identity/users/create | identity-users.create | admin.access, identity.users.manage | Nein | admin, identity, leiter | Verwaltung · identity-users |
@@ -112,12 +112,12 @@ Stand: 2026-05-10 08:54:13
 | web | /admin/identity/users/{user}/edit | identity-users.edit | admin.access, identity.users.manage | Nein | admin, identity, leiter | Verwaltung · identity-users |
 | web | /admin/identity/users/{user}/password | identity-users.reset-password | admin.access, identity.users.manage | Nein | admin, identity, leiter | Verwaltung · identity-users |
 | web | /admin/identity/users/{user}/status | identity-users.update-status | admin.access, identity.users.manage | Nein | admin, identity, leiter | Verwaltung · identity-users |
-| web | /admin/logs | admin-logs | admin.access, admin.logs.view | Nein | admin, leiter, support | Logs · system-logs |
-| web | /admin/logs/download | admin-logs.download | admin.access, admin.logs.view | Nein | admin, leiter, support | Logs · system-logs |
+| web | /admin/logs | monitoring-logs | admin.access, admin.logs.view | Nein | admin, leiter, support | Logs · system-logs |
+| web | /admin/logs/download | monitoring-logs.download | admin.access, admin.logs.view | Nein | admin, leiter, support | Logs · system-logs |
 | web | /admin/monitoring/audit-logs | monitoring-audit-logs | admin.access, monitoring.audit_logs.view | Nein | admin, leiter, support | Logs · audit-logs |
 | web | /admin/monitoring/domain-events | monitoring-domain-events | admin.access, monitoring.domain_events.view | Nein | admin, leiter, operations, support | Logs · domain-events |
 | web | /admin/monitoring/system-jobs | monitoring-system-jobs | admin.access, monitoring.system_jobs.view | Nein | admin, leiter, operations, support, viewer | Monitoring · system-jobs |
-| web | /admin/setup | admin-setup | admin.access, admin.setup.view | Nein | admin, configuration, leiter | Monitoring · system-status |
+| web | /admin/setup | monitoring-health | admin.access, admin.setup.view | Nein | admin, configuration, leiter | Monitoring · system-status |
 | web | /admin/tracking | tracking-overview | admin.access, tracking.overview.view | Nein | admin, leiter, operations, support, viewer | Monitoring · tracking |
 | web | /admin/tracking/alerts/{alert} | tracking-alerts.show | admin.access, tracking.overview.view | Nein | admin, leiter, operations, support, viewer | — |
 | web | /admin/tracking/alerts/{alert}/acknowledge | tracking-alerts.acknowledge | admin.access, tracking.alerts.manage | Nein | admin, leiter, operations | — |

@@ -44,7 +44,7 @@ php artisan serve
 | Unit & Feature      | `php artisan test`                       | Runs the PHPUnit suite (Feature + Unit) |
 | Pest Runner         | `vendor/bin/pest`                        | Alternative runner with granular reporting |
 | Browser (Dusk)      | `php artisan dusk --env=dusk`            | Requires Chrome/Chromedriver; uses `phpunit.dusk.xml` |
-| Static Analysis     | `vendor/bin/phpstan analyse`             | Larastan configured via `phpstan.neon` — **Level 3** (PR-blocking). Hochstufung auf Level 4 im Backlog. |
+| Static Analysis     | `vendor/bin/phpstan analyse`             | Larastan configured via `phpstan.neon` — **Level 8** (PR-blocking). Hochstufung auf Level 9 im Backlog. |
 | Code Style          | `vendor/bin/pint --test`                 | Non-destructive check; auto-fix mit `vendor/bin/pint`. Aktuell: clean. |
 | System Cartography  | `php scripts/system-kartographie-gen.php --project-root=. --output-dir=docs` | Generiert `docs/SYSTEM_*.md` aus Routen/Views/Composers. CI prüft Drift. |
 | A11y Smoke          | `npm run audit:a11y`                     | axe-core CLI gegen lokalen `php artisan serve`. WCAG 2.1 AA. |

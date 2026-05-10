@@ -1,5 +1,5 @@
 # System Audit Report
-Stand: 2026-05-10 08:54:13
+Stand: 2026-05-10 19:54:15
 
 ## 1) Qualitäts-Gate Status
 | Kriterium | Status |
@@ -8,8 +8,8 @@ Stand: 2026-05-10 08:54:13
 | Route-Duplikate (Namen) | 0 |
 | Route-Duplikate (Method+URI) | 0 |
 | Menüpunkte ohne bestehende Route | 0 |
-| Berechtigungen insgesamt | 18 |
-| Genutzte Berechtigungen | 18 |
+| Berechtigungen insgesamt | 19 |
+| Genutzte Berechtigungen | 19 |
 | Unbenutzte Berechtigungen | 0 |
 | Unbekannte Route-Berechtigungen | 0 |
 
@@ -49,7 +49,7 @@ Stand: 2026-05-10 08:54:13
 | --- | ---: | --- |
 | Menüpunkte mit fehlender Route | 0 |  |
 | Menüpunkte ohne explizite Berechtigung | 0 |  |
-| Menüpunkte mit leerer Route | 0 |  |
+| Menüpunkte mit leerer Route | 6 | Operations<br>Stammdaten<br>Tracking<br>Monitoring<br>Verwaltung<br>Konfiguration |
 
 ## 6) Ungeroutete Views (potenzieller Bereinigungsbereich)
 | Kategorie | Anzahl | Beispiele |
@@ -103,6 +103,6 @@ Stand: 2026-05-10 08:54:13
 ## 10) Rollenmodell für Mitarbeiter / Leiter / Admin
 | Persona | Rollen | Sichtbare Routen | Sichtbare Menüeinträge |
 | --- | --- | ---: | --- |
-| Mitarbeiter | operations | 65 | Aufträge, CSV-Export, Kommissionierlisten, Logs · domain-events, Monitoring · system-jobs, Monitoring · tracking, Sendungen |
-| Leiter | leiter | 89 | Aufträge, CSV-Export, Kommissionierlisten, Logs · audit-logs, Logs · domain-events, Logs · system-logs, Monitoring · system-jobs, Monitoring · system-status, Monitoring · tracking, Sendungen, Verwaltung · identity-users, Verwaltung · notifications |
-| Admin | admin | 99 | Aufträge, CSV-Export, Kommissionierlisten, Logs · audit-logs, Logs · domain-events, Logs · system-logs, Monitoring · system-jobs, Monitoring · system-status, Monitoring · tracking, Sendungen, Systemeinstellungen, Verwaltung · identity-users, Verwaltung · notifications |
+| Mitarbeiter | operations | 65 | Logs · domain-events, Monitoring · system-jobs, Monitoring · tracking |
+| Leiter | leiter | 98 | Logs · audit-logs, Logs · domain-events, Logs · system-logs, Monitoring · system-jobs, Monitoring · system-status, Monitoring · tracking, Verwaltung · identity-users, Verwaltung · notifications |
+| Admin | admin | 106 | Logs · audit-logs, Logs · domain-events, Logs · system-logs, Monitoring · system-jobs, Monitoring · system-status, Monitoring · tracking, Verwaltung · identity-users, Verwaltung · notifications |

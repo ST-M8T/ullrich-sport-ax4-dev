@@ -1,11 +1,11 @@
 # Systemreorganisation-Roadmap
-Stand: 2026-05-10 08:54:13
+Stand: 2026-05-10 19:54:15
 
 ## 0) Überblick
 
 - Erfasste Routen: `123`
-- Erfasste Menüeinträge: `13`
-- Ungeschützte Routen: `24`
+- Erfasste Menüeinträge: `14`
+- Ungeschützte Routen: `13`
 - Ungeroutete Views: `38`
 
 ## 1) Qualitätsgates
@@ -14,7 +14,7 @@ Stand: 2026-05-10 08:54:13
 | --- | --- | --- | --- | --- |
 | Gate A | Routing- und Berechtigungsintegrität | erfüllt | Architektur + Backend | keine |
 | Gate B | Rollen- und Persona-Konsistenz | erfüllt | Product Owner + Identity | keine |
-| Gate C | Navigation ohne tote Verweise | erfüllt | Frontend | keine |
+| Gate C | Navigation ohne tote Verweise | risikobehaftet | Frontend | Menüeinträge ohne wirksames Route-Ziel |
 | Gate D | Komplette View-Lifecycle | offen | Frontend + QA | 87+ nicht geroutete Views, 1 kritisch als potenzieller Altbestand |
 | Gate E | Viewport- und Interaktionskonformität | offen | UX + Frontend | Automatisierte Breakpoint- und Accessibility-Prüfung noch nicht als Pipeline-Schritt vorhanden |
 
@@ -23,8 +23,8 @@ Stand: 2026-05-10 08:54:13
 | Persona | Zugeordnete Rollen | Sichtbare Routen | Status |
 | --- | --- | ---: | --- |
 | Mitarbeiter | operations | 65 | erfüllt |
-| Leiter | leiter | 89 | erfüllt |
-| Admin | admin | 99 | erfüllt |
+| Leiter | leiter | 98 | erfüllt |
+| Admin | admin | 106 | erfüllt |
 
 ## 3) Modul- und Oberflächenübersicht
 
@@ -51,7 +51,7 @@ Stand: 2026-05-10 08:54:13
 
 - Menüpunkte ohne bestehende Route: `0`
 - Menüpunkte ohne explizite Berechtigung: `0`
-- Menüpunkte mit ungültigem Ziel: `0`
+- Menüpunkte mit ungültigem Ziel: `6`
 
 | Kategorie | Anzahl | Beispiel |
 | --- | ---: | --- |

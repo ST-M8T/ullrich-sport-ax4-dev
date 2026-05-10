@@ -1,5 +1,5 @@
 # View-Kartographie (Blade)
-Stand: 2026-05-10 08:54:13
+Stand: 2026-05-10 19:54:15
 
 ## 1) Geroutete Views
 | View | Route | URI | Datei | currentSection | Composer |
@@ -45,8 +45,8 @@ Stand: 2026-05-10 08:54:13
 | identity.users.show | identity-users.show | /admin/identity/users/{user} | /Users/tsid/dev/01-ullrich-sport/server/20-interne-programme/01-ax4/development/resources/views/identity/users/show.blade.php | identity-users | — |
 | monitoring.audit-logs.index | monitoring-audit-logs | /admin/monitoring/audit-logs | /Users/tsid/dev/01-ullrich-sport/server/20-interne-programme/01-ax4/development/resources/views/monitoring/audit-logs/index.blade.php | monitoring-audit-logs | \App\View\Composers\Monitoring\MonitoringAuditLogsComposer |
 | monitoring.domain-events.index | monitoring-domain-events | /admin/monitoring/domain-events | /Users/tsid/dev/01-ullrich-sport/server/20-interne-programme/01-ax4/development/resources/views/monitoring/domain-events/index.blade.php | monitoring-domain-events | \App\View\Composers\Monitoring\MonitoringDomainEventsComposer |
-| monitoring.logs.index | admin-logs | /admin/logs | /Users/tsid/dev/01-ullrich-sport/server/20-interne-programme/01-ax4/development/resources/views/monitoring/logs/index.blade.php | admin-logs | — |
-| monitoring.setup.index | admin-setup | /admin/setup | /Users/tsid/dev/01-ullrich-sport/server/20-interne-programme/01-ax4/development/resources/views/monitoring/setup/index.blade.php | admin-setup | — |
+| monitoring.logs.index | monitoring-logs | /admin/logs | /Users/tsid/dev/01-ullrich-sport/server/20-interne-programme/01-ax4/development/resources/views/monitoring/logs/index.blade.php | monitoring-logs | — |
+| monitoring.setup.index | monitoring-health | /admin/setup | /Users/tsid/dev/01-ullrich-sport/server/20-interne-programme/01-ax4/development/resources/views/monitoring/setup/index.blade.php | monitoring-health | — |
 | monitoring.system-jobs.index | monitoring-system-jobs | /admin/monitoring/system-jobs | /Users/tsid/dev/01-ullrich-sport/server/20-interne-programme/01-ax4/development/resources/views/monitoring/system-jobs/index.blade.php | monitoring-system-jobs | \App\View\Composers\Monitoring\MonitoringSystemJobsComposer |
 | tracking.overview | tracking-overview | /admin/tracking | /Users/tsid/dev/01-ullrich-sport/server/20-interne-programme/01-ax4/development/resources/views/tracking/overview.blade.php | tracking-overview | \App\View\Composers\Tracking\TrackingOverviewComposer |
 
