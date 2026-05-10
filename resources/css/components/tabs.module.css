@@ -1,0 +1,92 @@
+/**
+ * Tabs Component Module
+ * Standardisierte Tab-Navigation - immer wieder gleich
+ * BEM-Methodologie: .tabs__element--modifier
+ */
+
+.tabs {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 0;
+    border-bottom: 1px solid var(--color-border);
+    margin-bottom: 1.5rem;
+    padding-bottom: 0;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+}
+
+.tabs::-webkit-scrollbar {
+    height: 4px;
+}
+
+.tabs::-webkit-scrollbar-track {
+    background: var(--color-border);
+}
+
+.tabs::-webkit-scrollbar-thumb {
+    background: var(--brand-primary);
+}
+
+.tabs__button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border: none;
+    background: transparent;
+    color: var(--color-text-muted);
+    padding: 0.75rem 1.5rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    text-decoration: none;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.2s ease, color 0.2s ease, border-bottom 0.2s ease;
+    border-bottom: 3px solid transparent;
+    margin-bottom: -1px;
+    flex-shrink: 0;
+}
+
+.tabs__button:hover,
+.tabs__button:focus {
+    color: var(--color-text);
+    background: color-mix(in srgb, var(--brand-primary) 8%, transparent);
+}
+
+.tabs__button.is-active,
+.tabs__button[aria-current='page'] {
+    background: transparent;
+    color: var(--brand-primary);
+    border-bottom-color: var(--brand-primary);
+}
+
+.tabs__badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.5rem;
+    height: 1.5rem;
+    padding: 0 0.375rem;
+    background: var(--color-border);
+    color: var(--color-text);
+    font-size: 0.7rem;
+    font-weight: 600;
+    border-radius: 0;
+}
+
+.tabs__button.is-active .tabs__badge,
+.tabs__button[aria-current='page'] .tabs__badge {
+    background: var(--brand-primary);
+    color: var(--color-white);
+}
+
+.tabs__panel {
+    display: block;
+}
+
+.tabs__panel[hidden] {
+    display: none !important;
+}

@@ -1,0 +1,87 @@
+openapi: 3.0.2
+info:
+  title: DGFF Freight Info Timetable API
+  version: '1.1 (2024/R07)'
+  description: >-
+    
+    Please refer Downloads section for more information
+  contact:
+    email: api4freight@dhl.com
+
+# 1) Define the security scheme type (HTTP bearer)
+components:
+  securitySchemes:
+    bearerAuth:            # arbitrary name for the security scheme
+      type: http
+      scheme: bearer
+      bearerFormat: JWT    # optional, arbitrary value for documentation purposes
+# 2) Apply the security globally to all operations
+security:
+  - bearerAuth: []         # use the same name as above
+servers:
+  - url: https://api-sandbox.dhl.com/freight/info/time-table/v1
+    description: Customer Sandbox Environment
+  - url: https://api.dhl.com/freight/info/time-table/v1
+    description: Customer Production Environment
+
+paths:
+  /timetable/gettimetable:
+    post:
+      tags:
+        - TIMETABLE
+      operationId: gettimetable
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                Parties:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      Address:
+                        type: object
+                        properties:
+                          CountryCode:
+                            type: string
+                            example: SE
+                          PostalCode:
+                            type: string
+                            example: '56141'
+                      Type:
+                        type: string
+                        example: Consignor
+                  example:
+                    - Address:
+                        CountryCode: SE
+                        PostalCode: '56141'
+                      Type: Consignor
+                    - Address:
+                        CountryCode: DK
+                        PostalCode: '1050'
+                      Type: Consignee
+                PickupDate:
+                  type: string
+                  example: '2023-04-14'
+                productCode:
+                  type: string
+                  example: '202'
+            example:
+              Parties:
+                - Address:
+                    CountryCode: SE
+                    PostalCode: '56141'
+                  Type: Consignor
+                - Address:
+                    CountryCode: DK
+                    PostalCode: '1050'
+                  Type: Consignee
+              PickupDate: '2023-04-14'
+              productCode: '202'
+      responses:
+        '200':
+          description: ''
+tags:
+  - name: TIMETABLE

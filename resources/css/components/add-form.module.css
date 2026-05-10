@@ -1,0 +1,62 @@
+/**
+ * Add Form Component Module
+ * Wiederverwendbares Formular-Modul für "Hinzufügen"-Formulare
+ */
+
+.add-form {
+    background: var(--surface-panel);
+    border: 1px solid var(--color-border);
+    padding: 1.25rem;
+    margin-bottom: 1.25rem;
+    box-shadow: var(--shadow-elevated);
+}
+
+.add-form__title {
+    margin-top: 0;
+    margin-bottom: 1rem;
+    font-weight: 600;
+    color: var(--color-text);
+}
+
+.add-form__row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 0.9375rem;
+    align-items: end;
+}
+
+.add-form__group {
+    display: flex;
+    flex-direction: column;
+}
+
+.add-form__group--actions {
+    flex-direction: row;
+    gap: 0.625rem;
+    justify-content: flex-start;
+}
+
+.add-form__label {
+    font-weight: 600;
+    margin-bottom: 0.3125rem;
+    color: var(--color-text);
+}
+
+.add-form__control {
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--color-border);
+    font-size: 0.875rem;
+}
+
+.add-form__control:focus {
+    border-color: var(--brand-primary);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--brand-primary) 25%, transparent);
+    outline: none;
+}
+
+.add-form__text {
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+    margin-top: 0.25rem;
+}
+

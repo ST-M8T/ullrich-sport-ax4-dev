@@ -1,0 +1,138 @@
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    padding: 0.65rem 1.5rem;
+    border: 1px solid var(--brand-primary);
+    background: var(--brand-primary);
+    color: var(--color-white);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.btn:hover,
+.btn:focus-visible {
+    background: var(--brand-primary-hover);
+    border-color: var(--brand-primary-hover);
+    color: var(--color-white);
+}
+
+.btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.btn-sm { padding: 0.4rem 1rem; font-size: 0.75rem; }
+.btn-lg { padding: 0.85rem 2rem; font-size: 0.95rem; }
+
+/* Mobile Touch-Target: min. 44px (2.75rem) für btn-sm auf kleinen Viewports (a11y). */
+@media (max-width: 575.98px) {
+    .btn-sm {
+        min-height: 2.75rem;
+    }
+}
+
+/* Button Group: Inline-Anordnung mehrerer Buttons als zusammenhängende Aktionsgruppe. */
+.btn-group {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.btn-group-sm {
+    gap: 0.25rem;
+}
+
+.btn-primary,
+.btn-success,
+.btn-info {
+    background: var(--brand-primary);
+    border-color: var(--brand-primary);
+    color: var(--color-white);
+}
+
+.btn-primary:hover,
+.btn-primary:focus-visible,
+.btn-success:hover,
+.btn-success:focus-visible,
+.btn-info:hover,
+.btn-info:focus-visible {
+    background: var(--brand-primary-hover);
+    border-color: var(--brand-primary-hover);
+}
+
+.btn-secondary {
+    background: var(--brand-dark);
+    border-color: var(--brand-dark);
+    color: var(--color-white);
+}
+
+.btn-secondary:hover,
+.btn-secondary:focus-visible {
+    background: color-mix(in srgb, var(--brand-dark) 85%, var(--color-black));
+    border-color: color-mix(in srgb, var(--brand-dark) 85%, var(--color-black));
+}
+
+.btn-danger {
+    background: var(--brand-danger);
+    border-color: var(--brand-danger);
+    color: var(--color-white);
+}
+
+.btn-danger:hover,
+.btn-danger:focus-visible {
+    background: var(--brand-danger-hover);
+    border-color: var(--brand-danger-hover);
+}
+
+.btn-outline,
+.btn-outline-primary,
+.btn-outline-success {
+    background: transparent;
+    color: var(--brand-primary);
+    border-color: var(--brand-primary);
+}
+
+.btn-outline:hover,
+.btn-outline:focus-visible,
+.btn-outline-primary:hover,
+.btn-outline-primary:focus-visible,
+.btn-outline-success:hover,
+.btn-outline-success:focus-visible {
+    background: var(--brand-primary);
+    color: var(--color-white);
+}
+
+.btn-outline-secondary,
+.btn-outline-light {
+    background: transparent;
+    border-color: var(--color-border);
+    color: var(--color-text);
+}
+
+.btn-outline-secondary:hover,
+.btn-outline-secondary:focus-visible,
+.btn-outline-light:hover,
+.btn-outline-light:focus-visible {
+    color: var(--brand-primary);
+    border-color: var(--brand-primary);
+    background: color-mix(in srgb, var(--brand-primary) 10%, transparent);
+}
+
+.btn-link {
+    border: none;
+    background: transparent;
+    color: var(--brand-primary);
+    padding: 0;
+}
+
+.btn-link:hover,
+.btn-link:focus-visible {
+    color: var(--brand-primary-hover);
+    text-decoration: underline;
+}

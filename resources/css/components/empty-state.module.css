@@ -1,0 +1,21 @@
+/**
+ * Empty State Component Module
+ * Leer-Zustand-Komponente
+ */
+
+.empty-state {
+    border: 1px dashed var(--color-border);
+    background: color-mix(in srgb, var(--surface-panel) 95%, transparent);
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    color: var(--color-text);
+}
+
+.empty-state__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+

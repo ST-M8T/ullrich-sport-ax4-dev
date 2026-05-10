@@ -1,0 +1,16 @@
+/**
+ * Spinner Component Module
+ * Lade-Indikator-Komponente
+ */
+
+.ui-spinner {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    border: 1px solid color-mix(in srgb, var(--brand-primary) 40%, transparent);
+    background: color-mix(in srgb, var(--brand-primary) 12%, var(--color-white));
+    color: var(--brand-primary);
+    padding: 0.75rem 1rem;
+    font-size: 0.9rem;
+}
+

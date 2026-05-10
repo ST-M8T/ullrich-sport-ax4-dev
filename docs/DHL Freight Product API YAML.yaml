@@ -1,0 +1,668 @@
+openapi: 3.0.2
+info:
+  title: DHL Freight Product API
+  version: '1.3 (2025/R06)'
+  description: >-
+    Listing domestic and international palletized road freight transport products (> 35 kg) and packaget types across Europe with DHL Freight for existing DHL Freight business customers with a valid contract.
+    Please refer Downloads section for more information.
+  contact:
+    email: api4freight@dhl.com
+paths:
+  /products:
+    get:
+      tags:
+        - Products
+      summary: Products
+      description: Products
+      operationId: Products
+      responses:
+        '200': 
+          description: 'List of all actual DHL Freight products'
+          content:
+            application/json:
+              schema:
+                  {
+                  "type": "array",
+                  "items": {
+                  "$ref": "#/components/schemas/Product"
+                   }
+                  }
+  /products/{productCode}:
+    get:
+      tags:
+        - Products
+      summary: product, productCode, fromCountryCode and toCountryCode
+      description: Products, productCode, fromCountryCode and toCountryCode
+      operationId: productsProductsECIFromcountrycodeDETocountrycodeFR
+      parameters:
+        - name: productCode
+          in: path
+          required: true
+          schema:
+            type: string
+            example: ECI
+        - name: fromCountryCode
+          in: query
+          schema:
+            type: string
+            example: DE
+        - name: toCountryCode
+          in: query
+          schema:
+            type: string
+            example: FR
+      responses:
+        '200': 
+          description: 'List of actual DHL Freight product from/to Countries'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+  /productmatches:
+    post:
+      tags:
+        - Products
+      summary: products - productmatches
+      description: products - productmatches
+      operationId: productsProductmatches
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                marketAvailability:
+                  type: string
+                  example: B2B
+                parties:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      address:
+                        type: object
+                        properties:
+                          countryCode:
+                            type: string
+                            example: DE
+                          postalCode:
+                            type: string
+                            example: '53175'
+                      type:
+                        type: string
+                        example: Consignor
+                  example:
+                    - address:
+                        countryCode: DE
+                        postalCode: '53175'
+                      type: Consignor
+                    - address:
+                        countryCode: FR
+                        postalCode: '69000'
+                      type: Consignee
+                pieces:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      height:
+                        type: integer
+                        example: 40
+                      length:
+                        type: integer
+                        example: 80
+                      numberOfPieces:
+                        type: integer
+                        example: 5
+                      stackable:
+                        type: boolean
+                        example: true
+                      weight:
+                        type: number
+                        example: 100
+                      width:
+                        type: integer
+                        example: 120
+                  example:
+                    - height: 40
+                      length: 80
+                      numberOfPieces: 5
+                      stackable: true
+                      weight: 100
+                      width: 120
+                totalNumberOfPieces:
+                  type: integer
+                  example: 5
+                totalWeight:
+                  type: number
+                  example: 500
+            example:
+              marketAvailability: B2B
+              parties:
+                - address:
+                    countryCode: DE
+                    postalCode: '53175'
+                  type: Consignor
+                - address:
+                    countryCode: FR
+                    postalCode: '69000'
+                  type: Consignee
+              pieces:
+                - height: 40
+                  length: 80
+                  numberOfPieces: 5
+                  stackable: true
+                  weight: 100
+                  width: 120
+              totalNumberOfPieces: 5
+              totalWeight: 500
+      responses:
+        '200': 
+          description: 'Find best product matching provided query. Query property parties 
+          (array) must contain at least two objects. One of type Consignee 
+          and one of type Consignor'
+          content:
+            application/json:
+              schema:
+                {
+                  "type": "array",
+                  "items": {
+                  "$ref": "#/components/schemas/Product"
+                  }
+                }
+  /chargeableweight/calculationresults:
+    post:
+      tags:
+        - Products
+      summary: products - chargeableweight - calculationresults
+      description: products - chargeableweight - calculationresults
+      operationId: productsChargeableweightCalculationresults
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                parties:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      address:
+                        type: object
+                        properties:
+                          countryCode:
+                            type: string
+                            example: DE
+                          postalCode:
+                            type: string
+                            example: '53175'
+                      type:
+                        type: string
+                        example: Consignor
+                  example:
+                    - address:
+                        countryCode: DE
+                        postalCode: '53175'
+                      type: Consignor
+                    - address:
+                        countryCode: FR
+                        postalCode: '69000'
+                      type: Consignee
+                pieces:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      height:
+                        type: integer
+                        example: 40
+                      length:
+                        type: integer
+                        example: 80
+                      numberOfPieces:
+                        type: integer
+                        example: 5
+                      stackable:
+                        type: boolean
+                        example: true
+                      weight:
+                        type: number
+                        example: 100
+                      width:
+                        type: integer
+                        example: 120
+                  example:
+                    - height: 40
+                      length: 80
+                      numberOfPieces: 5
+                      stackable: true
+                      weight: 100
+                      width: 120
+                productCode:
+                  type: string
+                  example: 'ECI'
+                totalNumberOfPieces:
+                  type: integer
+                  example: 5
+                totalWeight:
+                  type: number
+                  example: 500
+            example:
+              parties:
+                - address:
+                    countryCode: DE
+                    postalCode: '53175'
+                  type: Consignor
+                - address:
+                    countryCode: FR
+                    postalCode: '69000'
+                  type: Consignee
+              pieces:
+                - height: 40
+                  length: 80
+                  numberOfPieces: 5
+                  stackable: true
+                  weight: 100
+                  width: 120
+              productCode: 'ECI'
+              totalNumberOfPieces: 5
+              totalWeight: 500
+      responses:
+        '200':
+          description: 'List of chargeable weight calculation results'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CalculationResult'
+        '400':
+          description: 'Validation or request error'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BadRequestError'
+  /packagetypes/{productCode}:
+    get:
+      tags:
+        - Products
+      summary: Package Type, Product Code, fromCountryCode and toCountryCode
+      description: Package Type, Product Code, fromCountryCode and toCountryCode
+      operationId: productsPackagetypesECITocountrycodeDEFromcountrycodeFR
+      parameters:
+        - name: productCode
+          in: path
+          required: true
+          schema:
+            type: string
+            example: ECI
+        - name: toCountryCode
+          in: query
+          schema:
+            type: string
+            example: FR
+        - name: fromCountryCode
+          in: query
+          schema:
+            type: string
+            example: DE
+      responses:
+        '200': 
+          description: 'Package types for given product code'
+          content:
+            application/json:
+              schema:
+                {
+                  "type": "array",
+                  "items": {
+                  "$ref": "#/components/schemas/PackageTypeResponse"
+                  }
+                }
+components:
+  schemas:
+    Product:
+      type: object
+      properties:
+        isDomestic:
+          type: boolean
+        name:
+          type: string
+        productCode:
+          type: string
+        description:
+          type: string
+        customRules:
+          type: string
+        active:
+          type: boolean
+        stackable:
+          type: boolean
+        shipmentTotal:
+          $ref: '#/components/schemas/ShipmentTotal'
+        piece:
+          $ref: '#/components/schemas/Piece'
+        fromCountries:
+          type: array
+          items:
+            $ref: '#/components/schemas/FromCountry'
+        toCountries:
+          type: array
+          items:
+            $ref: '#/components/schemas/ToCountry'
+        marketAvailability:
+          type: array
+          items:
+            $ref: '#/components/schemas/MarketAvailability'
+        packageTypes:
+          type: array
+          items:
+            $ref: '#/components/schemas/PackageType'
+        exclusions:
+          type: array
+          items:
+            $ref: '#/components/schemas/Exclusion'
+        dangerousGoodsExclusions:
+          type: array
+          items:
+            $ref: '#/components/schemas/DangerousGoodsExclusion'
+        payerCodes:
+          type: array
+          items:
+            $ref: '#/components/schemas/PayerCodeResponse'
+        additionalServices:
+          type: array
+          items:
+            $ref: '#/components/schemas/AdditionalService'
+    ShipmentTotal:
+      type: object
+      properties:
+        totalNumberOfPieces:
+          $ref: '#/components/schemas/MinAndMaxInt'
+        totalWeight:
+          $ref: '#/components/schemas/MinAndMaxDbl'
+        totalVolume:
+          $ref: '#/components/schemas/MinAndMaxDbl'
+        totalLoadingMeters:
+          $ref: '#/components/schemas/MinAndMaxDbl'
+        totalPalletPlaces:
+          $ref: '#/components/schemas/MinAndMaxDbl'
+    MinAndMaxInt:
+      type: object
+      properties:
+        min:
+          format: int32
+          type: integer
+        max:
+          format: int32
+          type: integer
+    MinAndMaxDbl:
+      type: object
+      properties:
+        min:
+          format: double
+          type: number
+        max:
+          format: double
+          type: number
+    Piece:
+      type: object
+      properties:
+        numberOfPieces:
+          $ref: '#/components/schemas/MinAndMaxInt'
+        weight:
+          $ref: '#/components/schemas/MinAndMaxDbl'
+        volume:
+          $ref: '#/components/schemas/MinAndMaxDbl'
+        loadingMeters:
+          $ref: '#/components/schemas/MinAndMaxDbl'
+        palletPlaces:
+          $ref: '#/components/schemas/MinAndMaxDbl'
+        width:
+          $ref: '#/components/schemas/MinAndMaxInt'
+        height:
+          $ref: '#/components/schemas/MinAndMaxInt'
+        length:
+          $ref: '#/components/schemas/MinAndMaxInt'
+    FromCountry:
+      type: object
+      properties:
+        country:
+          $ref: '#/components/schemas/Country'
+    Country:
+      type: object
+      properties:
+        englishName:
+          type: string
+          example: 'Germany'
+        countryCode:
+          type: string
+          example: 'DE'
+        customs:
+          type: boolean
+          example: false
+    ToCountry:
+      type: object
+      properties:
+        country:
+          $ref: '#/components/schemas/Country'
+        postalCodeExcludes:
+          type: string
+        deliveryTypes:
+          type: array
+          items:
+            $ref: '#/components/schemas/DeliveryType'
+    DeliveryType:
+      type: object
+      properties:
+        code:
+          type: string
+        name:
+          type: string
+        shipmentTotal:
+          $ref: '#/components/schemas/ShipmentTotal'
+        piece:
+          $ref: '#/components/schemas/Piece'
+    MarketAvailability:
+      type: object
+      properties:
+        name:
+          type: string
+          example: 'B2B'
+    PackageType:
+      type: object
+      properties:
+        code:
+          type: string
+        name:
+          type: string
+    Exclusion:
+      type: object
+      properties:
+        code:
+          type: string
+        name:
+          type: string
+    DangerousGoodsExclusion:
+      description: Indicates whether a dangerous goods class is allowed or not. If a class is allowed, then the exceptions are not allowed
+                   If a class is not allowed, then the exceptions allowed
+      type: object
+      properties:
+        class:
+          type: string
+        name:
+          type: string
+        allowed:
+          type: boolean
+        exceptions:
+          type: array
+          items:
+            $ref: '#/components/schemas/DangerousGoodsExclusionException'
+    DangerousGoodsExclusionException:
+      type: object
+      properties:
+        type:
+          type: string
+        value:
+          type: string    
+    PayerCodeResponse:
+      type: object
+      properties:
+        code:
+          type: string
+        name:
+          type: string
+        customs:
+          type: boolean
+    AdditionalService:
+      type: object
+      properties:
+        code:
+          $ref: '#/components/schemas/AdditionalServiceType'
+        name:
+          type: string
+        information:
+          type: string
+        codeMappings:
+          type: array
+          items:
+            $ref: '#/components/schemas/CodeMapping'
+        translations:
+          type: array
+          items:
+            $ref: '#/components/schemas/Translation'
+        customs:
+          type: boolean
+        customUsageRules:
+          type: string
+    AdditionalServiceType:
+      type: string
+      format: int32
+      enum:
+        - CashOnDelivery
+        - DangerousGoods
+        - FixedDeliveryDate
+        - Insurance
+        - HighValueShipment
+        - PreAdvice
+        - TailLiftLoading
+        - TailLiftUnloading
+        - SideLoadingPickup
+        - SideUnloadingDelivery
+        - ThermoCold
+        - DropOffByConsignor
+        - PriorityServiceP10
+        - PriorityServiceP12
+        - After12Delivery
+        - AvailablePickupTime
+        - AvailableDeliveryTime
+    CodeMapping:
+      type: object
+      properties:
+        code:
+          type: string
+        value:
+          type: string    
+    Translation:
+      type: object
+      properties:
+        languageCode:
+          type: string
+        name:
+          type: string
+        information:
+          type: string
+    CalculationResult:
+      type: object
+      properties:
+        shipmentLevelCalculationResult:
+          $ref: '#/components/schemas/WeightResult'
+        pieceLevelCalculationResult:
+          $ref: '#/components/schemas/WeightResult'
+        chargeableWeight:
+          format: double
+          type: number
+    WeightResult:
+      type: object
+      properties:
+        actualWeight:
+          format: double
+          type: number
+        cubicMetreVolumetricWeight:
+          format: double
+          type: number
+        loadingMetreVolumetricWeight:
+          format: double
+          type: number
+        longGoodsVolumetricWeight:
+          format: double
+          type: number
+          readOnly: true
+        palletPlaceVolumetricWeight:
+          format: double
+          type: number
+        chargeableWeight:
+          format: double
+          type: number
+        sumWeight:
+          format: double
+          type: number
+        sumVolume:
+          format: double
+          type: number
+        sumLoadingMeters:
+          format: double
+          type: number
+        sumPalletPlaces:
+          format: double
+          type: number
+        sumNumberOfPieces:
+          format: int32
+          type: integer
+    BadRequestError:
+      type: object
+      properties:
+        error:
+          type: string
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/IValidationError'    
+    IValidationError:
+      type: object
+      properties:
+        field:
+          type: string
+          readOnly: true
+        errorCode:
+          format: int32
+          type: integer
+          readOnly: true
+        message:
+          type: string
+          readOnly: true
+        incompatibleFields:
+          type: array
+          items:
+            type: string
+          readOnly: true
+    PackageTypeResponse:
+      type: object
+      properties:
+        code:
+          type: string
+        name:
+          type: string
+# 1) Define the security scheme type (HTTP bearer)
+  securitySchemes:
+    bearerAuth:            # arbitrary name for the security scheme
+      type: http
+      scheme: bearer
+      bearerFormat: JWT    # optional, arbitrary value for documentation purposes
+# 2) Apply the security globally to all operations
+security:
+  - bearerAuth: []         # use the same name as above
+
+servers:
+  - url: https://api-sandbox.dhl.com/freight/info/products/services/v1
+    description: Customer Sandbox Environment
+  - url: https://api.dhl.com/freight/info/products/services/v1
+    description: Customer Production Environment

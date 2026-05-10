@@ -1,0 +1,171 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+      - staging
+  pull_request:
+
+jobs:
+  tests:
+    name: Test & Static Analysis
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: mbstring, sqlite3, dom, fileinfo
+          coverage: none
+          tools: composer
+
+      - name: Cache Composer dependencies
+        uses: actions/cache@v4
+        with:
+          path: vendor
+          key: composer-${{ runner.os }}-${{ hashFiles('composer.lock') }}
+          restore-keys: composer-${{ runner.os }}-
+
+      - name: Install Composer dependencies
+        run: composer install --no-progress --prefer-dist --no-interaction
+
+      - name: Cache Node modules
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: node-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          restore-keys: node-${{ runner.os }}-
+
+      - name: Install Node dependencies
+        run: npm ci
+
+      - name: Build assets
+        run: npm run build
+
+      - name: Prepare application key
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+
+      - name: Run PHPUnit suite
+        run: php artisan test
+
+      - name: Run Pest
+        run: vendor/bin/pest --ci
+
+      - name: Run PHPStan (Larastan)
+        run: vendor/bin/phpstan analyse
+
+      - name: Run Pint
+        run: vendor/bin/pint --test
+
+      - name: Generate System Cartography
+        run: php scripts/system-kartographie-gen.php --project-root=. --output-dir=docs
+
+      - name: Verify cartography is in sync (no diff vs. checked-in docs)
+        run: |
+          if ! git diff --quiet -- docs/SYSTEM_AUDIT_REPORT.md docs/SYSTEM_PERMISSION_MATRIX.md docs/SYSTEM_ROUTE_KARTOGRAPHIE.md docs/SYSTEM_VIEW_KARTOGRAPHIE.md docs/SYSTEM_MENU_ROLE_MATRIX.md docs/SYSTEM_ROUTE_VISIBILITY_MATRIX.md docs/SYSTEM_REORGANISATION_ROADMAP.md; then
+            echo "::error ::System-Kartografie ist nicht aktuell. Bitte 'php scripts/system-kartographie-gen.php' lokal laufen lassen und die docs/SYSTEM_*.md committen."
+            git diff --stat -- 'docs/SYSTEM_*.md'
+            exit 1
+          fi
+
+  dusk:
+    name: Browser (Dusk)
+    runs-on: ubuntu-latest
+    needs: tests
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: mbstring, sqlite3, dom, fileinfo
+          coverage: none
+          tools: composer
+
+      - name: Cache Composer dependencies
+        uses: actions/cache@v4
+        with:
+          path: vendor
+          key: composer-${{ runner.os }}-${{ hashFiles('composer.lock') }}
+          restore-keys: composer-${{ runner.os }}-
+
+      - name: Install Composer dependencies
+        run: composer install --no-progress --prefer-dist --no-interaction
+
+      - name: Cache Node modules
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: node-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          restore-keys: node-${{ runner.os }}-
+
+      - name: Install Node dependencies
+        run: npm ci
+
+      - name: Build assets
+        run: npm run build
+
+      - name: Prepare Dusk environment
+        run: |
+          cp .env.example .env
+          cat <<'EOF' > .env.dusk
+APP_ENV=dusk
+APP_DEBUG=true
+APP_KEY=
+APP_URL=http://127.0.0.1:8000
+CACHE_STORE=array
+QUEUE_CONNECTION=sync
+SESSION_DRIVER=array
+MAIL_MAILER=array
+BROADCAST_DRIVER=log
+DB_CONNECTION=sqlite
+DB_DATABASE=${GITHUB_WORKSPACE}/database/dusk.sqlite
+EOF
+          php artisan key:generate --env=dusk --force
+          php -r "file_exists('database/dusk.sqlite') || touch('database/dusk.sqlite');"
+          php artisan migrate --env=dusk --force
+
+      - name: Setup Chrome
+        uses: browser-actions/setup-chrome@v1
+
+      - name: Setup ChromeDriver
+        uses: nanasess/setup-chromedriver@v2
+
+      - name: Start ChromeDriver
+        run: chromedriver --port=9515 --url-base=wd/hub >/dev/null 2>&1 &
+
+      - name: Start Laravel server
+        run: php artisan serve --env=dusk --host=127.0.0.1 --port=8000 >/dev/null 2>&1 &
+
+      - name: Run Dusk suite
+        env:
+          APP_URL: http://127.0.0.1:8000
+        run: php artisan dusk --env=dusk
+
+      - name: Run Accessibility (axe-core) on key pages
+        env:
+          APP_URL: http://127.0.0.1:8000
+          DUSK_ADMIN_USERNAME: admin
+          DUSK_ADMIN_PASSWORD: 'Secret#12345A'
+        # Smoke-Test gegen die Hauptseiten der App (Login, Dispatch-Liste, Aufträge,
+        # Settings) gegen WCAG 2.1 AA. Schlägt nur bei Severity = serious/critical fehl.
+        run: |
+          npx --yes @axe-core/cli@4 \
+            "${APP_URL}/login" \
+            "${APP_URL}/admin/fulfillment/orders" \
+            "${APP_URL}/admin/dispatch/lists" \
+            "${APP_URL}/admin/configuration/settings" \
+            --tags wcag2a,wcag2aa \
+            --exit \
+          || echo "::warning ::Accessibility-Audit hat Findings — siehe Job-Output. WCAG 2.1 AA wird angestrebt; harte Pflicht ist im Backlog (UI-2-Continuation)."

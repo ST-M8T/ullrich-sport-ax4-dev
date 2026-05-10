@@ -1,0 +1,89 @@
+/**
+ * Base Styles Module
+ * Grundlegende HTML-Element-Styles
+ */
+
+@layer base {
+    body {
+        @apply min-h-screen font-sans antialiased;
+        background-color: var(--surface-page);
+        color: var(--color-text);
+        transition: background-color 0.25s ease, color 0.25s ease;
+    }
+
+    body::before {
+        content: '';
+        position: fixed;
+        inset: 0;
+        background: var(--surface-overlay);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.25s ease;
+        z-index: 30;
+    }
+
+    body[data-nav-overlay='visible']::before {
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    a {
+        color: var(--color-link);
+        text-decoration: none;
+        text-decoration-thickness: 2px;
+        text-underline-offset: 4px;
+        transition: color 0.2s ease;
+    }
+
+    a:hover {
+        color: var(--color-link-hover);
+    }
+
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+        @apply font-semibold;
+    }
+
+    :focus-visible {
+        outline: 3px solid var(--color-focus-ring);
+        outline-offset: 3px;
+        box-shadow: 0 0 0 4px var(--color-focus-ring-muted);
+    }
+
+    .skip-link {
+        position: absolute;
+        top: 1rem;
+        left: 50%;
+        transform: translateX(-50%);
+        background: var(--surface-topbar);
+        color: var(--color-text);
+        padding: 0.75rem 1.25rem;
+        box-shadow: var(--shadow-flyout);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.2s ease, transform 0.2s ease;
+        z-index: 60;
+    }
+
+    .skip-link:focus-visible {
+        opacity: 1;
+        pointer-events: auto;
+        transform: translate(-50%, 0);
+    }
+
+    .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+    }
+}

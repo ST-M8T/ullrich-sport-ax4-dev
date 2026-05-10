@@ -1,0 +1,39 @@
+@import 'tailwindcss';
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+@source '../**/*.blade.php';
+@source '../**/*.js';
+
+@theme {
+    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+        'Segoe UI Symbol', 'Noto Color Emoji';
+}
+
+@import './variables.css';
+@import './reset.css';
+@import './base.css';
+@import './layout.css';
+@import './utilities/layout.css';
+@import './utilities/spacing.css';
+@import './utilities/typography.css';
+@import './utilities/hint-box.css';
+@import './components/alert.module.css';
+@import './components/spinner.module.css';
+@import './components/empty-state.module.css';
+@import './components/button.module.css';
+@import './components/card.module.css';
+@import './components/form.module.css';
+@import './components/table.module.css';
+@import './components/badge.module.css';
+@import './components/modal.module.css';
+@import './components/tabs.module.css';
+@import './components/data-indicator.module.css';
+@import './components/navigation.module.css';
+@import './components/layout.module.css';
+@import './components/view-controls.module.css';
+@import './components/table-variations.module.css';
+@import './components/info-box.module.css';
+@import './components/add-form.module.css';
+@import './components/filter-form.module.css';
+@import './components/sidebar-tabs.module.css';

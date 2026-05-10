@@ -1,0 +1,9 @@
+/**
+ * Spacing Utilities Module
+ * Padding und Margin Utilities
+ */
+
+.px-1 {
+    padding-left: 1rem;
+    padding-right: 1rem;
+}

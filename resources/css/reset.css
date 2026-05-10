@@ -1,0 +1,46 @@
+/**
+ * CSS Reset Module
+ * Entfernt Standard-Styling von Browsern
+ * Keine border-radius überall
+ */
+
+button,
+input,
+textarea,
+select,
+.btn,
+.badge,
+.card,
+.form-control,
+.form-select,
+.modal-dialog,
+.modal-content {
+    border-radius: 0 !important;
+}
+
+@media (min-width: 768px) {
+    body::before {
+        opacity: 0 !important;
+        pointer-events: none !important;
+    }
+}
+
+.rounded,
+.rounded-0,
+.rounded-1,
+.rounded-2,
+.rounded-3,
+.rounded-circle,
+.rounded-pill,
+.rounded-start,
+.rounded-end,
+.rounded-top,
+.rounded-bottom {
+    border-radius: 0 !important;
+    border-top-left-radius: 0 !important;
+    border-top-right-radius: 0 !important;
+    border-bottom-right-radius: 0 !important;
+    border-bottom-left-radius: 0 !important;
+}
+
+

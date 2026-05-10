@@ -1,0 +1,80 @@
+/**
+ * Layout Utilities Module
+ * Wiederverwendbare Layout-Hilfs-Klassen
+ */
+
+.stack {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.stack.stack-sm { gap: 0.75rem; }
+.stack.stack-xs { gap: 0.5rem; }
+.stack.stack-lg { gap: 1.75rem; }
+
+.grid-auto {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem;
+}
+
+.grid-auto.grid-auto-lg {
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+.full-height-center {
+    min-height: calc(100vh - 80px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem 0;
+}
+
+.full-height-center.full-height-center--compact {
+    padding: 2rem 0;
+}
+
+.constrained-card {
+    width: min(520px, 100%);
+}
+
+.action-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    justify-content: center;
+}
+
+.field-md {
+    width: 220px;
+    max-width: 100%;
+}
+
+.field-sm {
+    width: 160px;
+    max-width: 100%;
+}
+
+.input-group-max-width {
+    max-width: 220px;
+}
+
+.text-muted {
+    color: var(--color-text-muted);
+}
+
+.hidden,
+.d-none {
+    display: none;
+}
+
+.progress-compact {
+    height: 20px;
+    width: 150px;
+}
+
+.text-center {
+    text-align: center;
+}
+

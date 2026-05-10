@@ -1,0 +1,28 @@
+/**
+ * Info Box Component Module
+ * Wiederverwendbares Info-Box Modul
+ */
+
+.info-box {
+    margin-top: 1.875rem;
+    padding: 1.25rem;
+    background: var(--surface-panel);
+    border: 1px solid var(--color-border);
+}
+
+.info-box__title {
+    margin-top: 0;
+    margin-bottom: 0.75rem;
+    color: var(--brand-dark);
+    font-weight: 600;
+}
+
+.info-box__list {
+    margin-bottom: 0;
+    padding-left: 1.5rem;
+}
+
+.info-box__item {
+    margin-bottom: 0.3125rem;
+}
+

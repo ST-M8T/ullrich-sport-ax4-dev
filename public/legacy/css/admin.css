@@ -1,0 +1,511 @@
+/**
+ * AX4 Admin Layout - Premium Design
+ * Hauptfarben: #50AF47 (Primary) & #535353 (Dark)
+ */
+
+@import 'variables.css';
+@import 'components.css';
+
+/* ==========================================================================
+   GLOBAL RESET & BASE STYLES
+   ========================================================================== */
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    margin: 0;
+    background: var(--ax4-lighter);
+    color: var(--ax4-text);
+    font-family: var(--font-family);
+    font-size: var(--font-size-base);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Remove all list bullets in admin */
+ul, ol {
+    list-style: none;
+    padding-left: 0;
+    margin-left: 0;
+}
+
+li {
+    list-style: none;
+}
+
+/* ==========================================================================
+   TOPBAR - Professioneller Header
+   ========================================================================== */
+
+.topbar {
+    background: var(--ax4-dark);
+    color: var(--ax4-white);
+    padding: var(--spacing-md) var(--spacing-xl);
+    box-shadow: var(--shadow-md);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.topbar .brand {
+    font-weight: 700;
+    font-size: var(--font-size-xl);
+    letter-spacing: -0.5px;
+}
+
+.topbar .right {
+    display: flex;
+    gap: var(--spacing-lg);
+    align-items: center;
+}
+
+.topbar a {
+    color: var(--ax4-white);
+    text-decoration: none;
+    padding: var(--spacing-sm) var(--spacing-md);
+    transition: background var(--transition-fast);
+}
+
+.topbar a:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+/* ==========================================================================
+   LAYOUT - Moderne Sidebar + Content
+   ========================================================================== */
+
+.layout {
+    display: flex;
+    min-height: calc(100vh - 60px);
+}
+
+.sidebar {
+    width: 260px;
+    background: var(--ax4-white);
+    border-right: 1px solid var(--ax4-border);
+    padding: var(--spacing-lg);
+    position: sticky;
+    top: 60px;
+    height: calc(100vh - 60px);
+    overflow-y: auto;
+    box-shadow: var(--shadow-sm);
+}
+
+.sidebar .group {
+    margin: var(--spacing-xl) 0 var(--spacing-sm);
+    padding: 0 var(--spacing-sm);
+    color: var(--ax4-text-muted);
+    font-size: var(--font-size-xs);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.sidebar .group:first-child {
+    margin-top: 0;
+}
+
+.nav {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+}
+
+.nav a {
+    padding: var(--spacing-md);
+    text-decoration: none;
+    color: var(--ax4-text);
+    background: var(--ax4-lighter);
+    border: 1px solid transparent;
+    font-weight: 500;
+    font-size: var(--font-size-base);
+    transition: all var(--transition-fast);
+    position: relative;
+}
+
+.nav a:hover {
+    background: var(--ax4-primary-light);
+    border-color: var(--ax4-primary);
+    color: var(--ax4-primary);
+    transform: translateX(2px);
+}
+
+.nav a.active {
+    background: var(--ax4-primary);
+    color: var(--ax4-white);
+    border-color: var(--ax4-primary);
+    font-weight: 600;
+    box-shadow: var(--shadow-sm);
+}
+
+.nav a.active:before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: var(--ax4-primary-hover);
+}
+
+/* ==========================================================================
+   CONTENT AREA
+   ========================================================================== */
+
+.container {
+    flex: 1;
+    padding: var(--spacing-xl);
+    width: 100%;
+    overflow-x: auto;
+}
+
+.container > h2,
+.container > h3 {
+    margin-bottom: var(--spacing-xl);
+    color: var(--ax4-dark);
+    font-weight: 600;
+}
+
+.container > h2 {
+    font-size: var(--font-size-2xl);
+    padding-bottom: var(--spacing-md);
+    border-bottom: 2px solid var(--ax4-primary);
+}
+
+.container > h3 {
+    font-size: var(--font-size-xl);
+}
+
+/* ==========================================================================
+   SCANNER-SPECIFIC STYLES - Verbesserte UX
+   ========================================================================== */
+
+.scan-primary {
+    color: var(--ax4-primary);
+    font-weight: 700;
+}
+
+.scan-box {
+    margin-top: var(--spacing-xl);
+    padding: var(--spacing-xl);
+    background: var(--ax4-white);
+    border: 2px solid var(--ax4-border);
+    box-shadow: var(--shadow);
+}
+
+.scan-box h4 {
+    margin-top: 0;
+    margin-bottom: var(--spacing-lg);
+    color: var(--ax4-dark);
+    font-size: var(--font-size-lg);
+}
+
+.scan-actions {
+    margin-top: var(--spacing-lg);
+    display: flex;
+    gap: var(--spacing-sm);
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.scan-status {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-sm) var(--spacing-md);
+    background: var(--ax4-primary-light);
+    color: var(--ax4-primary);
+    font-weight: 600;
+    font-size: var(--font-size-sm);
+}
+
+.scan-debug {
+    margin-top: var(--spacing-lg);
+    padding: var(--spacing-md);
+    background: var(--ax4-lighter);
+    border-left: 3px solid var(--ax4-text-muted);
+    font-size: var(--font-size-sm);
+    font-family: var(--font-mono);
+    color: var(--ax4-text-secondary);
+}
+
+/* Scanner Barcode Input - Größer und besser sichtbar */
+.scan-input-group {
+    display: flex;
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-xl);
+}
+
+.scan-input-group input {
+    flex: 1;
+    font-size: var(--font-size-xl);
+    padding: var(--spacing-lg);
+    font-family: var(--font-mono);
+    font-weight: 600;
+}
+
+.scan-input-group button {
+    min-width: 140px;
+    font-size: var(--font-size-lg);
+}
+
+/* Scanner Tables */
+.scan-table-wrapper {
+    overflow-x: auto;
+    margin-top: var(--spacing-xl);
+    background: var(--ax4-white);
+    border: 1px solid var(--ax4-border);
+    box-shadow: var(--shadow-sm);
+}
+
+.scan-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 0;
+}
+
+.scan-table th,
+.scan-table td {
+    padding: var(--spacing-md);
+    border-bottom: 1px solid var(--ax4-border);
+}
+
+.scan-table thead th {
+    background: var(--ax4-dark);
+    color: var(--ax4-white);
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: var(--font-size-sm);
+    letter-spacing: 0.5px;
+}
+
+.scan-table tbody tr {
+    transition: background var(--transition-fast);
+}
+
+.scan-table tbody tr:nth-child(even) {
+    background: var(--ax4-lighter);
+}
+
+.scan-table tbody tr:hover {
+    background: var(--ax4-primary-light);
+}
+
+.scan-table tfoot td {
+    font-weight: 700;
+    background: var(--ax4-success-light);
+    color: var(--ax4-success);
+    border-top: 2px solid var(--ax4-success);
+}
+
+.scan-table .scan-barcode {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    color: var(--ax4-primary);
+}
+
+.scan-table .font-small {
+    font-size: var(--font-size-sm);
+    color: var(--ax4-text-secondary);
+}
+
+.scan-secondary-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: var(--spacing-xl);
+    background: var(--ax4-white);
+    border: 1px solid var(--ax4-border);
+}
+
+.scan-summary-box {
+    display: flex;
+    gap: var(--spacing-xl);
+    margin: var(--spacing-xl) 0;
+    padding: var(--spacing-xl);
+    background: linear-gradient(135deg, var(--ax4-primary-light) 0%, var(--ax4-white) 100%);
+    border: 2px solid var(--ax4-primary);
+}
+
+.scan-summary-box .stat {
+    flex: 1;
+    text-align: center;
+}
+
+.scan-summary-box .stat-value {
+    font-size: var(--font-size-3xl);
+    font-weight: 700;
+    color: var(--ax4-primary);
+}
+
+.scan-summary-box .stat-label {
+    font-size: var(--font-size-sm);
+    color: var(--ax4-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: var(--spacing-xs);
+}
+
+/* ==========================================================================
+   LISTS - Offene/Abgeschlossene Listen
+   ========================================================================== */
+
+.list-section {
+    margin-top: var(--spacing-2xl);
+}
+
+.list-section h4 {
+    margin-bottom: var(--spacing-md);
+    color: var(--ax4-dark);
+    font-size: var(--font-size-lg);
+}
+
+.list-section ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.list-section li {
+    list-style: none;
+    padding: var(--spacing-md);
+    background: var(--ax4-white);
+    border: 1px solid var(--ax4-border);
+    margin-bottom: var(--spacing-sm);
+    transition: all var(--transition-fast);
+}
+
+.list-section li:hover {
+    background: var(--ax4-primary-light);
+    border-color: var(--ax4-primary);
+    transform: translateX(4px);
+    box-shadow: var(--shadow-sm);
+}
+
+.list-section a {
+    color: var(--ax4-primary);
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.list-section a:hover {
+    text-decoration: underline;
+}
+
+/* ==========================================================================
+   HOME STATS - Dashboard
+   ========================================================================== */
+
+.home-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: var(--spacing-xl);
+    margin-top: var(--spacing-xl);
+}
+
+.home-stats .stat-card {
+    background: var(--ax4-white);
+    padding: var(--spacing-xl);
+    border: 1px solid var(--ax4-border);
+    box-shadow: var(--shadow-md);
+    transition: transform var(--transition-base);
+}
+
+.home-stats .stat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+}
+
+.home-stats .stat-card h4 {
+    font-size: var(--font-size-sm);
+    color: var(--ax4-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: var(--spacing-sm);
+}
+
+.home-stats .stat-card .value {
+    font-size: var(--font-size-3xl);
+    font-weight: 700;
+    color: var(--ax4-primary);
+}
+
+/* ==========================================================================
+   RESPONSIVE DESIGN
+   ========================================================================== */
+
+@media (max-width: 1024px) {
+    .sidebar {
+        width: 220px;
+    }
+    
+    .container {
+        padding: var(--spacing-lg);
+    }
+}
+
+@media (max-width: 768px) {
+    .layout {
+        flex-direction: column;
+    }
+    
+    .sidebar {
+        width: 100%;
+        height: auto;
+        position: static;
+        border-right: none;
+        border-bottom: 1px solid var(--ax4-border);
+    }
+    
+    .nav {
+        flex-direction: row;
+        overflow-x: auto;
+        gap: var(--spacing-xs);
+    }
+    
+    .nav a {
+        white-space: nowrap;
+    }
+    
+    .topbar {
+        padding: var(--spacing-md);
+    }
+    
+    .topbar .brand {
+        font-size: var(--font-size-lg);
+    }
+    
+    .scan-input-group {
+        flex-direction: column;
+    }
+    
+    .scan-summary-box {
+        flex-direction: column;
+    }
+}
+
+/* ==========================================================================
+   NO BORDER RADIUS (Requirements)
+   ========================================================================== */
+
+button,
+input,
+select,
+textarea,
+.btn,
+.table,
+.alert,
+.form-control,
+.panel,
+.card,
+.badge,
+.nav a {
+    border-radius: var(--radius) !important;
+}

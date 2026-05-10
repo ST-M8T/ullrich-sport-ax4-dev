@@ -1,0 +1,107 @@
+openapi: 3.0.2
+info:
+  title: DHL Freight Additional Service API
+  version: '1.2 (2025/R03)'
+  description: >-
+    
+    Please refer Downloads section for more information
+
+  contact:
+    email: api4freight@dhl.com
+
+# 1) Define the security scheme type (HTTP bearer)
+components:
+  securitySchemes:
+    bearerAuth:            # arbitrary name for the security scheme
+      type: http
+      scheme: bearer
+      bearerFormat: JWT    # optional, arbitrary value for documentation purposes
+# 2) Apply the security globally to all operations
+security:
+  - bearerAuth: []         # use the same name as above
+servers:
+  - url: https://api-sandbox.dhl.com/freight/info/additionalservice/v1
+    description: Customer Sandbox Environment
+  - url: https://api.dhl.com/freight/info/additionalservice/v1
+    description: Customer Production Environment
+
+paths:
+
+  /products/{productId}/additionalservices:
+    get:
+      tags:
+        - ADDITIONALSERVICE
+      operationId: additionalservicesProductsProductcodeAdditionalservices
+      parameters:
+        - name: fromCountryCode
+          in: query
+          schema:
+            type: string
+            example: DE
+        - name: toCountryCode
+          in: query
+          schema:
+            type: string
+            example: FR
+        - name: payerCode
+          in: query
+          schema:
+            type: string
+            example: 'DAP'
+      responses:
+        '200':
+          description: 'Success'
+    parameters:
+      - name: productId
+        in: path
+        required: true
+        schema:
+          type: string
+          example: 'ECI'
+
+  /products/{productId}/additionalservices/validationresults:
+    post:
+      tags:
+        - ADDITIONALSERVICE
+      operationId: additionalservicesValidationResults
+      parameters:
+        - name: fromCountryCode
+          in: query
+          schema:
+            type: string
+            example: DE
+        - name: toCountryCode
+          in: query
+          schema:
+            type: string
+            example: FR
+        - name: payerCode
+          in: query
+          schema:
+            type: string
+            example: 'DAP'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                dangerousGoods:
+                  type: boolean
+                  example: true
+                insurance:
+                  type: boolean
+                  example: true
+            example:
+              doorstepDelivery: true
+              insurance: true
+      responses:
+        '200':
+          description: ''
+    parameters:
+      - name: productId
+        in: path
+        required: true
+        schema:
+          type: string
+          example: 'ECI'

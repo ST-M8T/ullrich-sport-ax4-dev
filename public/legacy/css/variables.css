@@ -1,0 +1,77 @@
+/**
+ * AX4 CSS Variables - Premium Design System
+ * Hauptfarben: #50AF47 (Primary Green) & #535353 (Dark Gray)
+ */
+
+:root {
+    /* Brand Colors */
+    --ax4-primary: #50AF47;
+    --ax4-primary-hover: #469e40;
+    --ax4-primary-light: #e8f5e7;
+    --ax4-dark: #535353;
+    --ax4-dark-hover: #434343;
+    
+    /* Neutral Colors */
+    --ax4-white: #ffffff;
+    --ax4-light: #f8f9fa;
+    --ax4-lighter: #fafafa;
+    --ax4-border: #e5e5e5;
+    --ax4-border-dark: #d4d4d4;
+    --ax4-text: #2c2c2c;
+    --ax4-text-secondary: #6c757d;
+    --ax4-text-muted: #9ca3af;
+    
+    /* Status Colors */
+    --ax4-success: #28a745;
+    --ax4-success-light: #d4edda;
+    --ax4-success-border: #c3e6cb;
+    
+    --ax4-danger: #dc3545;
+    --ax4-danger-light: #f8d7da;
+    --ax4-danger-border: #f5c6cb;
+    
+    --ax4-warning: #ffc107;
+    --ax4-warning-text: #856404;
+    --ax4-warning-light: #fff3cd;
+    --ax4-warning-border: #ffeaa7;
+    
+    --ax4-info: #17a2b8;
+    --ax4-info-text: #004085;
+    --ax4-info-light: #d1ecf1;
+    --ax4-info-border: #bee5eb;
+    
+    /* Shadows */
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    --shadow-inner: inset 0 2px 4px 0 rgba(0, 0, 0, 0.06);
+    
+    /* Spacing */
+    --spacing-xs: 4px;
+    --spacing-sm: 8px;
+    --spacing-md: 12px;
+    --spacing-lg: 16px;
+    --spacing-xl: 24px;
+    --spacing-2xl: 32px;
+    
+    /* Typography */
+    --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    --font-mono: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+    
+    --font-size-xs: 11px;
+    --font-size-sm: 13px;
+    --font-size-base: 14px;
+    --font-size-lg: 16px;
+    --font-size-xl: 18px;
+    --font-size-2xl: 24px;
+    --font-size-3xl: 30px;
+    
+    /* Border Radius (always 0 per requirements) */
+    --radius: 0;
+    
+    /* Transitions */
+    --transition-fast: 0.15s ease;
+    --transition-base: 0.2s ease;
+    --transition-slow: 0.3s ease;
+}

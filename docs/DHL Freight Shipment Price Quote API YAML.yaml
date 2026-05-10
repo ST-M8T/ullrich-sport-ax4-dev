@@ -1,0 +1,374 @@
+openapi: 3.0.2
+info:
+  title: DHL Freight Shipment Price Quote API
+  version: '1.3 (2025/R03)'
+  description:  >-
+    Getting gross price quote for domestic and international palletized road freight transport orders (> 35 kg) across Europe with DHL Freight for existing DHL Freight business customers with a valid contract.
+    Please refer Downloads section for more information.
+  contact:
+    email: api4freight@dhl.com
+
+paths:
+  /pricequote/quoteforprice:
+    post:
+      tags:
+        - PriceQuote
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QuoteModel'
+      responses:
+        '200':
+          description: List of prices for products
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PriceQuoteResult'
+components:
+  schemas:
+    QuoteModel:
+      type: object
+      properties:
+        eid:
+          $ref: '#/components/schemas/Eid'
+        shipment:
+          $ref: '#/components/schemas/ShipmentModel'
+        ownSurCharge:
+          $ref: '#/components/schemas/OwnSurCharge'
+    PriceQuoteResult:
+      type: object
+      properties:
+        description:
+          type: string
+          description: Service description in local language
+        descriptionEng:
+          type: string
+          description: Service description in English language
+        id:
+          type: string
+        sortOrder:
+          format: int32
+          type: integer
+        unit:
+          type: string
+        value:
+          type: string
+    Eid:
+      required:
+        - userName
+        - password
+      type: object
+      properties:
+        userName:
+          type: string
+        password:
+          type: string
+    ShipmentModel:
+      required:
+        - parties
+        - payerCode
+        - pieces
+        - productCode
+      type: object
+      properties:
+        productCode:
+          maxLength: 3
+          type: string
+          description: 
+            See the product documentation for available Freight Product options. 
+            You can also use GET /products to see available product for your region.
+            With POST /productmatches you can validate which products fit to your shipment details.
+          example: 'ECI'
+        totalNumberOfPieces:
+          maximum: 999
+          type: integer
+          format: int32
+          example: 1
+        totalWeight:
+          maximum: 99999
+          type: number
+          description: The shipment total weight weight in kg
+          format: double
+          example: 380
+        totalVolume:
+          maximum: 999
+          type: number
+          description: The shipment total volume in m³
+          format: double
+          example: 0.864
+        totalLoadingMeters:
+          maximum: 99
+          type: number
+          description: 
+            A loading meter (LDM) is 1 meter of the loading space of a truck's
+            width and full height. Usually calculated for goods that cannot be
+            stacked on or with other goods.
+          format: double
+        totalPalletPlaces:
+          maximum: 999
+          type: number
+          description: >
+            Pallet place (PPL) is based on the dimensions of a EUR pallet: 120
+            x 80 cm. Usually calculated for goods that cannot be stacked on or
+            with other goods. 1 PLL =  0.4 LDM.
+          format: double
+        goodsValue:
+          type: number
+          format: double
+          example: 1500.33
+        goodsValueCurrency:
+          maxLength: 3
+          type: string
+          description: ISO 4217 codes are three-letter currency codes
+          example: 'EUR'
+        payerCode:
+            $ref: '#/components/schemas/PayerCode'
+        pieces:
+          type: array
+          items:
+            $ref: '#/components/schemas/Piece'
+        parties:
+          type: array
+          items:
+            $ref: '#/components/schemas/Party'
+        additionalServices:
+          $ref: '#/components/schemas/AdditionalService'
+    PayerCode:
+      required:
+        - code
+      type: object
+      properties:
+        code:
+          maxLength: 3
+          type: string
+          description: 
+            See the product documentation for available options based on selected product.
+            You can also use GET /products {productCode} to see available payer codes
+            for your product.
+          example: 'DAP'
+        location:
+          maxLength: 17
+          type: string
+          example: ''
+    Piece:
+      type: object
+      properties:
+        packageType:
+          maxLength: 4
+          type: string
+          example: 'PAL'
+          description: >
+            See the product documentation for available options based on
+            selected product. You can also use GET / packageTypes {productCode} to receive the allowed
+            package types for your selected product
+        numberOfPieces:
+          maximum: 999
+          minimum: 1
+          type: integer
+          format: int32
+          example: 1
+        weight:
+          maximum: 99999
+          type: number
+          description: Item weight in kg
+          format: double
+          example: 380
+        volume:
+          maximum: 999
+          type: number
+          description: Item volume in m³
+          format: double
+          example: 0.864
+        loadingMeters:
+          maximum: 99
+          type: number
+          format: double
+        palletPlaces:
+          maximum: 999
+          type: number
+          format: double
+        width:
+          maximum: 999
+          type: number
+          description: Item width in cm
+          format: double
+          example: 80
+        height:
+          maximum: 999
+          type: number
+          description: Item height in cm
+          format: double
+          example: 90
+        length:
+          maximum: 9999
+          type: number
+          description: Item length in cm
+          format: double
+          example: 120
+        stackable:
+          type: boolean
+    Party:
+      type: object
+      properties:
+        id:
+          maxLength: 15
+          type: string
+          description: 
+            For a consignor, consignee, pickup and delivery the customer account
+            number. Mandatory for the party that according to the payer code will be freight payer.
+        type:
+          $ref: '#/components/schemas/PartyType'
+        address:
+          $ref: '#/components/schemas/PartyAddress'
+    PartyType:
+      maxLength: 15
+      type: string
+      enum:
+        - Consignor
+        - Consignee
+        - Pickup
+        - Delivery
+      example: 'Consignor'
+    PartyAddress:
+      type: object
+      properties:
+        cityName:
+          maxLength: 40
+          type: string
+        postalCode:
+          maxLength: 12
+          type: string
+        countryCode:
+          maxLength: 2
+          type: string
+          description: >
+            ISO 3166-1 are two-letter country codes 
+          example: 'DE'
+    AdditionalService:
+      type: object
+      properties:
+        cashOnDelivery:
+          $ref: '#/components/schemas/CashOnDeliveryOptions'
+        dangerousGoods:
+          type: boolean
+          example: false
+        insurance:
+          $ref: '#/components/schemas/InsuranceOptions'
+        highValueShipment:
+          $ref: '#/components/schemas/HighValueShipmentOptions'
+        preAdvice:
+          type: boolean
+          example: false
+        tailLiftLoading:
+          type: boolean
+          example: false
+        tailLiftUnloading:
+          type: boolean
+          example: false
+        thermoCold:
+          $ref: '#/components/schemas/Thermo'
+        timeSlotBookingPickup:
+          type: boolean
+          example: false
+        timeSlotBookingDelivery:
+          type: boolean
+          example: false
+        fixedDeliveryDate:
+          $ref: '#/components/schemas/FixedDeliveryDateOptions'
+        priorityServiceP10:
+          type: boolean
+          example: false
+        priorityServiceP12:
+          type: boolean
+          example: false
+        dropOffByConsignor:
+          type: boolean
+          example: false
+        after12Delivery:
+          type: boolean
+          example: false
+    CashOnDeliveryOptions:
+      required:
+        - amount
+        - currency
+      type: object
+      properties:
+        amount:
+          type: integer
+          format: int64
+          example: 475
+        currency:
+          maxLength: 3
+          type: string
+          description: >
+            ISO 4217 codes are three-letter currency codes
+          example: 'EUR'
+    HighValueShipmentOptions:
+      required:
+        - currency
+        - value
+      type: object
+      properties:
+        value:
+          type: number
+          format: double
+        currency:
+          maxLength: 3
+          type: string
+          description: >
+            ISO 4217 codes are three-letter currency codes
+          example: 'EUR'
+    Thermo:
+      type: object
+      additionalProperties: false
+    InsuranceOptions:
+      required:
+        - currency
+        - value
+      type: object
+      properties:
+        value:
+          type: number
+          format: double
+        currency:
+          maxLength: 3
+          type: string
+          description: >
+            ISO 4217 codes are three-letter currency codes
+          example: 'EUR'
+    FixedDeliveryDateOptions:
+      required:
+        - date
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+    OwnSurCharge:
+      type: object
+      properties:
+        percentage:
+          format: double
+          type: number
+          description: For your own purpose, you can add a markup percentage to the total amount
+        value:
+          format: double
+          type: number
+          description: For your own purpose, you can add a markup amount to the total amount
+  # 1) Define the security scheme type (HTTP bearer)
+  securitySchemes:
+      bearerAuth:            # arbitrary name for the security scheme
+        type: http
+        scheme: bearer
+        bearerFormat: JWT    # optional, arbitrary value for documentation purposes
+# 2) Apply the security globally to all operations
+security:
+  - bearerAuth: []         # use the same name as above
+servers:
+  - url: https://api-sandbox.dhl.com/freight/info/pricequote/v1
+    description: Customer Sandbox Environment
+  - url: https://api.dhl.com/freight/info/pricequote/v1
+    description: Customer Production Environment

@@ -1,0 +1,45 @@
+/**
+ * Table Variations Component Module
+ * Spezielle Tabellen-Varianten für Variations
+ */
+
+.table-variations {
+    table-layout: fixed;
+    width: 100%;
+    min-width: 1400px;
+}
+
+.table-variations__col-item { width: 80px; }
+.table-variations__col-variation { width: 80px; }
+.table-variations__col-name { width: 180px; }
+.table-variations__col-typ { width: 100px; }
+.table-variations__col-assembly { width: 120px; }
+.table-variations__col-vormontage { width: 120px; }
+.table-variations__col-weight { width: 100px; }
+.table-variations__col-actions { width: 100px; }
+
+.table-variations__form {
+    margin: 0;
+}
+
+.table-variations__input {
+    font-size: 0.7rem;
+    padding: 0.125rem 0.25rem;
+    border: 1px solid var(--color-border);
+    width: 100%;
+}
+
+.table-variations__input--name { width: 170px; }
+.table-variations__input--weight { width: 90px; }
+
+.table-variations__select {
+    font-size: 0.7rem;
+    padding: 0.125rem 0.25rem;
+    border: 1px solid var(--color-border);
+    width: 100%;
+}
+
+.table-variations__select--typ { width: 90px; }
+.table-variations__select--assembly { width: 110px; font-size: 0.625rem; }
+.table-variations__select--vormontage { width: 110px; font-size: 0.625rem; }
+

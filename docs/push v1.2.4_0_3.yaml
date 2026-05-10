@@ -1,0 +1,1306 @@
+openapi: 3.0.0
+info:
+  version: 1.2.4
+  title: UTAPI Push Webhook API
+  description: |-
+
+    The Push API enables sending of a push message to an application via a push service. An application server can send a push message at any time, even when an application is inactive. The push service ensures reliable and efficient delivery to the user system. Push messages are delivered to a target system, which can use the information in the message to update local state or display a notification to the user.
+    
+    ### Note ###
+    Date and Time always conform to the ISO 8601 format e.g.: 2017-06-21T14:07:17+2:00, 2017-06-21T14:07:00Z (zoned date time) or 2017-06-21T14:07:17 (date time) or 2017-06-21 (date). 
+    If no time zone information is provided then time zone should be interpreted as in the place of the respective shipment event.
+    
+servers:
+  - url: https://api-test.dhl.com/tracking/push/v1
+    description: Test server
+  - url: https://api-eu.dhl.com/tracking/push/v1
+    description: Production server
+paths:
+  /subscription:
+    post:
+      operationId: userCreateSubscription
+      summary: Create request for subscription
+      description: Create request to register subscription for `Account` or `Shipment`.
+      tags:
+        - Subscriber
+      requestBody:
+        description: Shipments details in defined JSON schema. Please choose the required product for respective example value
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubscriptionRequest'
+            examples:
+              subscription_by_trackingID_without_challenge:
+                $ref: '#/components/examples/byTrackingIDWithoutChallengeDetails'
+              subscription_by_trackingID_with_challenge:
+                $ref: '#/components/examples/byTrackingIDWithChallengeDetails'
+              subscription_by_accountID:
+                $ref: '#/components/examples/byAccountID'
+        required: true
+      security:
+        - DHL-API-Key: []
+      responses:
+        '201':
+          description: Request for subscription has been created
+          headers:
+            correlation-id:
+              $ref: '#/components/headers/correlation-id'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubscriptionRequestState'
+  /subscription/{id}:
+    get:
+      operationId: userGetSubscription
+      summary: Get subscription details
+      description: Retrieve information about subscription
+      tags:
+        - Subscriber
+      parameters:
+        - $ref: '#/components/parameters/subscriptionId'
+      security:
+        - DHL-API-Key: []
+      responses:
+        '200':
+          description: Get subscription details
+          headers:
+            correlation-id:
+              $ref: '#/components/headers/correlation-id'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Subscription'
+        '404':
+          description: Subscription was not found
+          headers:
+            correlation-id:
+              $ref: '#/components/headers/correlation-id'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+    post:
+      operationId: userActivateSubscription
+      summary: Activate subscription
+      description: Validation of intend request to activate already created Subscription
+      tags:
+        - Subscriber
+      parameters:
+        - $ref: '#/components/parameters/subscriptionId'
+        - $ref: '#/components/parameters/apiHookSecret'
+      security:
+        - DHL-API-Key: []
+      responses:
+        '202':
+          description: Subscription has been activated
+          headers:
+            correlation-id:
+              $ref: '#/components/headers/correlation-id'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubscriptionRequestState'
+        '404':
+          description: Subscription was not found
+          headers:
+            correlation-id:
+              $ref: '#/components/headers/correlation-id'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+    delete:
+      operationId: userRemoveSubscription
+      summary: Remove subscription
+      description: Remove already created subscription
+      tags:
+        - Subscriber
+      parameters:
+        - $ref: '#/components/parameters/subscriptionId'
+        - $ref: '#/components/parameters/apiHookSecret'
+      security:
+        - DHL-API-Key: []
+      responses:
+        '204':
+          description: Subscription has been removed
+          headers:
+            correlation-id:
+              $ref: '#/components/headers/correlation-id'
+        '404':
+          description: Subscription was not found
+          headers:
+            correlation-id:
+              $ref: '#/components/headers/correlation-id'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+  /subscriptions:
+    get:
+      operationId: userGetSubscriptions
+      summary: Get subscriptions list
+      description: Retrieve information about subscriptions
+      tags:
+        - Subscriber
+      security:
+        - DHL-API-Key: []
+      responses:
+        '200':
+          description: Get subscriptions list
+          headers:
+            correlation-id:
+              $ref: '#/components/headers/correlation-id'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Subscription'
+
+components:
+  schemas:
+    Shipments:
+      description: UTAPI formated shipment tracking
+      properties:
+        shipments:
+          description: An array of unified tracking shipments
+          type: array
+          items:
+            $ref: '#/components/schemas/TrackingShipment'
+    SubscriptionRequestState:
+      description: Subscription request state response
+      type: object
+      properties:
+        self:
+          description: uniform resource identifier of system
+          type: string
+          format: uri
+          example: https://api-eu.dhl.com/subscription/d51e5436-3882-4d94-92d5-d30b31d844d8
+        scope:
+          $ref: '#/components/schemas/SubscriptionScope'
+        expires:
+          type: string
+          format: iso8601-date-time
+        secret:
+          description: Validation of intent secret
+          type: string
+          format: password
+        note:
+          type: string
+          example: Regular push message
+        failure:
+          $ref: '#/components/schemas/ProblemDetail'
+      required:
+        - scope
+    SubscriptionScope:
+      type: string
+      enum:
+        - subscription.create
+        - subscription.validate
+        - subscription.activate
+        - subscription.ready
+        - subscription.push
+        - subscription.remove
+        - subscription.failure
+    Subscription:
+      type: object
+      oneOf:
+        - $ref: '#/components/schemas/SubscriptionAccountInfo'
+        - $ref: '#/components/schemas/SubscriptionShipmentInfo'
+      discriminator:
+        propertyName: type
+        mapping:
+          Account: '#/components/schemas/SubscriptionAccountInfo'
+          Shipment: '#/components/schemas/SubscriptionShipmentInfo'
+      required:
+        - type
+    SubscriptionAdmin:
+      type: object
+      oneOf:
+        - $ref: '#/components/schemas/SubscriptionAccountAdmin'
+        - $ref: '#/components/schemas/SubscriptionShipmentAdmin'
+      discriminator:
+        propertyName: type
+        mapping:
+          Account: '#/components/schemas/SubscriptionAccountAdmin'
+          Shipment: '#/components/schemas/SubscriptionShipmentAdmin'
+      required:
+        - type
+    SubscriptionRequest:
+      type: object
+      oneOf:
+        - $ref: '#/components/schemas/SubscriptionAccountRequest'
+        - $ref: '#/components/schemas/SubscriptionShipmentRequest'
+      discriminator:
+        propertyName: type
+        mapping:
+          Account: '#/components/schemas/SubscriptionAccountRequest'
+          Shipment: '#/components/schemas/SubscriptionShipmentRequest'
+      required:
+        - type
+    SubscriptionBody:
+      type: object
+      properties:
+        format:
+          $ref: '#/components/schemas/SubscriptionFormat'
+        service:
+          $ref: '#/components/schemas/Service'
+        hook:
+          $ref: '#/components/schemas/SubscriptionHook'
+        events:
+          description: To which event types the notification will be sent
+          type: array
+          items:
+            $ref: '#/components/schemas/StatusCode'
+      required:
+        - service
+        - hook
+        - events
+    SubscriptionBodyInfo:
+      type: object
+      properties:
+        format:
+          $ref: '#/components/schemas/SubscriptionFormat'
+        service:
+          $ref: '#/components/schemas/Service'
+        hook:
+          $ref: '#/components/schemas/SubscriptionHookInfo'
+        events:
+          description: To which event types the notification will be sent
+          type: array
+          items:
+            $ref: '#/components/schemas/StatusCode'
+    SubscriptionBodyAdmin:
+      type: object
+      properties:
+        format:
+          $ref: '#/components/schemas/SubscriptionFormat'
+        service:
+          $ref: '#/components/schemas/Service'
+        hook:
+          $ref: '#/components/schemas/SubscriptionHook'
+        secret:
+          type: string
+          format: password
+        email:
+          description: The email address of the authorized person
+          type: string
+          format: email
+        events:
+          description: To which event types the notification will be sent
+          type: array
+          items:
+            $ref: '#/components/schemas/StatusCode'
+    SubscriptionAccountId:
+      type: object
+      properties:
+        type:
+          type: string
+          default: Account
+          x-field-extra-annotation: '@com.dhl.utapi.common.dto.validation.SubscriptionTypeConstraint'
+        accountID:
+          type: string
+          minLength: 1
+      required:
+        - type
+        - accountID
+    SubscriptionShipments:
+      description: Only one of the arrays is allowed
+      type: object
+      oneOf:
+        - $ref: '#/components/schemas/SubscriptionShipmentIds'
+        - $ref: '#/components/schemas/SubscriptionShipmentIdsWithChallengeDetails'
+    SubscriptionShipmentIds:
+      allOf:
+        - type: object
+          properties:
+            type:
+              type: string
+              default: Shipment
+              x-field-extra-annotation: '@com.dhl.utapi.common.dto.validation.SubscriptionTypeConstraint'
+            shipmentIDs:
+              description: 'maxItems: 10<br/> minItems: 1'
+              type: array
+              items:
+                type: string
+        - $ref: '#/components/schemas/ShipmentType'
+      required:
+        - type
+    SubscriptionShipmentIdsWithChallengeDetails:
+      allOf:
+        - type: object
+          properties:
+            shipmentIDsWithChallengeDetails:
+              description: 'maxItems: 10<br/> minItems: 1'
+              type: array
+              items:
+                $ref: '#/components/schemas/ShipmentIDWithChallengeDetails'
+        - $ref: '#/components/schemas/ShipmentType'
+      required:
+        - type
+    ShipmentType:
+      type: object
+      properties:
+        type:
+          type: string
+          default: Shipment
+          x-field-extra-annotation: '@com.dhl.utapi.common.dto.validation.SubscriptionTypeConstraint'
+    ShipmentIDWithChallengeDetails:
+      type: object
+      properties:
+        shipmentID:
+          type: string
+        postalCode:
+          type: string
+      required:
+        - shipmentID
+    SubscriptionAccountInfo:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/SubscriptionRequestState'
+        - $ref: '#/components/schemas/SubscriptionBodyInfo'
+        - $ref: '#/components/schemas/SubscriptionAccountId'
+      required:
+        - type
+    SubscriptionShipmentInfo:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/SubscriptionRequestState'
+        - $ref: '#/components/schemas/SubscriptionBodyInfo'
+        - $ref: '#/components/schemas/SubscriptionShipments'
+      required:
+        - type
+    SubscriptionAccountAdmin:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/SubscriptionRequestState'
+        - $ref: '#/components/schemas/SubscriptionBodyAdmin'
+        - $ref: '#/components/schemas/SubscriptionAccountId'
+      required:
+        - type
+    SubscriptionShipmentAdmin:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/SubscriptionRequestState'
+        - $ref: '#/components/schemas/SubscriptionBodyAdmin'
+        - $ref: '#/components/schemas/SubscriptionShipments'
+      required:
+        - type
+    SubscriptionAccountRequest:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/SubscriptionBody'
+        - $ref: '#/components/schemas/SubscriptionAccountId'
+      required:
+        - type
+    SubscriptionShipmentRequest:
+      type: object
+      x-class-extra-annotation: '@com.dhl.utapi.common.dto.validation.SubscriptionShipmentRequestConstraint'
+      allOf:
+        - $ref: '#/components/schemas/SubscriptionBody'
+        - $ref: '#/components/schemas/SubscriptionShipments'
+      required:
+        - type
+    SubscriptionHook:
+      type: object
+      required:
+        - uri
+      properties:
+        uri:
+          description: Uniform resource identifier of system
+          type: string
+          format: uri
+          pattern: ^https://.*
+          example: https://webhook123.mydomain.com/track/push
+        authentication:
+          $ref: '#/components/schemas/SubscriptionHookAuthentication'
+    SubscriptionHookInfo:
+      type: object
+      required:
+        - uri
+      properties:
+        uri:
+          description: Uniform resource identifier of system
+          type: string
+          format: uri
+          pattern: ^https://.*
+          example: https://webhook123.mydomain.com/track/push
+    SubscriptionHookAuthentication:
+      type: object
+      properties:
+        type:
+          $ref: '#/components/schemas/SubscriptionAuthenticationType'
+        header:
+          type: string
+          format: password
+          pattern: ^[a-zA-Z0-9\-]+$
+        token:
+          type: string
+          format: password
+      required:
+        - type
+        - header
+        - token
+    SubscriptionAuthenticationType:
+      type: string
+      enum:
+        - ApiKeyAuthentication
+    SubscriptionFormat:
+      description: Subscription message format
+      type: string
+      x-field-extra-annotation: '@com.dhl.utapi.common.dto.validation.SubscriptionFormatConstraint'
+      nullable: true
+      enum:
+        - Default
+        - parcel-de
+    SubscriptionType:
+      description: Subscription type
+      type: string
+      nullable: true
+      enum:
+        - Account
+        - Shipment
+    Service:
+      description: Service (provider) used to resolve this tracking number (id)
+      type: string
+      enum:
+        - dgf
+        - dsc
+        - ecommerce
+        - ecommerce-apac
+        - ecommerce-europe
+        - ecommerce-ppl
+        - ecommerce-iberia
+        - express
+        - freight
+        - parcel-de
+        - parcel-nl
+        - parcel-pl
+        - parcel-uk
+        - post-de
+        - post-international
+        - sameday
+        - svb
+      example: express
+      nullable: false
+      x-enum-varnames:
+        - DGF
+        - DSC
+        - ECM
+        - ECP
+        - ECE
+        - PPL
+        - ECI
+        - XPR
+        - FRT
+        - PAD
+        - PAN
+        - PAP
+        - PUK
+        - PSD
+        - DPI
+        - SMD
+        - SVB
+    StatusCode:
+      description: Code of the status (high-level grouping statuses)
+      type: string
+      enum:
+        - delivered
+        - failure
+        - pre-transit
+        - transit
+        - unknown
+      example: delivered
+    ProblemDetail:
+      description: A problem detail response
+      type: object
+      properties:
+        detail:
+          description: A human-readable explanation specific to this occurrence of the problem
+          example: Detailed explanation of problem
+          type: string
+        instance:
+          description: A URI reference that identifies the specific occurrence of the problem
+          example: https://www.some.uri/issue/400
+          format: uri
+          type: string
+        status:
+          description: The HTTP status code
+          example: 400
+          type: number
+        title:
+          description: A short, human-readable summary of the problem type
+          example: Something already happen
+          type: string
+        type:
+          description: An identity of caused exception class
+          example: SomeException
+          type: string
+    ttl:
+      description: Define the TTL value in seconds of shipment between 30 and 365 days
+      type: integer
+      format: int32
+      minimum: 2592000
+      maximum: 31536000
+      default: 15552000
+    SecretPolicy:
+      description: A secret policy protecting sensitive information
+      type: string
+      enum:
+        - none
+        - postal-code
+      default: postal-code
+      example: postal-code
+    CountryCode:
+      description: Code specifying the country using ISO 3166-1 alpha-2
+      type: string
+      format: country-code
+      example: CZ
+    SecuredAddress:
+      description: The mailing address secured by policy
+      properties:
+        '@policy':
+          $ref: '#/components/schemas/SecretPolicy'
+        addressLocality:
+          description: Text specifying the name of the locality, for example a city
+          type: string
+          example: Prague
+        addressLocalityServicing:
+          description: Text specifying a detail of address locality
+          type: string
+          example: Chodov
+        addressRegion:
+          description: Text specifying a detail of country
+          type: string
+          example: Prague 11
+        countryCode:
+          $ref: '#/components/schemas/CountryCode'
+        postalCode:
+          description: Text specifying the postal code for an address
+          type: string
+          example: '14000'
+        streetAddress:
+          description: The street address expressed as free form text
+          type: string
+          example: Batman Avenue 1040
+        addressLine:
+          description: Text specifying the addressLine, for example an apartment, suite, or floor number
+          type: string
+          example: 3rd Floor
+    ServicePoint:
+      properties:
+        url:
+          type: string
+        label:
+          type: string
+    SecuredPlace:
+      description: The location of object
+      type: object
+      properties:
+        address:
+          $ref: '#/components/schemas/SecuredAddress'
+        servicePoint:
+          $ref: '#/components/schemas/ServicePoint'
+    TrackingShipmentStatus:
+      description: High-level shipment status
+      type: object
+      properties:
+        timestamp:
+          description: A combination of date and time of day
+          type: string
+          format: iso8601-date-time
+        location:
+          $ref: '#/components/schemas/SecuredPlace'
+        statusCode:
+          $ref: '#/components/schemas/StatusCode'
+        status:
+          description: Short description of the status - title
+          type: string
+        statusDetailed:
+          description: Detailed status of the shipment
+          type: string
+        description:
+          description: Human-readable detailed description
+          type: string
+        remark:
+          description: Remark regarding the shipment status
+          type: string
+        nextSteps:
+          description: Description of the next steps
+          type: string
+      required:
+        - timestamp
+        - statusCode
+    EstimatedDeliveryTimeFrame:
+      description: A term when shipment is expected to arrive
+      type: object
+      properties:
+        estimatedFrom:
+          description: The start date of the estimated time frame
+          format: iso8601-date-time
+          type: string
+        estimatedThrough:
+          description: The end date of the estimated time frame
+          format: iso8601-date-time
+          type: string
+    ReturnFlag:
+      description: A flag whether the delivery is returned back to consignor
+      type: boolean
+      default: false
+    Product:
+      description: Offered product or service
+      type: object
+      properties:
+        deliveryMethodRemark:
+          description: Specific detail of product
+          type: string
+          example: D2P
+        productCode:
+          type: string
+        productName:
+          description: Business unit product or service
+          type: string
+          example: Worldwide Priority
+    Provider:
+      description: The service provider, service operator, or service performer
+      example:
+        destinationProvider: freight
+      type: object
+      required:
+        - destinationProvider
+      properties:
+        destinationProvider:
+          description: The name of the provider organization handling the delivery in the destination country
+          type: string
+          enum:
+            - acs-courier
+            - anpost
+            - bpost
+            - bring
+            - chronopost
+            - colis-prive
+            - econnect
+            - express
+            - fastway
+            - freight
+            - freight-fr
+            - freight-se
+            - hrvatska-posta
+            - magyar-posta
+            - oepag
+            - parcel-be
+            - parcel-bl
+            - parcel-cz
+            - parcel-de
+            - parcel-es
+            - parcel-iberia
+            - parcel-lu
+            - parcel-nl
+            - parcel-pl
+            - parcel-pt
+            - parcel-uk
+            - posta
+            - posta-slovenije
+            - posti
+            - poste-italiane
+            - ppl
+            - rapido
+            - relais-colis
+            - slovak-parcel-service
+            - speedy
+            - sps
+            - trans-o-flex
+            - urgent-cargus
+    UnknownEntity:
+      description: Technical internal integration object, not intended for direct integration! Use Organization or Person please.
+      properties:
+        '@type':
+          type: string
+          default: UnknownEntity
+          x-field-extra-annotation: '@com.dhl.utapi.common.dto.validation.PersonEntityTypeConstraint'
+        '@policy':
+          default: null
+          nullable: true
+          allOf:
+            - $ref: '#/components/schemas/SecretPolicy'
+        familyName:
+          type: string
+        givenName:
+          type: string
+        name:
+          type: string
+        organizationName:
+          type: string
+        address:
+          $ref: '#/components/schemas/SecuredAddress'
+      required:
+        - '@type'
+    Organization:
+      description: A sensitive common organization or company
+      type: object
+      properties:
+        '@type':
+          type: string
+          default: Organization
+          example: Organization
+          x-field-extra-annotation: '@com.dhl.utapi.common.dto.validation.PersonEntityTypeConstraint'
+        '@policy':
+          default: SecretPolicy.POSTAL_CODE
+          allOf:
+            - $ref: '#/components/schemas/SecretPolicy'
+        name:
+          description: The name of the person
+          type: string
+          example: Linford Alene
+        organizationName:
+          description: The name of organization
+          type: string
+          example: Highgate School and Academy
+        address:
+          $ref: '#/components/schemas/SecuredAddress'
+      required:
+        - '@type'
+    Company:
+      description: A public business organization
+      type: object
+      properties:
+        '@type':
+          type: string
+          default: Company
+          example: Company
+          x-field-extra-annotation: '@com.dhl.utapi.common.dto.validation.PersonEntityTypeConstraint'
+        '@policy':
+          default: SecretPolicy.POSTAL_CODE
+          allOf:
+            - $ref: '#/components/schemas/SecretPolicy'
+        name:
+          description: The name of the person
+          type: string
+          example: Linford Alene
+        organizationName:
+          description: The name of organization
+          type: string
+          example: The First Dome Ltd.
+        address:
+          $ref: '#/components/schemas/SecuredAddress'
+      required:
+        - '@type'
+    Person:
+      description: A person
+      properties:
+        '@type':
+          type: string
+          default: Person
+          example: Person
+          x-field-extra-annotation: '@com.dhl.utapi.common.dto.validation.PersonEntityTypeConstraint'
+        '@policy':
+          default: SecretPolicy.POSTAL_CODE
+          allOf:
+            - $ref: '#/components/schemas/SecretPolicy'
+        familyName:
+          description: Family name, the last name of a person
+          type: string
+        givenName:
+          description: Given name, the first name of a person
+          type: string
+        name:
+          description: The name of the person
+          type: string
+          example: Dariel Leola
+        address:
+          $ref: '#/components/schemas/SecuredAddress'
+      required:
+        - '@type'
+    PersonEntity:
+      description: A real organization or personal entity, if type is not specified, a Organization implementation is used
+      type: object
+      x-field-extra-annotation: '@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "@type", visible = true, defaultImpl = com.dhl.utapi.common.dto.UnknownEntity.class)'
+      oneOf:
+        - $ref: '#/components/schemas/UnknownEntity'
+        - $ref: '#/components/schemas/Organization'
+        - $ref: '#/components/schemas/Company'
+        - $ref: '#/components/schemas/Person'
+      discriminator:
+        propertyName: '@type'
+        mapping:
+          UnknownEntity: '#/components/schemas/UnknownEntity'
+          Organization: '#/components/schemas/Organization'
+          Company: '#/components/schemas/Company'
+          Person: '#/components/schemas/Person'
+    ProofOfDelivery:
+      description: An acknowledgment that an order successfully arrived at its intended destination
+      type: object
+      properties:
+        documentUrl:
+          description: The link to related electronic proof of delivery document
+          format: uri
+          type: string
+          example: https://webpod.dhl.com/pod?token=510f1359603a768a57af49cf10083f90&language=en
+        signatureUrl:
+          description: The link to related electronic signature
+          format: uri
+          type: string
+        signed:
+          $ref: '#/components/schemas/PersonEntity'
+        timestamp:
+          description: Date and time of related proof of delivery document
+          format: iso8601-date-time
+          type: string
+          example: '2022-10-21T12:30:00'
+    PieceId:
+      description: Identification of item or piece in the shipment
+      type: string
+    QuantitativeValue:
+      description: A point value or interval for product characteristics and other purposes
+      type: object
+      properties:
+        unitText:
+          description: A string or text indicating the unit of measurement
+          type: string
+          example: m
+        value:
+          description: The value of the quantitative value or property value node
+          type: number
+          example: 1.5
+    Dimensions:
+      description: A measurable extent of a particular kind of delivery
+      type: object
+      properties:
+        height:
+          $ref: '#/components/schemas/QuantitativeValue'
+        length:
+          $ref: '#/components/schemas/QuantitativeValue'
+        width:
+          $ref: '#/components/schemas/QuantitativeValue'
+    SecretScope:
+      description: A secret scope of protected or sensitive information
+      type: string
+      enum:
+        - public
+        - secret
+        - sensitive
+      example: public
+    ReferenceType:
+      description: Type of reference
+      type: string
+      enum:
+        - container-number
+        - customer-confirmation-number
+        - customer-reference
+        - domestic-consignment-id
+        - ecommerce-number
+        - housebill
+        - local-tracking-number
+        - masterbill
+        - payer-account-number
+        - receiver-account-number
+        - reference
+        - shipment-id
+        - shipper-account-number
+        - routing-code
+        - customer-order-number
+      example: customer-confirmation-number
+    Reference:
+      description: An indication that refers to related shipment
+      type: object
+      properties:
+        '@scope':
+          $ref: '#/components/schemas/SecretScope'
+        number:
+          description: A value of reference
+          type: string
+        type:
+          $ref: '#/components/schemas/ReferenceType'
+      required:
+        - type
+    ValueAddedService:
+      description: End customer service
+      type: object
+      properties:
+        serviceType:
+          type: string
+          enum:
+            - bulky
+            - pickup
+            - gogreen
+            - priority
+            - extraInsurance
+            - directInjection
+            - cashOnDelivery
+            - importFees
+        serviceCriteria:
+          type: string
+        serviceFlag:
+          type: boolean
+    ValueAddedServices:
+      description: Services I booked together with my Tracking details
+      type: object
+      properties:
+        services:
+          description: List of customer services
+          type: array
+          items:
+            $ref: '#/components/schemas/ValueAddedService'
+    ControlledDataCode:
+      type: string
+      enum:
+        - consignee-city
+        - servicepoint-facilityId
+        - servicepoint-url
+        - shipper-city
+        - signatory-name
+      example: consignee-city
+    DgfLocation:
+      description: DHL Global Forwarding Location
+      type: object
+      properties:
+        dgf:locationName:
+          description: The name of the location
+          type: string
+          example: GOTHENBURG
+    DgfAirport:
+      description: DHL Global Forwarding Airport
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/DgfLocation'
+      properties:
+        dgf:locationCode:
+          description: Airport of departure/destination in IATA code format
+          type: string
+          example: AMS
+        countryCode:
+          $ref: '#/components/schemas/CountryCode'
+    DgfRoute:
+      description: DHL Global Forwarding Route
+      type: object
+      properties:
+        dgf:vesselName:
+          description: Vessel Name for Ocean
+          type: string
+          example: MAERSK SARAT
+        dgf:voyageFlightNumber:
+          description: Voyage number for Ocean, Flight Carrier and Number for Air
+          type: string
+          example: TR TRUCK
+        dgf:airportOfDeparture:
+          $ref: '#/components/schemas/DgfAirport'
+        dgf:airportOfDestination:
+          $ref: '#/components/schemas/DgfAirport'
+        dgf:estimatedDepartureDate:
+          description: Flight Estimated Date and Time of Departure
+          type: string
+          format: iso8601-date-time
+        dgf:estimatedArrivalDate:
+          description: Flight Estimated Date and Time of Arrival
+          type: string
+          format: iso8601-date-time
+        dgf:placeOfAcceptance:
+          $ref: '#/components/schemas/DgfLocation'
+        dgf:portOfLoading:
+          $ref: '#/components/schemas/DgfLocation'
+        dgf:portOfUnloading:
+          $ref: '#/components/schemas/DgfLocation'
+        dgf:placeOfDelivery:
+          $ref: '#/components/schemas/DgfLocation'
+    TrackingShipmentDetails:
+      description: Shipment Details
+      type: object
+      properties:
+        product:
+          $ref: '#/components/schemas/Product'
+        provider:
+          $ref: '#/components/schemas/Provider'
+        receiver:
+          $ref: '#/components/schemas/PersonEntity'
+        sender:
+          $ref: '#/components/schemas/PersonEntity'
+        carrier:
+          $ref: '#/components/schemas/PersonEntity'
+        shipper:
+          $ref: '#/components/schemas/PersonEntity'
+        consignee:
+          $ref: '#/components/schemas/PersonEntity'
+        proofOfDelivery:
+          $ref: '#/components/schemas/ProofOfDelivery'
+        proofOfDeliverySignedAvailable:
+          type: boolean
+          description: \'Yes\' if signer identification is available
+        totalNumberOfPieces:
+          description: Total number of items or pieces in the shipment
+          type: integer
+          format: int32
+        pieceIds:
+          description: Ids of all the items or pieces in the shipment
+          type: array
+          items:
+            $ref: '#/components/schemas/PieceId'
+        weight:
+          $ref: '#/components/schemas/QuantitativeValue'
+        volume:
+          $ref: '#/components/schemas/QuantitativeValue'
+        loadingMeters:
+          description: A loading meter standard unit of measurement for transport by truck
+          type: number
+          format: float
+        dimensions:
+          $ref: '#/components/schemas/Dimensions'
+        references:
+          description: A list of indications that refers to related shipment
+          type: array
+          items:
+            $ref: '#/components/schemas/Reference'
+        valueAddedServices:
+          $ref: '#/components/schemas/ValueAddedServices'
+        controlledDataCodes:
+          description: Extra Controlled Access Data Codes
+          type: array
+          items:
+            $ref: '#/components/schemas/ControlledDataCode'
+        shipmentActivationDate:
+          description: Shipment Activation date
+          type: string
+          format: iso8601-date-time
+        dgf:routes:
+          description: DHL Global Forwarding routing Details
+          type: array
+          items:
+            $ref: '#/components/schemas/DgfRoute'
+    TrackingShipmentEvent:
+      description: Shipment movement information
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/TrackingShipmentStatus'
+        - properties:
+            pieceIds:
+              description: Ids of all the items or pieces in the shipment
+              type: array
+              items:
+                $ref: '#/components/schemas/PieceId'
+    Location:
+      description: location co-ordinates of shipment
+      type: object
+      properties:
+        lat:
+          description: Latitude value
+          type: number
+          format: float
+          example: 18.556873
+        lon:
+          description: Longitude value
+          type: number
+          format: float
+          example: -70.06104
+    Humidity:
+      description: Humidity measurement
+      type: object
+      properties:
+        value:
+          description: Humidity value
+          type: string
+        unit:
+          description: Unit of measurement
+          type: string
+          enum:
+            - percentage
+          example: percentage
+        deviceId:
+          description: Sensor device id measured the humidity
+          type: string
+    Pressure:
+      description: Pressure measurement
+      type: object
+      properties:
+        value:
+          description: Pressure value
+          type: string
+        unit:
+          description: Unit of measurement
+          type: string
+          enum:
+            - pascal
+            - bar
+            - psi
+          example: pascal
+        deviceId:
+          description: Sensor device id measured the pressure
+          type: string
+    Temperature:
+      description: Temperature measurement
+      type: object
+      properties:
+        value:
+          description: Temperature value
+          type: string
+        unit:
+          description: Unit of measurement
+          type: string
+          enum:
+            - celsius
+            - fahrenheit
+            - kelvin
+          example: celsius
+        deviceId:
+          description: Sensor device id measured the temperature
+          type: string
+    Tilt:
+      description: Tilt measurement
+      type: object
+      properties:
+        value:
+          description: Tilt value
+          type: string
+        unit:
+          description: Unit of measurement
+          type: string
+          enum:
+            - degree
+            - radian
+          example: degree
+        deviceId:
+          description: Sensor device id measured the tilt
+          type: string
+    Measurement:
+      description: Telemetry measurement details about shipment
+      properties:
+        '@policy':
+          $ref: '#/components/schemas/SecretPolicy'
+        timestamp:
+          description: Date and time when the telemetry data was created by the origin system
+          type: string
+          format: iso8601-date-time
+          x-field-extra-annotation: '@com.dhl.utapi.common.datetime.validation.LocalDateTimeConstraint'
+        location:
+          $ref: '#/components/schemas/Location'
+        humidity:
+          $ref: '#/components/schemas/Humidity'
+        pressure:
+          $ref: '#/components/schemas/Pressure'
+        temperature:
+          $ref: '#/components/schemas/Temperature'
+        tilt:
+          $ref: '#/components/schemas/Tilt'
+    TrackingShipment:
+      description: Unified tracking shipment
+      type: object
+      properties:
+        '@ttl':
+          $ref: '#/components/schemas/ttl'
+        id:
+          description: Shipment identification tracking number
+          type: string
+        service:
+          $ref: '#/components/schemas/Service'
+        division:
+          description: The (sub)division of service provider that owns the shipment
+          type: string
+        origin:
+          $ref: '#/components/schemas/SecuredPlace'
+        destination:
+          $ref: '#/components/schemas/SecuredPlace'
+        status:
+          $ref: '#/components/schemas/TrackingShipmentStatus'
+        pickUpDate:
+          description: Shipment pickup date
+          type: string
+          format: iso8601-date-time
+        estimatedTimeOfDelivery:
+          description: Estimated time of delivery
+          type: string
+          format: iso8601-date-time
+        estimatedDeliveryTimeFrame:
+          $ref: '#/components/schemas/EstimatedDeliveryTimeFrame'
+        estimatedTimeOfDeliveryRemark:
+          description: Human-readable description of the estimated delivery time
+          type: string
+        serviceUrl:
+          description: Custom link to BU tracking service
+          type: string
+          format: uri
+        rerouteUrl:
+          description: Custom link to BU rerouting service, if available for the current status of the shipment
+          type: string
+          format: uri
+        returnFlag:
+          $ref: '#/components/schemas/ReturnFlag'
+        details:
+          $ref: '#/components/schemas/TrackingShipmentDetails'
+        events:
+          description: Historical list of events & timestamps
+          type: array
+          items:
+            $ref: '#/components/schemas/TrackingShipmentEvent'
+        telemetry:
+          $ref: '#/components/schemas/Measurement'
+  examples:
+    byAccountID:
+      summary: By Account ID
+      value:
+        hook:
+          uri: https://webhook123.mydomain.com/track/push
+          authentication:
+            type: ApiKeyAuthentication
+            header: ApiKey
+            token: zxF9V6Lme9wN
+        format: Default
+        type: Account
+        service: ecommerce-europe
+        events:
+          - Transit
+        accountID: '123456'
+    byTrackingIDWithChallengeDetails:
+      summary: 'By Tracking ID with Challenge details'
+      value:
+        hook:
+          uri: https://webhook123.mydomain.com/track/push
+        format: Default
+        type: Shipment
+        service: sameday
+        events: [
+          Transit
+        ]
+        shipmentIDsWithChallengeDetails:
+          - shipmentID: '123456789'
+            postalCode: '12345'
+          - shipmentID: '987654321'
+            postalCode: '12346'
+    byTrackingIDWithoutChallengeDetails:
+      summary: 'By Tracking ID without Challenge details'
+      value:
+        hook:
+          uri: https://webhook123.mydomain.com/track/push
+        format: Default
+        type: Shipment
+        service: sameday
+        events: [
+          Transit
+        ]
+        shipmentIDs: [
+          '1829852058',
+          '1829852059'
+        ]
+  securitySchemes:
+    DHL-API-Key:
+      type: apiKey
+      in: header
+      name: DHL-API-Key
+  headers:
+    correlation-id:
+      description: correlation ID for tracking transaction within UTAPI
+      schema:
+        type: string
+  parameters:
+    subscriptionId:
+      description: Unique subscription identifier provided at `self` link
+      in: path
+      name: id
+      required: true
+      schema:
+        type: string
+    apiHookSecret:
+      description: Token to confirm validation of intend, pushed to subscriber's system when subscription has created
+      in: header
+      name: DHL-API-Hook-Secret
+      required: true
+      schema:
+        format: password
+        type: string

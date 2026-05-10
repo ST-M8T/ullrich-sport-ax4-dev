@@ -1,0 +1,162 @@
+.admin-app {
+    background: var(--surface-page);
+    color: var(--color-text);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.admin-skip-link {
+    position: absolute;
+    top: -999px;
+    left: 0;
+    background-color: var(--brand-primary);
+    color: var(--color-white);
+    padding: 0.75rem 1.5rem;
+    z-index: 1000;
+    text-decoration: none;
+}
+
+.admin-skip-link:focus {
+    top: 1rem;
+}
+
+.admin-header {
+    background-color: var(--brand-primary);
+    color: var(--color-white);
+    box-shadow: 0 2px 15px rgba(0, 0, 0, 0.08);
+    padding: 1.5rem 0;
+}
+
+.admin-logo-container,
+.admin-dhl-container {
+    display: flex;
+    justify-content: center;
+}
+
+.admin-logo {
+    max-height: 80px;
+    filter: brightness(0) invert(1);
+}
+
+.admin-dhl-logo {
+    max-height: 60px;
+}
+
+.admin-title {
+    font-size: 2.3rem;
+    font-weight: 300;
+    margin-bottom: 0.35rem;
+}
+
+.admin-tagline {
+    font-size: 1rem;
+    opacity: 0.9;
+}
+
+.app-shell {
+    display: flex;
+    width: 100%;
+    gap: 0;
+    background: var(--surface-page);
+}
+
+.app-shell--solo {
+    flex-direction: column;
+}
+
+.app-sidebar {
+    flex: 0 0 280px;
+    background: var(--surface-panel);
+    border-right: 1px solid var(--color-border);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+    gap: 0;
+}
+
+.admin-sidebar__logo {
+    background-color: var(--brand-primary);
+    padding: 1rem 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+}
+
+.admin-sidebar-logo {
+    max-height: 50px;
+    width: auto;
+}
+
+.app-sidebar .admin-sidebar__user {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    border-bottom: 1px solid var(--color-border);
+    padding: 1.25rem;
+}
+
+.admin-user-label {
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    opacity: 0.85;
+}
+
+.admin-user-name {
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.admin-logout-form .btn {
+    width: 100%;
+    justify-content: center;
+}
+
+.admin-nav {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.admin-nav-card {
+    background: linear-gradient(180deg, color-mix(in srgb, var(--brand-primary) 85%, var(--brand-primary-gradient-dark)) 0%, var(--brand-primary) 100%);
+    flex: 1;
+}
+
+.app-main {
+    flex: 1;
+    background: var(--surface-page);
+    min-height: 100vh;
+}
+
+.app-shell--solo .app-main {
+    margin-left: 0;
+}
+
+.app-main__inner {
+    background: var(--surface-panel);
+    box-shadow: var(--shadow-elevated);
+    padding: 2rem;
+}
+
+.admin-breadcrumbs {
+    margin-bottom: 1.5rem;
+}
+
+@media (max-width: 991px) {
+    .app-shell {
+        flex-direction: column;
+    }
+
+    .app-sidebar {
+        flex: none;
+        width: 100%;
+        min-height: auto;
+        border-right: none;
+        border-bottom: 1px solid var(--color-border);
+    }
+
+    .app-main {
+        padding: 1.5rem;
+    }
+}

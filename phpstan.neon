@@ -1,0 +1,29 @@
+includes:
+    - vendor/larastan/larastan/extension.neon
+
+parameters:
+    paths:
+        - app
+    bootstrapFiles:
+        - vendor/larastan/larastan/bootstrap.php
+    # Level: aktuell 8 (PR-blocking). Stufenweise hochgezogen über Welle 4–8.
+    # Welle 8 (Level 5 → 6 → 7 → 8): vollständige Generic-/Iterable-Annotation
+    # aller Repository-Contracts, Eloquent-Modelle, Resources, Domain-Entities
+    # und View-Composer. Level 7 deckt Property-/Parameter-Type-Conformance ab
+    # (Auth::id() → int|null Casts, ShipmentOrder*Model unsigned-int @property
+    # Overrides, Http::post Response-Type-Narrowing). Level 8 prüft strict
+    # Nullable-Returns: model->fresh() → model->refresh() Pattern in allen
+    # Masterdata-Repositories. Generic-Eloquent-Collection<Model>-Mismatches
+    # sind durch den Trait `App\Support\Persistence\MapsEloquentModels` gelöst.
+    # Level 9 (Max, strict mixed) hat noch 594 Befunde — Backlog DOC-10.
+    level: 8
+    treatPhpDocTypesAsCertain: false
+    reportUnmatchedIgnoredErrors: false
+    excludePaths:
+        - bootstrap
+        - database/seeders
+        # Einmal-Lauf-Migrations-Commands enthalten komplexe Map-Heuristiken,
+        # die PhpStan teils nicht typsicher einordnen kann (echte Pfade existieren,
+        # aber statisch nicht ableitbar). Tests sichern das Verhalten ab.
+        - app/Console/Commands/MigrateFulfillmentMasterdata.php
+        - app/Console/Commands/MigrateFulfillmentOperations.php

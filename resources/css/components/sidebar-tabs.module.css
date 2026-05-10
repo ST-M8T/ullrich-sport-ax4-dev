@@ -1,0 +1,136 @@
+/**
+ * Sidebar Tabs Component Module
+ * Vertikale Tab-Navigation für Seiten-Navigation
+ * BEM-Methodologie: .sidebar-tabs__element--modifier
+ */
+
+.sidebar-tabs {
+    display: flex;
+    flex-direction: column;
+    background: var(--surface-panel);
+    border: 1px solid var(--color-border);
+    padding: 1.5rem;
+    min-width: 280px;
+    max-width: 320px;
+}
+
+.sidebar-tabs__header {
+    margin-bottom: 1.5rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.sidebar-tabs__title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--color-text);
+    margin: 0 0 0.5rem 0;
+}
+
+.sidebar-tabs__description {
+    font-size: 0.9rem;
+    color: var(--color-text-muted);
+    margin: 0;
+    line-height: 1.5;
+}
+
+.sidebar-tabs__nav {
+    flex: 1;
+}
+
+.sidebar-tabs__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.sidebar-tabs__item {
+    display: flex;
+}
+
+.sidebar-tabs__link {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    width: 100%;
+    padding: 0.85rem 1rem;
+    background: transparent;
+    color: var(--color-text);
+    text-decoration: none;
+    font-size: 0.85rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-left: 4px solid transparent;
+    transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.sidebar-tabs__link:hover,
+.sidebar-tabs__link:focus {
+    background: color-mix(in srgb, var(--brand-primary) 8%, transparent);
+    color: var(--color-text);
+}
+
+.sidebar-tabs__link.is-active,
+.sidebar-tabs__link[aria-current='page'] {
+    background: color-mix(in srgb, var(--brand-primary) 12%, transparent);
+    color: var(--brand-primary);
+    border-left-color: var(--brand-primary);
+    font-weight: 600;
+}
+
+.sidebar-tabs__link-text {
+    flex: 1;
+}
+
+.sidebar-tabs__badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.5rem;
+    height: 1.5rem;
+    padding: 0 0.375rem;
+    background: var(--color-border);
+    color: var(--color-text);
+    font-size: 0.7rem;
+    font-weight: 600;
+    border-radius: 0;
+}
+
+.sidebar-tabs__link.is-active .sidebar-tabs__badge,
+.sidebar-tabs__link[aria-current='page'] .sidebar-tabs__badge {
+    background: var(--brand-primary);
+    color: var(--color-white);
+}
+
+/* Layout für Sidebar + Content */
+.sidebar-tabs-layout {
+    display: flex;
+    gap: 2rem;
+    align-items: flex-start;
+}
+
+.sidebar-tabs-layout__sidebar {
+    flex: 0 0 auto;
+}
+
+.sidebar-tabs-layout__content {
+    flex: 1;
+    min-width: 0;
+}
+
+@media (max-width: 1023.98px) {
+    .sidebar-tabs-layout {
+        flex-direction: column;
+    }
+
+    .sidebar-tabs {
+        max-width: 100%;
+        width: 100%;
+    }
+}
+

@@ -1,0 +1,455 @@
+openapi: 3.1.0
+info:
+  title: AX4 Public API
+  version: "1.0.0"
+  description: |
+    HTTP-API für externe Konsumenten (Dispatch-Scan-App, Operations-Dashboard,
+    Customer-Tracking-Portal). Alle `/v1/*`-Endpunkte sind via `X-API-Key` geschützt;
+    Health-Checks sind öffentlich. Admin-API (`/admin/*`) ist über ein separates
+    Bearer-Token gesichert und in dieser Spec nicht enthalten.
+
+    Quelle: [docs/API_CONSUMERS.md](API_CONSUMERS.md), `routes/api.php`.
+  contact:
+    name: Operations
+servers:
+  - url: https://ax4.ullrich-sport.de
+    description: Production
+  - url: http://localhost:8000
+    description: Local development
+tags:
+  - name: Health
+    description: Liveness/Readiness-Probes (öffentlich)
+  - name: Dispatch
+    description: Kommissionierlisten und Scans
+  - name: Shipments
+    description: Sendungs-Status per Tracking-Number
+  - name: Tracking
+    description: Tracking-Jobs und Alerts
+  - name: Settings
+    description: Lese-Zugriff auf einzelne Settings
+
+paths:
+  /v1/health/live:
+    get:
+      tags: [Health]
+      summary: Liveness Probe
+      description: Gibt 200 zurück, sobald der Prozess erreichbar ist.
+      security: []
+      responses:
+        "200":
+          description: Service ist erreichbar
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+
+  /v1/health/ready:
+    get:
+      tags: [Health]
+      summary: Readiness Probe
+      description: |
+        Prüft DB-, Cache-, Queue-Verfügbarkeit. Liefert `503` mit Detail-Status
+        wenn ein abhängiger Subsystem-Check `fail` meldet.
+      security: []
+      responses:
+        "200":
+          description: Alle abhängigen Systeme erreichbar (`ok` oder `warn`)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatusWithChecks"
+        "503":
+          description: Mindestens ein abhängiges System nicht erreichbar
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatusWithChecks"
+
+  /v1/dispatch-lists:
+    get:
+      tags: [Dispatch]
+      summary: Listet Kommissionierlisten
+      parameters:
+        - in: query
+          name: page
+          schema: { type: integer, minimum: 1, default: 1 }
+        - in: query
+          name: per_page
+          schema: { type: integer, minimum: 1, maximum: 100, default: 25 }
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [open, closed, exported]
+        - in: query
+          name: created_by_user_id
+          schema: { type: integer, minimum: 1 }
+        - in: query
+          name: reference
+          schema: { type: string, maxLength: 191 }
+        - in: query
+          name: include
+          description: Komma-separierte Includes (z.B. `scans`)
+          schema: { type: string }
+      responses:
+        "200":
+          description: Paginierte Liste
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DispatchListPagination"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "422":
+          $ref: "#/components/responses/InvalidQueryParameters"
+
+  /v1/dispatch-lists/{list}/scans:
+    get:
+      operationId: listDispatchScans
+      tags: [Dispatch]
+      summary: Listet Scans einer Dispatch-Liste
+      parameters:
+        - in: path
+          name: list
+          required: true
+          schema: { type: integer, minimum: 1 }
+      responses:
+        "200":
+          description: Scan-Liste
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DispatchScanCollection"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+    post:
+      operationId: storeDispatchScan
+      tags: [Dispatch]
+      summary: Erfasst einen neuen Scan auf einer Dispatch-Liste
+      description: Idempotente Aufnahme eines Scans (Engineering-Handbuch §24).
+      parameters:
+        - in: path
+          name: list
+          required: true
+          schema: { type: integer, minimum: 1 }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DispatchScanInput"
+      responses:
+        "201":
+          description: Scan erfasst
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DispatchScan"
+        "200":
+          description: Scan war bereits erfasst (Idempotenz)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DispatchScan"
+
+  /v1/shipments/{trackingNumber}:
+    get:
+      tags: [Shipments]
+      summary: Sendungsdetails per Tracking-Nummer
+      parameters:
+        - in: path
+          name: trackingNumber
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Sendungsdetails
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Shipment"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /v1/tracking-jobs:
+    get:
+      tags: [Tracking]
+      summary: Listet Tracking-Jobs
+      responses:
+        "200":
+          description: Job-Liste
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TrackingJobCollection"
+
+  /v1/tracking-alerts:
+    get:
+      tags: [Tracking]
+      summary: Listet Tracking-Alerts
+      responses:
+        "200":
+          description: Alert-Liste
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TrackingAlertCollection"
+
+  /v1/settings/{key}:
+    get:
+      tags: [Settings]
+      summary: Liest einzelnes System-Setting
+      parameters:
+        - in: path
+          name: key
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Setting-Wert
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SystemSetting"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+components:
+  securitySchemes:
+    apiKey:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: |
+        Externer API-Key. Konfiguration: `services.api.key`.
+        Alternativ als `?api_key=...` im Query-String.
+
+  schemas:
+    HealthStatus:
+      type: object
+      required: [status, timestamp]
+      properties:
+        status:
+          type: string
+          enum: [ok]
+        timestamp:
+          type: string
+          format: date-time
+
+    HealthStatusWithChecks:
+      type: object
+      required: [status, timestamp, checks]
+      properties:
+        status:
+          type: string
+          enum: [ok, warn, fail]
+        timestamp:
+          type: string
+          format: date-time
+        checks:
+          type: object
+          additionalProperties:
+            $ref: "#/components/schemas/HealthCheck"
+
+    HealthCheck:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [ok, warn, fail, skip, unknown]
+        message:
+          type: string
+        details:
+          type: object
+          additionalProperties: true
+
+    DispatchListPagination:
+      type: object
+      required: [data, meta]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/DispatchList"
+        meta:
+          $ref: "#/components/schemas/PaginationMeta"
+
+    DispatchList:
+      type: object
+      required: [id, status]
+      properties:
+        id: { type: integer }
+        reference: { type: string, nullable: true }
+        status:
+          type: string
+          enum: [open, closed, exported]
+        created_at: { type: string, format: date-time }
+        closed_at: { type: string, format: date-time, nullable: true }
+        exported_at: { type: string, format: date-time, nullable: true }
+        created_by_user_id: { type: integer, nullable: true }
+        scan_count: { type: integer }
+        scans:
+          type: array
+          description: Nur enthalten wenn `include=scans` gesetzt.
+          items:
+            $ref: "#/components/schemas/DispatchScan"
+
+    DispatchScanCollection:
+      type: object
+      required: [data]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/DispatchScan"
+
+    DispatchScan:
+      type: object
+      required: [id, list_id, package_reference, scanned_at]
+      properties:
+        id: { type: integer }
+        list_id: { type: integer }
+        package_reference: { type: string }
+        captured_by_user_id: { type: integer, nullable: true }
+        captured_at_terminal_id: { type: integer, nullable: true }
+        scanned_at: { type: string, format: date-time }
+        meta:
+          type: object
+          additionalProperties: true
+
+    DispatchScanInput:
+      type: object
+      required: [package_reference]
+      properties:
+        package_reference: { type: string }
+        captured_by_user_id: { type: integer, nullable: true }
+        captured_at_terminal_id: { type: integer, nullable: true }
+        meta:
+          type: object
+          additionalProperties: true
+
+    Shipment:
+      type: object
+      properties:
+        tracking_number: { type: string }
+        status: { type: string }
+        carrier: { type: string }
+        events:
+          type: array
+          items:
+            $ref: "#/components/schemas/ShipmentEvent"
+
+    ShipmentEvent:
+      type: object
+      properties:
+        timestamp: { type: string, format: date-time }
+        status: { type: string }
+        message: { type: string }
+        location: { type: string }
+
+    TrackingJobCollection:
+      type: object
+      required: [data]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/TrackingJob"
+
+    TrackingJob:
+      type: object
+      properties:
+        id: { type: integer }
+        type: { type: string }
+        status:
+          type: string
+          enum: [pending, running, completed, failed]
+        attempts: { type: integer }
+        scheduled_at: { type: string, format: date-time }
+        started_at: { type: string, format: date-time, nullable: true }
+        completed_at: { type: string, format: date-time, nullable: true }
+        last_error: { type: string, nullable: true }
+
+    TrackingAlertCollection:
+      type: object
+      required: [data]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/TrackingAlert"
+
+    TrackingAlert:
+      type: object
+      properties:
+        id: { type: integer }
+        alert_type: { type: string }
+        severity:
+          type: string
+          enum: [info, warning, critical]
+        triggered_at: { type: string, format: date-time }
+        acknowledged_at: { type: string, format: date-time, nullable: true }
+        details:
+          type: object
+          additionalProperties: true
+
+    SystemSetting:
+      type: object
+      properties:
+        key: { type: string }
+        value:
+          oneOf:
+            - { type: string }
+            - { type: integer }
+            - { type: boolean }
+            - { type: number }
+            - { type: object, additionalProperties: true }
+            - { type: "null" }
+        type:
+          type: string
+          enum: [string, int, bool, float, json]
+
+    PaginationMeta:
+      type: object
+      required: [current_page, per_page, total]
+      properties:
+        current_page: { type: integer }
+        per_page: { type: integer }
+        total: { type: integer }
+        last_page: { type: integer }
+
+    Error:
+      type: object
+      required: [message]
+      properties:
+        message: { type: string }
+        errors:
+          type: object
+          additionalProperties:
+            type: array
+            items: { type: string }
+
+  responses:
+    Unauthorized:
+      description: Fehlender oder ungültiger API-Key
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    NotFound:
+      description: Ressource nicht gefunden
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    InvalidQueryParameters:
+      description: Validierungsfehler (Query oder Body)
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+
+security:
+  - apiKey: []

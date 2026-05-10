@@ -1,0 +1,17 @@
+; Supervisor configuration for Laravel queue workers
+; -------------------------------------------------
+; Copy this file to /etc/supervisor/conf.d/laravel-worker.conf and adjust the
+; absolute paths for your deployment. The worker configuration mirrors the
+; defaults defined in config/performance.php (QUEUE_WORKER_* / QUEUE_MAINTENANCE).
+
+[program:laravel-worker]
+process_name=%(program_name)s_%(process_num)02d
+command=/usr/bin/php /var/www/app/artisan queue:work --queue=default,maintenance --sleep=3 --tries=3 --timeout=60
+autostart=true
+autorestart=true
+user=www-data
+numprocs=4
+redirect_stderr=true
+stdout_logfile=/var/log/supervisor/laravel-worker.log
+stopwaitsecs=3600
+
