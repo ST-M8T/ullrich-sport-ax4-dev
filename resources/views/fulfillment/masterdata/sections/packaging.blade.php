@@ -20,41 +20,39 @@
                 description="Es wurden keine Verpackungsprofile im Katalog gefunden."
             />
         @else
-            <div class="table-responsive">
-                <x-ui.data-table dense>
-                    <thead>
+            <x-ui.data-table dense>
+                <thead>
+                <tr>
+                    <th scope="col">Name</th>
+                    <th scope="col">Code</th>
+                    <th scope="col">Maße (mm)</th>
+                    <th scope="col">Slots</th>
+                    <th scope="col">Max / Empfänger</th>
+                    <th scope="col">Max / Mix</th>
+                    <th scope="col">Stapel (E/M)</th>
+                </tr>
+                </thead>
+                <tbody>
+                @foreach($previewProfiles as $profile)
                     <tr>
-                        <th scope="col">Name</th>
-                        <th scope="col">Code</th>
-                        <th scope="col">Maße (mm)</th>
-                        <th scope="col">Slots</th>
-                        <th scope="col">Max / Empfänger</th>
-                        <th scope="col">Max / Mix</th>
-                        <th scope="col">Stapel (E/M)</th>
+                        <td>{{ $profile->packageName() }}</td>
+                        <td>{{ $profile->packagingCode() ?? '—' }}</td>
+                        <td>
+                            {{ $profile->lengthMillimetres() }}
+                            × {{ $profile->widthMillimetres() }}
+                            × {{ $profile->heightMillimetres() }}
+                        </td>
+                        <td>{{ $profile->truckSlotUnits() }}</td>
+                        <td>{{ $profile->maxUnitsPerPalletSameRecipient() }}</td>
+                        <td>{{ $profile->maxUnitsPerPalletMixedRecipient() }}</td>
+                        <td>
+                            {{ $profile->maxStackablePalletsSameRecipient() }}
+                            / {{ $profile->maxStackablePalletsMixedRecipient() }}
+                        </td>
                     </tr>
-                    </thead>
-                    <tbody>
-                    @foreach($previewProfiles as $profile)
-                        <tr>
-                            <td>{{ $profile->packageName() }}</td>
-                            <td>{{ $profile->packagingCode() ?? '—' }}</td>
-                            <td>
-                                {{ $profile->lengthMillimetres() }}
-                                × {{ $profile->widthMillimetres() }}
-                                × {{ $profile->heightMillimetres() }}
-                            </td>
-                            <td>{{ $profile->truckSlotUnits() }}</td>
-                            <td>{{ $profile->maxUnitsPerPalletSameRecipient() }}</td>
-                            <td>{{ $profile->maxUnitsPerPalletMixedRecipient() }}</td>
-                            <td>
-                                {{ $profile->maxStackablePalletsSameRecipient() }}
-                                / {{ $profile->maxStackablePalletsMixedRecipient() }}
-                            </td>
-                        </tr>
-                    @endforeach
-                    </tbody>
-                </x-ui.data-table>
-            </div>
+                @endforeach
+                </tbody>
+            </x-ui.data-table>
         @endif
     </div>
 </section>

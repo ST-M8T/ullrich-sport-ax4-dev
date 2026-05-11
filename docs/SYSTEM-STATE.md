@@ -370,9 +370,15 @@ Stand: 2026-05-11
 
 ### 9.9 QA Nachweis 2026-05-11
 
-**Build Check:** `npm run build` erfolgreich. Neues Asset: `public/build/assets/css/app-C38LkUfX.css`.
+**Build Check:** `npm run build` erfolgreich. Neues Asset: `public/build/assets/css/app-BY-J5j8B.css`.
 
-**QA Check:** `php artisan test tests/Unit/Infrastructure/Integrations/DhlAuthenticationGatewayTest.php tests/Unit/Infrastructure/Integrations/DhlFreightGatewayTest.php tests/Feature/Fulfillment/Integrations/DhlShipmentBookingTest.php` erfolgreich mit 40 Assertions.
+**QA Check:** `vendor/bin/pint app/View/Composers/Configuration/ConfigurationSettingsComposer.php app/View/Composers/Fulfillment/FulfillmentMasterdataCatalogPartialComposer.php tests/Unit/Infrastructure/Integrations/DhlAuthenticationGatewayTest.php tests/Unit/Infrastructure/Integrations/DhlFreightGatewayTest.php` erfolgreich. `php artisan test tests/Feature/Configuration/ConfigurationManagementTest.php tests/Feature/Fulfillment/FulfillmentMasterdataPageTest.php tests/Feature/Layout/NavigationSnapshotTest.php tests/Feature/Layout/AdminLayoutSnapshotTest.php tests/Unit/Infrastructure/Integrations/DhlAuthenticationGatewayTest.php tests/Unit/Infrastructure/Integrations/DhlFreightGatewayTest.php tests/Feature/Fulfillment/Integrations/DhlShipmentBookingTest.php` erfolgreich mit 98 Assertions.
+
+**Shipment Order Senderprofil:** Auftragsdetails koennen fehlende Senderprofile jetzt vor der DHL Buchung zuordnen, auch wenn der Auftrag bereits lokal gebucht ist und noch keine DHL Sendung hat. Der DHL Buchungsbutton bleibt ohne Profil gesperrt und fuehrt direkt zum Anlage- oder Auswahlweg.
+
+**QA Check:** `vendor/bin/pint app/Domain/Fulfillment/Orders/ShipmentOrder.php app/Application/Fulfillment/Orders/Commands/AssignShipmentOrderSenderProfile.php app/Application/Fulfillment/Masterdata/Services/SenderProfileService.php app/Http/Controllers/Fulfillment/ShipmentOrderController.php app/Http/Requests/Fulfillment/AssignShipmentOrderSenderProfileRequest.php tests/Feature/Fulfillment/ShipmentOrdersTest.php` erfolgreich. `php artisan test tests/Feature/Fulfillment/ShipmentOrdersTest.php tests/Feature/Fulfillment/Integrations/DhlShipmentBookingTest.php` erfolgreich mit 41 Assertions. `npm run build` erfolgreich.
+
+**UI-Struktur:** Settings- und Stammdaten-Tabs sind wieder zentral ueber Composer-View-Daten aufgebaut. `x-tabs` erzeugt keine unnoetigen Scrollleisten mehr. `x-ui.data-table` bleibt die einzige Quelle fuer responsive Tabellen-Wrapper in den betroffenen Settings- und Stammdaten-Views.
 
 **Offene Risiken:** Die lokale `.env` enthaelt aktuell keine DHL Auth und Freight Secrets. Reale DHL Sandbox Buchungen koennen erst funktionieren, wenn `DHL_AUTH_USERNAME`, `DHL_AUTH_PASSWORD`, `DHL_FREIGHT_API_KEY` und je nach Auth Modus `DHL_FREIGHT_API_SECRET` gesetzt sind. Die Testausgabe enthaelt weiterhin eine bestehende PHP 8.5 Deprecation aus `config/database.php` fuer `PDO::MYSQL_ATTR_SSL_CA`.
 

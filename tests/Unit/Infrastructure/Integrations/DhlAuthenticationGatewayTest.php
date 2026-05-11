@@ -3,10 +3,10 @@
 namespace Tests\Unit\Infrastructure\Integrations;
 
 use App\Domain\Integrations\Contracts\DhlAuthenticationGateway;
-use InvalidArgumentException;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
+use InvalidArgumentException;
 use Tests\TestCase;
 
 final class DhlAuthenticationGatewayTest extends TestCase

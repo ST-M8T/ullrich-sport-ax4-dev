@@ -129,6 +129,11 @@ Route::middleware(['web', 'auth', 'can:admin.access'])
             ->middleware('can:fulfillment.orders.view')
             ->name('fulfillment-orders.transfer');
 
+        Route::post('/fulfillment/orders/{order}/sender-profile', [ShipmentOrderController::class, 'assignSenderProfile'])
+            ->whereNumber('order')
+            ->middleware('can:fulfillment.orders.view')
+            ->name('fulfillment-orders.sender-profile');
+
         Route::post('/fulfillment/orders/{order}/dhl/book', [ShipmentOrderController::class, 'bookDhl'])
             ->whereNumber('order')
             ->middleware('can:fulfillment.orders.view')

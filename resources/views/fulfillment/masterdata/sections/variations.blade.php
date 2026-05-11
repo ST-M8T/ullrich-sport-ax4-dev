@@ -20,32 +20,30 @@
                 description="Es liegen keine Variantenkonfigurationen im Katalog vor."
             />
         @else
-            <div class="table-responsive">
-                <x-ui.data-table dense>
-                    <thead>
+            <x-ui.data-table dense>
+                <thead>
+                <tr>
+                    <th scope="col">Item</th>
+                    <th scope="col">Variation</th>
+                    <th scope="col">State</th>
+                    <th scope="col">Verpackung</th>
+                    <th scope="col">Montage</th>
+                    <th scope="col">Gewicht (kg)</th>
+                </tr>
+                </thead>
+                <tbody>
+                @foreach($processedProfiles as $processed)
                     <tr>
-                        <th scope="col">Item</th>
-                        <th scope="col">Variation</th>
-                        <th scope="col">State</th>
-                        <th scope="col">Verpackung</th>
-                        <th scope="col">Montage</th>
-                        <th scope="col">Gewicht (kg)</th>
+                        <td>#{{ $processed['profile']->itemId() }}</td>
+                        <td>{{ $processed['profile']->variationName() ?? ('Var #' . ($processed['profile']->variationId() ?? '—')) }}</td>
+                        <td class="text-uppercase">{{ $processed['profile']->defaultState() }}</td>
+                        <td>{{ $processed['packaging']?->packageName() ?? '—' }}</td>
+                        <td>{{ $processed['assembly'] ? '#' . $processed['assembly']->assemblyItemId() : '—' }}</td>
+                        <td>{{ $processed['formattedWeight'] }}</td>
                     </tr>
-                    </thead>
-                    <tbody>
-                    @foreach($processedProfiles as $processed)
-                        <tr>
-                            <td>#{{ $processed['profile']->itemId() }}</td>
-                            <td>{{ $processed['profile']->variationName() ?? ('Var #' . ($processed['profile']->variationId() ?? '—')) }}</td>
-                            <td class="text-uppercase">{{ $processed['profile']->defaultState() }}</td>
-                            <td>{{ $processed['packaging']?->packageName() ?? '—' }}</td>
-                            <td>{{ $processed['assembly'] ? '#' . $processed['assembly']->assemblyItemId() : '—' }}</td>
-                            <td>{{ $processed['formattedWeight'] }}</td>
-                        </tr>
-                    @endforeach
-                    </tbody>
-                </x-ui.data-table>
-            </div>
+                @endforeach
+                </tbody>
+            </x-ui.data-table>
         @endif
     </div>
 </section>

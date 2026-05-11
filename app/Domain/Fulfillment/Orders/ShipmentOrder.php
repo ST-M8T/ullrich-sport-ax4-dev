@@ -6,6 +6,7 @@ namespace App\Domain\Fulfillment\Orders;
 
 use App\Domain\Shared\ValueObjects\Identifier;
 use DateTimeImmutable;
+use InvalidArgumentException;
 
 final class ShipmentOrder
 {
@@ -175,6 +176,61 @@ final class ShipmentOrder
     public function senderCode(): ?string
     {
         return $this->senderCode;
+    }
+
+    public function assignSenderProfile(
+        Identifier $senderProfileId,
+        string $senderCode,
+        ?DateTimeImmutable $updatedAt = null
+    ): self {
+        $senderCode = trim($senderCode);
+
+        if ($senderCode === '') {
+            throw new InvalidArgumentException('Sender code must not be empty.');
+        }
+
+        if ($this->dhlShipmentId !== null) {
+            throw new InvalidArgumentException('Sender profile cannot be changed after DHL booking.');
+        }
+
+        return new self(
+            $this->id,
+            $this->externalOrderId,
+            $this->customerNumber,
+            $this->plentyOrderId,
+            $this->orderType,
+            $senderProfileId,
+            $senderCode,
+            $this->contactEmail,
+            $this->contactPhone,
+            $this->destinationCountry,
+            $this->currency,
+            $this->totalAmount,
+            $this->processedAt,
+            $this->isBooked,
+            $this->bookedAt,
+            $this->bookedBy,
+            $this->shippedAt,
+            $this->lastExportFilename,
+            $this->items,
+            $this->packages,
+            $this->trackingNumbers,
+            $this->metadata,
+            $this->createdAt,
+            $updatedAt ?? new DateTimeImmutable,
+            $this->dhlShipmentId,
+            $this->dhlLabelUrl,
+            $this->dhlLabelPdfBase64,
+            $this->dhlPickupReference,
+            $this->dhlProductId,
+            $this->dhlBookingPayload,
+            $this->dhlBookingResponse,
+            $this->dhlBookingError,
+            $this->dhlBookedAt,
+            $this->dhlCancelledAt,
+            $this->dhlCancelledBy,
+            $this->dhlCancellationReason,
+        );
     }
 
     public function contactEmail(): ?string

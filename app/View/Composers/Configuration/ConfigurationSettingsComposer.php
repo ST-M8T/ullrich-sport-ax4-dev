@@ -29,16 +29,7 @@ final class ConfigurationSettingsComposer
             ? ($data['groups'][$activeGroup]['label'] ?? 'Konfiguration')
             : 'Konfiguration';
 
-        $primaryTabs = [
-            'settings' => ['label' => $settingsTabLabel, 'visible' => ! empty($data['groups'])],
-            'masterdata' => ['label' => 'Stammdaten', 'visible' => isset($data['catalog'])],
-            'monitoring' => ['label' => 'Monitoring', 'visible' => true],
-            'logs' => ['label' => 'Logs', 'visible' => true],
-            'verwaltung' => ['label' => 'Verwaltung', 'visible' => true],
-        ];
-        $primaryTabs = array_filter($primaryTabs, fn ($tab) => $tab['visible']);
         $requestedTab = request()->query('tab');
-        $activeTab = array_key_exists($requestedTab, $primaryTabs) ? $requestedTab : (array_key_first($primaryTabs) ?? 'settings');
 
         $monitoringLinks = [
             ['key' => 'system-status', 'label' => 'Systemstatus', 'description' => 'Health-Checks, Queue-Zustand und System-Metriken.', 'route' => 'monitoring-health', 'permission' => 'admin.setup.view'],
@@ -146,6 +137,7 @@ final class ConfigurationSettingsComposer
             ->all();
 
         $primaryTabs['settings'] = ['label' => $settingsTabLabel, 'visible' => ! empty($data['groups'])];
+        $primaryTabs['masterdata'] = ['label' => 'Stammdaten', 'visible' => isset($data['catalog'])];
         $primaryTabs['monitoring'] = ['label' => 'Monitoring', 'visible' => ! empty($availableMonitoring)];
         $primaryTabs['logs'] = ['label' => 'Logs', 'visible' => ! empty($availableLogTools)];
         $primaryTabs['verwaltung'] = ['label' => 'Verwaltung', 'visible' => ! empty($availableVerwaltung)];

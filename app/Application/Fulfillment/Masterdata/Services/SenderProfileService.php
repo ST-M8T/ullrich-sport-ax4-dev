@@ -41,6 +41,16 @@ final class SenderProfileService
     }
 
     /**
+     * @return array<int,FulfillmentSenderProfile>
+     */
+    public function all(): array
+    {
+        $profiles = $this->senderProfiles->all();
+
+        return is_array($profiles) ? $profiles : iterator_to_array($profiles, false);
+    }
+
+    /**
      * @param  array<string,mixed>  $payload
      */
     public function update(int $id, array $payload): FulfillmentSenderProfile

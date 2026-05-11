@@ -13,7 +13,7 @@
         <a
             href="{{ $processed['url'] }}"
             class="tabs__button {{ $processed['isActive'] ? 'is-active' : '' }}"
-            @if($processed['isActive']) aria-selected="true" @endif
+            @if($processed['isActive']) aria-current="page" @endif
         >
             {{ $processed['label'] }}
             @if($processed['badge'] !== null)

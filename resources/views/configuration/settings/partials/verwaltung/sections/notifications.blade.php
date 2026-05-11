@@ -35,51 +35,48 @@
             <small>Keine Benachrichtigungen vorhanden.</small>
         </div>
     @else
-        <div class="table-responsive">
-            <x-ui.data-table dense striped hover>
-                <thead class="table-light">
+        <x-ui.data-table dense striped hover>
+            <thead class="table-light">
+                <tr>
+                    <th scope="col">ID</th>
+                    <th scope="col">Typ</th>
+                    <th scope="col">Channel</th>
+                    <th scope="col">Status</th>
+                    <th scope="col">Geplant</th>
+                    <th scope="col">Gesendet</th>
+                    <th scope="col">Fehler</th>
+                    <th scope="col">Erstellt</th>
+                    <th scope="col" class="text-end">Aktionen</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($notifications as $notification)
                     <tr>
-                        <th scope="col">ID</th>
-                        <th scope="col">Typ</th>
-                        <th scope="col">Channel</th>
-                        <th scope="col">Status</th>
-                        <th scope="col">Geplant</th>
-                        <th scope="col">Gesendet</th>
-                        <th scope="col">Fehler</th>
-                        <th scope="col">Erstellt</th>
-                        <th scope="col" class="text-end">Aktionen</th>
+                        <td><strong>{{ $notification->id()->toInt() }}</strong></td>
+                        <td><code class="small">{{ $notification->notificationType() }}</code></td>
+                        <td>{{ $notification->channel() ?? '—' }}</td>
+                        <td>
+                            <span class="badge bg-{{ $notification->status() === 'sent' ? 'success' : ($notification->status() === 'pending' ? 'warning' : 'secondary') }} text-uppercase" aria-label="Status: {{ $notification->status() }}">
+                                {{ $notification->status() }}
+                            </span>
+                        </td>
+                        <td class="small text-muted">{{ $notification->scheduledAt()?->format('d.m.Y H:i') ?? '—' }}</td>
+                        <td class="small text-muted">{{ $notification->sentAt()?->format('d.m.Y H:i') ?? '—' }}</td>
+                        <td class="small {{ $notification->errorMessage() ? 'text-danger' : 'text-muted' }}">
+                            {{ Str::limit($notification->errorMessage() ?? '—', 50) }}
+                        </td>
+                        <td class="small text-muted">{{ $notification->createdAt()->format('d.m.Y H:i') }}</td>
+                        <td class="text-end">
+                            <form method="post" action="{{ route('configuration-notifications.redispatch', ['notification' => $notification->id()->toInt()]) }}" class="d-inline">
+                                @csrf
+                                <button type="submit" class="btn btn-sm btn-outline-primary">
+                                    Erneut senden
+                                </button>
+                            </form>
+                        </td>
                     </tr>
-                </thead>
-                <tbody>
-                    @foreach($notifications as $notification)
-                        <tr>
-                            <td><strong>{{ $notification->id()->toInt() }}</strong></td>
-                            <td><code class="small">{{ $notification->notificationType() }}</code></td>
-                            <td>{{ $notification->channel() ?? '—' }}</td>
-                            <td>
-                                <span class="badge bg-{{ $notification->status() === 'sent' ? 'success' : ($notification->status() === 'pending' ? 'warning' : 'secondary') }} text-uppercase" aria-label="Status: {{ $notification->status() }}">
-                                    {{ $notification->status() }}
-                                </span>
-                            </td>
-                            <td class="small text-muted">{{ $notification->scheduledAt()?->format('d.m.Y H:i') ?? '—' }}</td>
-                            <td class="small text-muted">{{ $notification->sentAt()?->format('d.m.Y H:i') ?? '—' }}</td>
-                            <td class="small {{ $notification->errorMessage() ? 'text-danger' : 'text-muted' }}">
-                                {{ Str::limit($notification->errorMessage() ?? '—', 50) }}
-                            </td>
-                            <td class="small text-muted">{{ $notification->createdAt()->format('d.m.Y H:i') }}</td>
-                            <td class="text-end">
-                                <form method="post" action="{{ route('configuration-notifications.redispatch', ['notification' => $notification->id()->toInt()]) }}" class="d-inline">
-                                    @csrf
-                                    <button type="submit" class="btn btn-sm btn-outline-primary">
-                                        Erneut senden
-                                    </button>
-                                </form>
-                            </td>
-                        </tr>
-                    @endforeach
-                </tbody>
-            </x-ui.data-table>
-        </div>
+                @endforeach
+            </tbody>
+        </x-ui.data-table>
     @endif
 </div>
-

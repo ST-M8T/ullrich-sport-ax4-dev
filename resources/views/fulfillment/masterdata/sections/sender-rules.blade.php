@@ -27,34 +27,32 @@
                 description="Es wurden keine Sender-Regeln hinterlegt."
             />
         @else
-            <div class="table-responsive">
-                <x-ui.data-table dense>
-                    <thead>
+            <x-ui.data-table dense>
+                <thead>
+                <tr>
+                    <th scope="col">Priorität</th>
+                    <th scope="col">Typ</th>
+                    <th scope="col">Match</th>
+                    <th scope="col">Ziel-Sender</th>
+                    <th scope="col">Status</th>
+                </tr>
+                </thead>
+                <tbody>
+                @foreach($processedRules as $processed)
                     <tr>
-                        <th scope="col">Priorität</th>
-                        <th scope="col">Typ</th>
-                        <th scope="col">Match</th>
-                        <th scope="col">Ziel-Sender</th>
-                        <th scope="col">Status</th>
+                        <td>{{ $processed['rule']->priority() }}</td>
+                        <td>{{ $processed['formattedRuleType'] }}</td>
+                        <td><code>{{ $processed['rule']->matchValue() }}</code></td>
+                        <td>{{ $processed['targetSender']?->displayName() ?? ('#' . $processed['rule']->targetSenderId()->toInt()) }}</td>
+                        <td>
+                            <span class="badge {{ $processed['statusBadgeClass'] }}">
+                                {{ $processed['statusLabel'] }}
+                            </span>
+                        </td>
                     </tr>
-                    </thead>
-                    <tbody>
-                    @foreach($processedRules as $processed)
-                        <tr>
-                            <td>{{ $processed['rule']->priority() }}</td>
-                            <td>{{ $processed['formattedRuleType'] }}</td>
-                            <td><code>{{ $processed['rule']->matchValue() }}</code></td>
-                            <td>{{ $processed['targetSender']?->displayName() ?? ('#' . $processed['rule']->targetSenderId()->toInt()) }}</td>
-                            <td>
-                                <span class="badge {{ $processed['statusBadgeClass'] }}">
-                                    {{ $processed['statusLabel'] }}
-                                </span>
-                            </td>
-                        </tr>
-                    @endforeach
-                    </tbody>
-                </x-ui.data-table>
-            </div>
+                @endforeach
+                </tbody>
+            </x-ui.data-table>
         @endif
     </div>
 </section>

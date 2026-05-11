@@ -32,12 +32,10 @@ final class FulfillmentMasterdataCatalogPartialComposer
 
         // Thematisch sortiert: Versand → Artikel
         $tabs = [
-            // Versand
             'packaging' => ['label' => 'Verpackungen', 'count' => $packagingCount, 'category' => 'versand'],
             'freight' => ['label' => 'Versandprofile', 'count' => $freightCount, 'category' => 'versand'],
             'sender' => ['label' => 'Versender', 'count' => $senderCount, 'category' => 'versand'],
             'sender-rules' => ['label' => 'Versender-Regeln', 'count' => $senderRulesCount, 'category' => 'versand'],
-            // Artikel
             'variations' => ['label' => 'Varianten', 'count' => $variationCount, 'category' => 'artikel'],
             'assembly' => ['label' => 'Vormontage', 'count' => $assemblyCount, 'category' => 'artikel'],
         ];
@@ -51,6 +49,17 @@ final class FulfillmentMasterdataCatalogPartialComposer
             ]];
         })->all();
 
+        $masterdataTabGroups = [
+            'versand' => [
+                'label' => 'Versand',
+                'tabs' => $this->tabsForCategory($tabs, 'versand'),
+            ],
+            'artikel' => [
+                'label' => 'Artikel',
+                'tabs' => $this->tabsForCategory($tabs, 'artikel'),
+            ],
+        ];
+
         $view->with([
             'packagingCount' => $packagingCount,
             'assemblyCount' => $assemblyCount,
@@ -60,8 +69,21 @@ final class FulfillmentMasterdataCatalogPartialComposer
             'freightCount' => $freightCount,
             'tabs' => $tabs,
             'masterdataTabs' => $masterdataTabs,
+            'masterdataTabGroups' => array_filter($masterdataTabGroups, fn (array $group): bool => $group['tabs'] !== []),
             'activeTab' => $activeTab,
             'masterdataTabParam' => $masterdataTabParam,
         ]);
+    }
+
+    /**
+     * @param  array<string,array{label:string,count:int,category:string}>  $tabs
+     * @return array<string,string>
+     */
+    private function tabsForCategory(array $tabs, string $category): array
+    {
+        return collect($tabs)
+            ->filter(fn (array $tab): bool => $tab['category'] === $category)
+            ->mapWithKeys(fn (array $tab, string $key): array => [$key => $tab['label']])
+            ->all();
     }
 }

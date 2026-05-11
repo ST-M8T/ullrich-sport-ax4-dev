@@ -27,24 +27,22 @@
                 description="Der Katalog enthält keine Freight-Profile."
             />
         @else
-            <div class="table-responsive">
-                <x-ui.data-table dense>
-                    <thead>
+            <x-ui.data-table dense>
+                <thead>
+                <tr>
+                    <th scope="col">Shipping Profile ID</th>
+                    <th scope="col">Label</th>
+                </tr>
+                </thead>
+                <tbody>
+                @foreach($freightProfiles as $profile)
                     <tr>
-                        <th scope="col">Shipping Profile ID</th>
-                        <th scope="col">Label</th>
+                        <td>#{{ $profile->shippingProfileId()->toInt() }}</td>
+                        <td>{{ $profile->label() ?? '—' }}</td>
                     </tr>
-                    </thead>
-                    <tbody>
-                    @foreach($freightProfiles as $profile)
-                        <tr>
-                            <td>#{{ $profile->shippingProfileId()->toInt() }}</td>
-                            <td>{{ $profile->label() ?? '—' }}</td>
-                        </tr>
-                    @endforeach
-                    </tbody>
-                </x-ui.data-table>
-            </div>
+                @endforeach
+                </tbody>
+            </x-ui.data-table>
         @endif
     </div>
 </section>

@@ -9,11 +9,14 @@ use App\Application\Fulfillment\Integrations\Dhl\Services\DhlCancellationService
 use App\Application\Fulfillment\Integrations\Dhl\Services\DhlLabelService;
 use App\Application\Fulfillment\Integrations\Dhl\Services\DhlPriceQuoteService;
 use App\Application\Fulfillment\Integrations\Dhl\Services\DhlShipmentBookingService;
+use App\Application\Fulfillment\Masterdata\Services\SenderProfileService;
+use App\Application\Fulfillment\Orders\Commands\AssignShipmentOrderSenderProfile;
 use App\Application\Fulfillment\Orders\Commands\BookShipmentOrder;
 use App\Application\Fulfillment\Orders\Commands\TransferShipmentOrderTracking;
 use App\Application\Fulfillment\Orders\Queries\ListShipmentOrders;
 use App\Application\Fulfillment\Orders\Queries\ShipmentOrderViewService;
 use App\Domain\Shared\ValueObjects\Identifier;
+use App\Http\Requests\Fulfillment\AssignShipmentOrderSenderProfileRequest;
 use App\Http\Requests\Fulfillment\DhlBookingRequest;
 use App\Http\Requests\Fulfillment\ShipmentOrderBookingRequest;
 use App\Http\Requests\Fulfillment\ShipmentOrderIndexRequest;
@@ -31,6 +34,8 @@ final class ShipmentOrderController
     public function __construct(
         private readonly ListShipmentOrders $listOrders,
         private readonly ShipmentOrderViewService $orderViews,
+        private readonly SenderProfileService $senderProfiles,
+        private readonly AssignShipmentOrderSenderProfile $assignShipmentOrderSenderProfile,
         private readonly BookShipmentOrder $bookShipmentOrder,
         private readonly TransferShipmentOrderTracking $transferShipmentOrderTracking,
         private readonly DhlShipmentBookingService $dhlBookingService,
@@ -178,7 +183,31 @@ final class ShipmentOrderController
             'order' => $details['order'],
             'shipments' => $details['shipments'],
             'shipmentsWithLabels' => $shipmentsWithLabels,
+            'senderProfiles' => $this->senderProfiles->all(),
         ]);
+    }
+
+    public function assignSenderProfile(
+        AssignShipmentOrderSenderProfileRequest $request,
+        int $order
+    ): RedirectResponse {
+        $identifier = Identifier::fromInt($order);
+        $redirect = $request->input('redirect_to') ?? route('fulfillment-orders.show', ['order' => $order]);
+
+        try {
+            ($this->assignShipmentOrderSenderProfile)(
+                $identifier,
+                Identifier::fromInt((int) $request->validated('sender_profile_id')),
+            );
+        } catch (\Throwable $exception) {
+            return redirect()->to($redirect)->withErrors([
+                'sender_profile' => $exception->getMessage(),
+            ])->withInput();
+        }
+
+        return redirect()
+            ->to($redirect)
+            ->with('success', 'Senderprofil wurde dem Auftrag zugeordnet.');
     }
 
     public function book(ShipmentOrderBookingRequest $request, int $order): RedirectResponse

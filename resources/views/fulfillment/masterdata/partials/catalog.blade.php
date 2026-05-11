@@ -1,27 +1,3 @@
-@php
-    if (!isset($tabs)) {
-        $tabs = [];
-    }
-    $versandTabs = collect($masterdataTabs)->filter(function($tab, $key) use ($tabs) {
-        return ($tabs[$key]['category'] ?? '') === 'versand';
-    })->all();
-    $artikelTabs = collect($masterdataTabs)->filter(function($tab, $key) use ($tabs) {
-        return ($tabs[$key]['category'] ?? '') === 'artikel';
-    })->all();
-    
-    $versandTabsArray = collect($versandTabs)->mapWithKeys(function ($tab, $key) {
-        return [$key => $tab['label'] ?? $key];
-    })->all();
-    
-    $artikelTabsArray = collect($artikelTabs)->mapWithKeys(function ($tab, $key) {
-        return [$key => $tab['label'] ?? $key];
-    })->all();
-    
-    $allTabsArray = collect($masterdataTabs)->mapWithKeys(function ($tab, $key) {
-        return [$key => $tab['label'] ?? $key];
-    })->all();
-@endphp
-
 @if(empty($hideHeading))
     <div class="mb-3">
         <h2 class="h5 mb-1">Fulfillment-Stammdaten</h2>
@@ -33,37 +9,23 @@
     </div>
 @endif
 
-@if(!empty($versandTabsArray))
+@foreach($masterdataTabGroups as $group)
     <div class="mb-4">
-        <h3 class="h6 mb-2 text-muted">Versand</h3>
+        <h3 class="h6 mb-2 text-muted">{{ $group['label'] }}</h3>
         <x-tabs
-            :tabs="$versandTabsArray"
+            :tabs="$group['tabs']"
             :active-tab="$activeTab"
             :base-url="request()->url()"
             :tab-param="$masterdataTabParam"
-            aria-label="Versand-Stammdaten"
+            aria-label="{{ $group['label'] }}-Stammdaten"
             class="mb-3"
         />
     </div>
-@endif
+@endforeach
 
-@if(!empty($artikelTabsArray))
-    <div class="mb-4">
-        <h3 class="h6 mb-2 text-muted">Artikel</h3>
-        <x-tabs
-            :tabs="$artikelTabsArray"
-            :active-tab="$activeTab"
-            :base-url="request()->url()"
-            :tab-param="$masterdataTabParam"
-            aria-label="Artikel-Stammdaten"
-            class="mb-3"
-        />
-    </div>
-@endif
-
-@if(empty($versandTabsArray) && empty($artikelTabsArray))
+@if(empty($masterdataTabGroups))
     <x-tabs
-        :tabs="$allTabsArray"
+        :tabs="$masterdataTabs"
         :active-tab="$activeTab"
         :base-url="request()->url()"
         :tab-param="$masterdataTabParam"

@@ -76,6 +76,85 @@ class ShipmentOrdersTest extends TestCase
         );
     }
 
+    public function test_order_detail_exposes_sender_profile_assignment_before_dhl_booking(): void
+    {
+        $this->actingAsAdmin();
+
+        $order = $this->createShipmentOrder([
+            'sender_profile_id' => null,
+            'sender_code' => 'LEGACY',
+            'is_booked' => false,
+            'booked_at' => null,
+            'booked_by' => null,
+        ]);
+
+        $senderProfile = $this->createSenderProfile([
+            'sender_code' => 'AX4',
+            'display_name' => 'AX4 Versand',
+        ]);
+
+        $response = $this->get(route('fulfillment-orders.show', $order->getKey()));
+
+        $response->assertOk();
+        $response->assertSee('Vor der DHL-Buchung muss ein Senderprofil zugeordnet werden.');
+        $response->assertSee('AX4 Versand (ax4)');
+        $response->assertSee('Ordne zuerst ein Senderprofil zu.');
+
+        $assignResponse = $this->post(route('fulfillment-orders.sender-profile', $order->getKey()), [
+            'sender_profile_id' => $senderProfile->getKey(),
+            'redirect_to' => route('fulfillment-orders.show', $order->getKey()),
+        ]);
+
+        $assignResponse->assertRedirect(route('fulfillment-orders.show', $order->getKey()));
+        $assignResponse->assertSessionHas('success');
+
+        $this->assertDatabaseHas('shipment_orders', [
+            'id' => $order->getKey(),
+            'sender_profile_id' => $senderProfile->getKey(),
+            'sender_code' => 'ax4',
+        ]);
+    }
+
+    public function test_booked_order_without_dhl_shipment_can_assign_sender_profile(): void
+    {
+        $this->actingAsAdmin();
+
+        $order = $this->createShipmentOrder([
+            'sender_profile_id' => null,
+            'sender_code' => null,
+            'is_booked' => true,
+            'booked_at' => now(),
+            'booked_by' => 'admin-panel',
+            'dhl_shipment_id' => null,
+        ]);
+
+        $senderProfile = $this->createSenderProfile([
+            'sender_code' => 'AX4',
+            'display_name' => 'AX4 Versand',
+        ]);
+
+        $response = $this->get(route('fulfillment-orders.show', $order->getKey()));
+
+        $response->assertOk();
+        $response->assertSee('Vor der DHL-Buchung muss ein Senderprofil zugeordnet werden.');
+        $response->assertSee('Senderprofil zuordnen');
+        $response->assertSee('Ordne zuerst ein Senderprofil zu.');
+
+        $assignResponse = $this->post(route('fulfillment-orders.sender-profile', $order->getKey()), [
+            'sender_profile_id' => $senderProfile->getKey(),
+            'redirect_to' => route('fulfillment-orders.show', $order->getKey()),
+        ]);
+
+        $assignResponse->assertRedirect(route('fulfillment-orders.show', $order->getKey()));
+        $assignResponse->assertSessionHas('success');
+
+        $this->assertDatabaseHas('shipment_orders', [
+            'id' => $order->getKey(),
+            'sender_profile_id' => $senderProfile->getKey(),
+            'sender_code' => 'ax4',
+        ]);
+    }
+
     public function test_tracking_transfer_creates_event_and_domain_record(): void
     {
         $this->actingAsAdmin();

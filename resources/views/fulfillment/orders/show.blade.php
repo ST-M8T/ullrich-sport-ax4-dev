@@ -18,6 +18,16 @@
         $senderValue = new \Illuminate\Support\HtmlString(
             e($order->senderCode() ?? '—') . '<br><small class="text-muted">' . e($order->destinationCountry() ?? '??') . '</small>'
         );
+        $senderProfiles = collect($senderProfiles ?? []);
+        $currentSenderProfile = $order->senderProfileId() !== null
+            ? $senderProfiles->first(fn ($profile) => $profile->id()->toInt() === $order->senderProfileId()->toInt())
+            : null;
+        $hasBookableSenderProfile = $currentSenderProfile !== null;
+        $senderProfileOptions = $senderProfiles
+            ->mapWithKeys(fn ($profile) => [
+                $profile->id()->toInt() => $profile->displayName() . ' (' . $profile->senderCode() . ')',
+            ])
+            ->all();
         $totalValue = new \Illuminate\Support\HtmlString(
             e($order->totalAmount() !== null ? number_format($order->totalAmount(), 2, ',', '.') : '—')
             . ' <small class="text-muted">' . e($order->currency()) . '</small>'
@@ -75,16 +85,60 @@
         </div>
         <div class="col-lg-4">
             <x-ui.action-card>
-                    @if(!$order->isBooked())
-                        <x-forms.form method="POST" action="{{ route('fulfillment-orders.book', $order->id()->toInt()) }}" class="mb-3">
+                @if(!$order->dhlShipmentId())
+                    <h3 class="h6 mb-3">Senderprofil</h3>
+                    @if($currentSenderProfile)
+                        <div class="alert alert-success mb-3">
+                            <strong>{{ $currentSenderProfile->displayName() }}</strong><br>
+                            <small>{{ $currentSenderProfile->senderCode() }}</small>
+                        </div>
+                    @else
+                        <div class="alert alert-warning mb-3">
+                            Vor der DHL-Buchung muss ein Senderprofil zugeordnet werden.
+                        </div>
+                    @endif
+
+                    @if($senderProfiles->isEmpty())
+                        <a href="{{ route('fulfillment.masterdata.senders.create') }}" class="btn btn-outline-primary w-100 mb-3">
+                            Senderprofil anlegen
+                        </a>
+                    @else
+                        <div class="mb-3">
+                            <x-forms.form method="POST" action="{{ route('fulfillment-orders.sender-profile', $order->id()->toInt()) }}">
+                                <input type="hidden" name="redirect_to" value="{{ request()->fullUrl() }}">
+                                <x-forms.select
+                                    name="sender_profile_id"
+                                    label="Senderprofil"
+                                    :options="$senderProfileOptions"
+                                    :value="$order->senderProfileId()?->toInt()"
+                                    :required="true"
+                                    col-class="col-12"
+                                />
+                                <x-slot:actions>
+                                    <button type="submit" class="btn btn-outline-secondary w-100 mt-3">Senderprofil zuordnen</button>
+                                </x-slot:actions>
+                            </x-forms.form>
+                        </div>
+                    @endif
+
+                    <hr>
+                @endif
+
+                @if(!$order->isBooked())
+                    <div class="mb-3">
+                        <x-forms.form method="POST" action="{{ route('fulfillment-orders.book', $order->id()->toInt()) }}">
                             <input type="hidden" name="redirect_to" value="{{ request()->fullUrl() }}">
-                            <button type="submit" class="btn btn-primary w-100">Auftrag buchen</button>
+                            <x-slot:actions>
+                                <button type="submit" class="btn btn-primary w-100">Auftrag buchen</button>
+                            </x-slot:actions>
                         </x-forms.form>
-                        <p class="text-muted small mb-3">
-                            Der Auftrag wird als gebucht markiert und mit aktuellem Zeitstempel versehen.
-                        </p>
-                        <hr>
-                        <h3 class="h6 mb-3">DHL-Buchung</h3>
+                    </div>
+                    <p class="text-muted small mb-3">
+                        Der Auftrag wird als gebucht markiert und mit aktuellem Zeitstempel versehen.
+                    </p>
+                    <hr>
+                    <h3 class="h6 mb-3">DHL-Buchung</h3>
+                    @if($hasBookableSenderProfile)
                         <x-forms.form method="POST" action="{{ route('fulfillment-orders.dhl.book', $order->id()->toInt()) }}">
                             <input type="hidden" name="redirect_to" value="{{ request()->fullUrl() }}">
                             <x-forms.input
@@ -96,80 +150,97 @@
                                 class="form-control-sm"
                                 col-class="col-12"
                             />
-                            <button type="submit" class="btn btn-outline-primary w-100">Bei DHL buchen</button>
+                            <x-slot:actions>
+                                <button type="submit" class="btn btn-outline-primary w-100 mt-3">Bei DHL buchen</button>
+                            </x-slot:actions>
                         </x-forms.form>
                         <p class="text-muted small mt-2 mb-0">
                             Bucht den Auftrag direkt bei DHL und erstellt eine Sendung.
                         </p>
                     @else
-                        <x-forms.form method="POST" action="{{ route('fulfillment-orders.transfer', $order->id()->toInt()) }}">
-                            <input type="hidden" name="redirect_to" value="{{ request()->fullUrl() }}">
-                            <x-forms.input
-                                name="tracking_number"
-                                label="Trackingnummer"
-                                type="text"
-                                :value="old('tracking_number')"
-                                placeholder="leer = alle vorhandenen"
-                                col-class="col-12"
-                            >
-                                <x-slot:help>
-                                    Leer lassen, um alle hinterlegten Nummern zu übertragen.
-                                </x-slot:help>
-                            </x-forms.input>
-                            <x-forms.checkbox
-                                name="sync_immediately"
-                                label="Sofortige Synchronisierung anstoßen"
-                                :checked="old('sync_immediately')"
-                                col-class="col-12"
-                            />
-                            <button type="submit" class="btn btn-outline-secondary w-100">Tracking-Transfer starten</button>
-                        </x-forms.form>
-                        <p class="text-muted small mt-2 mb-3">
-                            Erstellt einen Tracking-Event für die gewählten Sendungen. Bei Bedarf kann eine einzelne Nummer übertragen werden.
+                        <button type="button" class="btn btn-outline-primary w-100" disabled>Bei DHL buchen</button>
+                        <p class="text-muted small mt-2 mb-0">
+                            Ordne zuerst ein Senderprofil zu.
                         </p>
-                        @if($order->dhlShipmentId())
-                            <hr>
-                            <h3 class="h6 mb-3">DHL-Aktionen</h3>
-                            @if($order->dhlCancelledAt())
-                                <div class="alert alert-danger mb-3">
-                                    <strong>STORNIERT</strong>
-                                    <br><small>
-                                        am {{ \Carbon\Carbon::parse($order->dhlCancelledAt())->format('d.m.Y H:i') }}
-                                        von {{ $order->dhlCancelledBy() }}
-                                    </small>
-                                    @if($order->dhlCancellationReason())
-                                        <br><small>Grund: {{ $order->dhlCancellationReason() }}</small>
-                                    @endif
-                                </div>
-                                <button type="button" class="btn btn-outline-secondary w-100" disabled>
-                                    Stornierung vorhanden
-                                </button>
-                            @else
-                                @if($order->dhlLabelUrl() || $order->dhlLabelPdfBase64())
-                                    <a href="{{ route('fulfillment-orders.dhl.label', $order->id()->toInt()) }}" class="btn btn-outline-success w-100 mb-2">
-                                        Label Vorschau
-                                    </a>
-                                @else
-                                    <a href="{{ route('fulfillment-orders.dhl.label', $order->id()->toInt()) }}" class="btn btn-outline-success w-100 mb-2">
-                                        Label generieren
-                                    </a>
-                                @endif
-                                <button type="button" class="btn btn-outline-info w-100 mb-2" onclick="loadPriceQuote({{ $order->id()->toInt() }})">
-                                    Preisabfrage
-                                </button>
-                                <button type="button" class="btn btn-outline-danger w-100" data-bs-toggle="modal" data-bs-target="#cancelDhlModal">
-                                    DHL-Sendung stornieren
-                                </button>
-                                <div id="price-quote-result" class="mt-2 hidden"></div>
-                            @endif
-                        @elseif($order->senderProfileId())
-                            <hr>
-                            <h3 class="h6 mb-3">DHL-Buchung</h3>
-                            <x-dhl.product-catalog-modal
-                                :order-id="$order->id()->toInt()"
-                            />
-                        @endif
                     @endif
+                @else
+                    <x-forms.form method="POST" action="{{ route('fulfillment-orders.transfer', $order->id()->toInt()) }}">
+                        <input type="hidden" name="redirect_to" value="{{ request()->fullUrl() }}">
+                        <x-forms.input
+                            name="tracking_number"
+                            label="Trackingnummer"
+                            type="text"
+                            :value="old('tracking_number')"
+                            placeholder="leer = alle vorhandenen"
+                            col-class="col-12"
+                        >
+                            <x-slot:help>
+                                Leer lassen, um alle hinterlegten Nummern zu übertragen.
+                            </x-slot:help>
+                        </x-forms.input>
+                        <x-forms.checkbox
+                            name="sync_immediately"
+                            label="Sofortige Synchronisierung anstoßen"
+                            :checked="old('sync_immediately')"
+                            col-class="col-12"
+                        />
+                        <x-slot:actions>
+                            <button type="submit" class="btn btn-outline-secondary w-100 mt-3">Tracking-Transfer starten</button>
+                        </x-slot:actions>
+                    </x-forms.form>
+                    <p class="text-muted small mt-2 mb-3">
+                        Erstellt einen Tracking-Event für die gewählten Sendungen. Bei Bedarf kann eine einzelne Nummer übertragen werden.
+                    </p>
+                    @if($order->dhlShipmentId())
+                        <hr>
+                        <h3 class="h6 mb-3">DHL-Aktionen</h3>
+                        @if($order->dhlCancelledAt())
+                            <div class="alert alert-danger mb-3">
+                                <strong>STORNIERT</strong>
+                                <br><small>
+                                    am {{ \Carbon\Carbon::parse($order->dhlCancelledAt())->format('d.m.Y H:i') }}
+                                    von {{ $order->dhlCancelledBy() }}
+                                </small>
+                                @if($order->dhlCancellationReason())
+                                    <br><small>Grund: {{ $order->dhlCancellationReason() }}</small>
+                                @endif
+                            </div>
+                            <button type="button" class="btn btn-outline-secondary w-100" disabled>
+                                Stornierung vorhanden
+                            </button>
+                        @else
+                            @if($order->dhlLabelUrl() || $order->dhlLabelPdfBase64())
+                                <a href="{{ route('fulfillment-orders.dhl.label', $order->id()->toInt()) }}" class="btn btn-outline-success w-100 mb-2">
+                                    Label Vorschau
+                                </a>
+                            @else
+                                <a href="{{ route('fulfillment-orders.dhl.label', $order->id()->toInt()) }}" class="btn btn-outline-success w-100 mb-2">
+                                    Label generieren
+                                </a>
+                            @endif
+                            <button type="button" class="btn btn-outline-info w-100 mb-2" onclick="loadPriceQuote({{ $order->id()->toInt() }})">
+                                Preisabfrage
+                            </button>
+                            <button type="button" class="btn btn-outline-danger w-100" data-bs-toggle="modal" data-bs-target="#cancelDhlModal">
+                                DHL-Sendung stornieren
+                            </button>
+                            <div id="price-quote-result" class="mt-2 hidden"></div>
+                        @endif
+                    @elseif($hasBookableSenderProfile)
+                        <hr>
+                        <h3 class="h6 mb-3">DHL-Buchung</h3>
+                        <x-dhl.product-catalog-modal
+                            :order-id="$order->id()->toInt()"
+                        />
+                    @elseif(!$order->dhlShipmentId())
+                        <hr>
+                        <h3 class="h6 mb-3">DHL-Buchung</h3>
+                        <button type="button" class="btn btn-outline-primary w-100" disabled>Bei DHL buchen</button>
+                        <p class="text-muted small mt-2 mb-0">
+                            Ordne zuerst ein Senderprofil zu.
+                        </p>
+                    @endif
+                @endif
             </x-ui.action-card>
         </div>
     </div>
