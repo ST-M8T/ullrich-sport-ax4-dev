@@ -1,6 +1,11 @@
 @extends('layouts.admin', [
     'pageTitle' => 'Vormontage-Optionen',
     'currentSection' => 'fulfillment-masterdata',
+    'breadcrumbs' => [
+        ['label' => 'Fulfillment', 'url' => route('fulfillment-orders')],
+        ['label' => 'Stammdaten', 'url' => route('fulfillment-masterdata')],
+        ['label' => 'Montage'],
+    ],
 ])
 
 

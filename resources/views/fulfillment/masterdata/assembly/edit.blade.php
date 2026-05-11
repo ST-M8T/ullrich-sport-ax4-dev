@@ -1,6 +1,12 @@
 @extends('layouts.admin', [
     'pageTitle' => 'Vormontage bearbeiten',
     'currentSection' => 'fulfillment-masterdata',
+    'breadcrumbs' => [
+        ['label' => 'Fulfillment', 'url' => route('fulfillment-orders')],
+        ['label' => 'Stammdaten', 'url' => route('fulfillment-masterdata')],
+        ['label' => 'Montage', 'url' => route('fulfillment.masterdata.assembly.index')],
+        ['label' => '#' . $option->id()->toInt()],
+    ],
 ])
 
 @section('content')

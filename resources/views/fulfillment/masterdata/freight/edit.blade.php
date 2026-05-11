@@ -1,6 +1,12 @@
 @extends('layouts.admin', [
     'pageTitle' => 'Versandprofil bearbeiten',
     'currentSection' => 'fulfillment-masterdata',
+    'breadcrumbs' => [
+        ['label' => 'Fulfillment', 'url' => route('fulfillment-orders')],
+        ['label' => 'Stammdaten', 'url' => route('fulfillment-masterdata')],
+        ['label' => 'Versand', 'url' => route('fulfillment.masterdata.freight.index')],
+        ['label' => 'Profil ' . $profile->shippingProfileId()->toInt()],
+    ],
 ])
 
 @section('content')

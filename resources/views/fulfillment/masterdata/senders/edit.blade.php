@@ -1,6 +1,12 @@
 @extends('layouts.admin', [
     'pageTitle' => 'Senderprofil bearbeiten',
     'currentSection' => 'fulfillment-masterdata',
+    'breadcrumbs' => [
+        ['label' => 'Fulfillment', 'url' => route('fulfillment-orders')],
+        ['label' => 'Stammdaten', 'url' => route('fulfillment-masterdata')],
+        ['label' => 'Absender', 'url' => route('fulfillment.masterdata.senders.index')],
+        ['label' => $profile->displayName()],
+    ],
 ])
 
 @section('content')

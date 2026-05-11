@@ -2,7 +2,7 @@
     'pageTitle' => 'System-Jobs',
     'currentSection' => 'monitoring-system-jobs',
     'breadcrumbs' => [
-        ['label' => 'Monitoring', 'url' => route('monitoring-system-jobs')],
+        ['label' => 'System'],
         ['label' => 'System-Jobs'],
     ],
 ])

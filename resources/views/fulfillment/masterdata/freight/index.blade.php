@@ -1,6 +1,11 @@
 @extends('layouts.admin', [
     'pageTitle' => 'Versandprofile',
     'currentSection' => 'fulfillment-masterdata',
+    'breadcrumbs' => [
+        ['label' => 'Fulfillment', 'url' => route('fulfillment-orders')],
+        ['label' => 'Stammdaten', 'url' => route('fulfillment-masterdata')],
+        ['label' => 'Versand'],
+    ],
 ])
 
 @section('content')

@@ -1,6 +1,12 @@
 @extends('layouts.admin', [
     'pageTitle' => 'Sender-Regel anlegen',
     'currentSection' => 'fulfillment-masterdata',
+    'breadcrumbs' => [
+        ['label' => 'Fulfillment', 'url' => route('fulfillment-orders')],
+        ['label' => 'Stammdaten', 'url' => route('fulfillment-masterdata')],
+        ['label' => 'Regeln', 'url' => route('fulfillment.masterdata.sender-rules.index')],
+        ['label' => 'Neu'],
+    ],
 ])
 
 @section('content')

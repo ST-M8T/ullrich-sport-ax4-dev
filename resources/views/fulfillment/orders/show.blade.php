@@ -1,6 +1,12 @@
 @extends('layouts.admin', [
     'pageTitle' => 'Fulfillment Order Detail',
     'currentSection' => 'fulfillment-orders',
+    'breadcrumbs' => [
+        ['label' => 'Fulfillment', 'url' => route('fulfillment-orders')],
+        ['label' => 'Stammdaten', 'url' => route('fulfillment-masterdata')],
+        ['label' => 'Aufträge', 'url' => route('fulfillment-orders')],
+        ['label' => '#' . $order->id()->toInt()],
+    ],
 ])
 
 

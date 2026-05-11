@@ -1,6 +1,12 @@
 @extends('layouts.admin', [
     'pageTitle' => 'Variantenprofil bearbeiten',
     'currentSection' => 'fulfillment-masterdata',
+    'breadcrumbs' => [
+        ['label' => 'Fulfillment', 'url' => route('fulfillment-orders')],
+        ['label' => 'Stammdaten', 'url' => route('fulfillment-masterdata')],
+        ['label' => 'Varianten', 'url' => route('fulfillment.masterdata.variations.index')],
+        ['label' => 'Item ' . $profile->itemId()],
+    ],
 ])
 
 @section('content')

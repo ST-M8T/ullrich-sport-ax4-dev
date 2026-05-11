@@ -1,6 +1,12 @@
 @extends('layouts.admin', [
     'pageTitle' => 'Verpackungsprofil bearbeiten',
     'currentSection' => 'fulfillment-masterdata',
+    'breadcrumbs' => [
+        ['label' => 'Fulfillment', 'url' => route('fulfillment-orders')],
+        ['label' => 'Stammdaten', 'url' => route('fulfillment-masterdata')],
+        ['label' => 'Verpackung', 'url' => route('fulfillment.masterdata.packaging.index')],
+        ['label' => $profile->packageName()],
+    ],
 ])
 
 @section('content')

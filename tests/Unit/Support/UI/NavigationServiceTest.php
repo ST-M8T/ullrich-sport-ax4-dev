@@ -15,12 +15,13 @@ use Tests\TestCase;
  * Unit-Tests fuer NavigationService Phase A (t22) + Phase B (t31).
  *
  * Verifiziert:
- * - Default-Struktur: 6 Top-Level-Gruppen mit insgesamt 18 Sub-Items.
+ * - Default-Struktur: 5 Top-Level-Gruppen (t14) mit insgesamt 18 Sub-Items.
  * - Container-Sichtbarkeit als OR ueber Sub-Item-Sichtbarkeiten.
  * - Pro Rolle die erwartete Anzahl sichtbarer Gruppen (t14-Mockup).
  * - Fail-Closed bei Container ohne Children und Sub-Item ohne Permission.
  * - Tracking-Gruppe mit 3 Sub-Items (Wave 14).
  * - IntegrationPolicy gesplittet (configuration.integrations.manage).
+ * - t22: 6 groups -> 5 groups (Monitoring renamed to System, Stammdaten+Verwaltung merged).
  */
 final class NavigationServiceTest extends TestCase
 {
@@ -34,14 +35,14 @@ final class NavigationServiceTest extends TestCase
         $this->service = $this->app->make(NavigationService::class);
     }
 
-    public function test_default_items_have_six_top_level_groups(): void
+    public function test_default_items_have_five_top_level_groups(): void
     {
         $items = $this->service->getDefaultItems();
 
-        self::assertCount(6, $items, 'Phase A: genau 6 Top-Level-Gruppen.');
+        self::assertCount(5, $items, 'Wave 7: stammdaten+verwaltung merged to stammdaten-benutzer => 5 groups (operations, stammdaten-benutzer, tracking, system, konfiguration).');
         $keys = array_column($items, 'key');
         self::assertSame(
-            ['operations', 'stammdaten', 'tracking', 'monitoring', 'verwaltung', 'konfiguration'],
+            ['operations', 'stammdaten-benutzer', 'tracking', 'system', 'konfiguration'],
             $keys,
         );
     }
@@ -140,10 +141,12 @@ final class NavigationServiceTest extends TestCase
      */
     public static function expectedGroupCountsPerRole(): array
     {
-        // Quelle: t14-Mockup + config/identity.php Stand AX4 Wave 9.
+        // Quelle: t14-Mockup + config/identity.php Stand AX4 Wave 9 + Wave 7 merge (stammdaten+verwaltung -> stammdaten-benutzer).
+        // Wave 7: stammdaten + verwaltung merged to "Stammdaten & Benutzer" => 6 groups -> 5 groups.
+        // Wave 14: Monitoring renamed to "System". Total: 5 groups (operations, stammdaten-benutzer, tracking, system, konfiguration).
         return [
-            'admin' => ['admin', 6],
-            'leiter' => ['leiter', 6],
+            'admin' => ['admin', 5],
+            'leiter' => ['leiter', 5],
             'operations' => ['operations', 4],
             'support' => ['support', 2],
             'configuration' => ['configuration', 2],

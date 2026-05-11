@@ -30,11 +30,14 @@ use InvalidArgumentException;
 final class NavigationService
 {
     /**
-     * Standard-Navigation: 6 Top-Level-Gruppen mit insgesamt 18 Sub-Items.
+     * Standard-Navigation: 5 Top-Level-Gruppen mit insgesamt 17 Sub-Items.
      *
      * Quelle: t14-Mockup (AX4 Wave 9). Permissions referenzieren config/identity.php.
      * Stand Wave 14: Tracking-Gruppe erweitert um Jobs + Alerts (3 Sub-Items);
      * IntegrationPolicy gesplittet (configuration.integrations.manage).
+     *
+     * Stand t22: Stammdaten + Verwaltung zusammengefasst zu "Stammdaten & Benutzer";
+     * Monitoring umbenannt zu "System".
      *
      * @return array<int, array<string, mixed>>
      */
@@ -72,14 +75,20 @@ final class NavigationService
                 ],
             ],
             [
-                'key' => 'stammdaten',
-                'label' => 'Stammdaten',
+                'key' => 'stammdaten-benutzer',
+                'label' => 'Stammdaten & Benutzer',
                 'children' => [
                     [
                         'key' => 'fulfillment-masterdata',
                         'label' => 'Fulfillment-Stammdaten',
                         'route' => 'fulfillment-masterdata',
                         'permissions' => ['fulfillment.masterdata.manage'],
+                    ],
+                    [
+                        'key' => 'identity-users',
+                        'label' => 'Benutzer',
+                        'route' => 'identity-users',
+                        'permissions' => ['identity.users.manage'],
                     ],
                 ],
             ],
@@ -108,8 +117,8 @@ final class NavigationService
                 ],
             ],
             [
-                'key' => 'monitoring',
-                'label' => 'Monitoring',
+                'key' => 'system',
+                'label' => 'System',
                 'children' => [
                     [
                         'key' => 'monitoring-system-jobs',
@@ -140,18 +149,6 @@ final class NavigationService
                         'label' => 'System-Health',
                         'route' => 'monitoring-health',
                         'permissions' => ['admin.setup.view'],
-                    ],
-                ],
-            ],
-            [
-                'key' => 'verwaltung',
-                'label' => 'Verwaltung',
-                'children' => [
-                    [
-                        'key' => 'identity-users',
-                        'label' => 'Benutzer',
-                        'route' => 'identity-users',
-                        'permissions' => ['identity.users.manage'],
                     ],
                 ],
             ],

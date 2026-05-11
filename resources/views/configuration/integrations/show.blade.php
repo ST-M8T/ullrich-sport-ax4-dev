@@ -1,6 +1,6 @@
 @extends('layouts.admin', [
     'pageTitle' => $provider->name(),
-    'currentSection' => 'configuration-settings',
+    'currentSection' => 'configuration-integrations',
 ])
 
 @section('content')

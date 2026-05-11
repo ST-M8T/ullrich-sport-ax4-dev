@@ -1,6 +1,12 @@
 @extends('layouts.admin', [
     'pageTitle' => 'Benutzer bearbeiten',
     'currentSection' => 'identity-users',
+    'breadcrumbs' => [
+        ['label' => 'Fulfillment', 'url' => route('fulfillment-orders')],
+        ['label' => 'Stammdaten & Benutzer', 'url' => route('fulfillment-masterdata')],
+        ['label' => 'Benutzer', 'url' => route('identity-users')],
+        ['label' => $user->username()],
+    ],
 ])
 
 @section('content')
