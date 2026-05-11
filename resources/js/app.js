@@ -16,6 +16,7 @@ import './core/a11y';
 // Components
 import './components/tabs';
 import './components/modal/base';
+import './components/bootstrap-modal';
 import './components/theme';
 import './components/settings-modal';
 

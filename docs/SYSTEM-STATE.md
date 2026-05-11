@@ -208,6 +208,13 @@ Stand: 2026-05-11
 - QA-Check: `php artisan test tests/Feature/Fulfillment/ShipmentOrderControllerTest.php tests/Feature/Fulfillment/ShipmentAdminTest.php tests/Feature/Dispatch/DispatchListFeatureTest.php --filter='filters_orders_by_combined_criteria|it_lists_shipments|list_page|index'` erfolgreich am 2026-05-11. Der Filter traf den Auftragslistenfall.
 - Offene Risiken oder Blocker: PHPUnit meldet weiterhin die bestehende PHP 8.5 Deprecation `PDO::MYSQL_ATTR_SSL_CA` in `config/database.php:62`.
 
+### 5.12 t38 — Modal Bundle Fix
+- Der lokale Bootstrap-kompatible Modal Controller wird jetzt im zentralen JavaScript Entry `resources/js/app.js` geladen.
+- Bootstrap-aehnliche Modals mit `data-bs-toggle`, `data-bs-target`, `data-bs-dismiss` und `bootstrap.Modal.getInstance()` sind dadurch aktiv statt nur als sichtbares HTML im Seitenfluss vorhanden.
+- Build-Check: `npm run build` erfolgreich am 2026-05-11.
+- QA-Check: `php artisan test tests/Feature/Dispatch/DispatchListFeatureTest.php` und `php artisan test tests/Feature/Fulfillment/ShipmentOrderControllerTest.php` erfolgreich am 2026-05-11.
+- Offene Risiken oder Blocker: PHPUnit meldet weiterhin die bestehende PHP 8.5 Deprecation `PDO::MYSQL_ATTR_SSL_CA` in `config/database.php:62`.
+
 ---
 
 ## 6. Test-Abdeckung
@@ -220,8 +227,9 @@ Stand: 2026-05-11
 | AdminNavigationTest | tests/Browser/AdminNavigationTest.php | Bestehend |
 | ConfigurationManagementTest | tests/Feature/Configuration/ConfigurationManagementTest.php | Settings Flash und DHL Navigation geprueft (t33) |
 | AdminLayoutSnapshotTest | tests/Feature/Layout/AdminLayoutSnapshotTest.php | Footer und Card Layout geprueft (t34) |
-| ShipmentOrderControllerTest | tests/Feature/Fulfillment/ShipmentOrderControllerTest.php | Auftragsdetail ohne Blade-Fragmente und ohne verschachtelte Tabellenwrapper geprueft (t35, t36) |
+| ShipmentOrderControllerTest | tests/Feature/Fulfillment/ShipmentOrderControllerTest.php | Auftragsdetail ohne Blade-Fragmente, ohne verschachtelte Tabellenwrapper und Fulfillment Order Rendering geprueft (t35, t36, t38) |
 | UserManagementTest | tests/Feature/Identity/UserManagementTest.php | Definition-List HTML-Werte geprueft (t35) |
+| DispatchListFeatureTest | tests/Feature/Dispatch/DispatchListFeatureTest.php | Dispatchlisten Rendering und Modal Bundle Integration geprueft (t38) |
 
 ---
 

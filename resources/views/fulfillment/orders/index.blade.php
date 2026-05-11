@@ -515,6 +515,7 @@
 
                 document.getElementById('bulk-cancel-order-ids').value = JSON.stringify(orderIds);
                 document.getElementById('bulk-cancel-count').textContent = orderIds.length;
+                bootstrap.Modal.getOrCreateInstance(bulkCancelModal).show();
             });
         }
 
@@ -598,6 +599,7 @@
                 // Set hidden values
                 document.getElementById('selected-order-ids').value = JSON.stringify(orderIds);
                 document.getElementById('selected-orders-count').textContent = orderIds.length;
+                bootstrap.Modal.getOrCreateInstance(bulkModal).show();
 
                 // Load DHL products
                 fetchProducts();
