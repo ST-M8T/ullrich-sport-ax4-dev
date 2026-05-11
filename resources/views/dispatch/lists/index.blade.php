@@ -131,7 +131,7 @@
                         @endif
                     </td>
                     <td>{{ $processed['list']->notes() ?? '—' }}</td>
-                    <td class="text-nowrap">
+                    <td>
                         <div class="d-flex flex-wrap gap-2">
                             <button type="button"
                                     class="btn btn-warning btn-sm text-uppercase"

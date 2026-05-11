@@ -3,6 +3,7 @@
 namespace Tests\Feature\Api;
 
 use App\Infrastructure\Persistence\Configuration\Eloquent\SystemSettingModel;
+use App\Infrastructure\Persistence\Identity\Eloquent\UserModel;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -19,7 +20,17 @@ final class SystemSettingApiTest extends TestCase
             'updated_by_user_id' => null,
         ]);
 
-        $response = $this->getJson('/api/v1/settings/app.locale');
+        $user = UserModel::query()->create([
+            'username' => 'admin',
+            'display_name' => 'Admin',
+            'email' => 'admin@test.local',
+            'password_hash' => bcrypt('password'),
+            'role' => 'admin',
+            'must_change_password' => false,
+            'disabled' => false,
+        ]);
+
+        $response = $this->actingAs($user)->getJson('/api/v1/settings/app.locale');
 
         $response->assertOk();
         $response->assertJson([
@@ -30,6 +41,16 @@ final class SystemSettingApiTest extends TestCase
 
     public function test_show_returns_not_found_for_missing_setting(): void
     {
-        $this->getJson('/api/v1/settings/missing.setting')->assertStatus(404);
+        $user = UserModel::query()->create([
+            'username' => 'admin',
+            'display_name' => 'Admin',
+            'email' => 'admin@test.local',
+            'password_hash' => bcrypt('password'),
+            'role' => 'admin',
+            'must_change_password' => false,
+            'disabled' => false,
+        ]);
+
+        $this->actingAs($user)->getJson('/api/v1/settings/missing.setting')->assertStatus(404);
     }
 }

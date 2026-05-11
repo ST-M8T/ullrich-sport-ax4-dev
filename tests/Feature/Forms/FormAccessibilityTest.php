@@ -120,6 +120,6 @@ final class FormAccessibilityTest extends TestCase
         $this->assertStringNotContainsString('aria-pressed', $html);
         $this->assertStringNotContainsString('role="tab"', $html);
         $this->assertStringNotContainsString('role="tablist"', $html);
-        $this->assertStringContainsString('aria-current="page"', $html);
+        $this->assertStringContainsString('aria-selected="true"', $html);
     }
 }

@@ -1,5 +1,5 @@
 # Menü-Rollen-Matrix (automatisch generiert)
-Stand: 2026-05-10 19:54:15
+Stand: 2026-05-11 05:13:07
 
 ## 1) Sichtbarkeit von Navigationseinträgen je Rolle
 | Rolle | Label | Route | Berechtigungen | Route vorhanden | Sichtbar |

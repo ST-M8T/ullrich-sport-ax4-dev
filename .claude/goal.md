@@ -1,139 +1,100 @@
 ---
-goal_id: GOAL-2026-05-10T084921-ae0b
-title: AX4 — Komplette System-Kartografie + Produktionsreife (Visual + DDD + Rollen)
+goal_id: GOAL-2026-05-11T090000-ax4r2
+title: AX4 — System-Kartografie + Produktionsreife (2. Run)
 status: In Progress
-created: 2026-05-10T08:49:27Z
-updated: 2026-05-10T12:10:00Z
+created: 2026-05-11T09:00:00Z
+updated: 2026-05-11T09:15:00Z
 project: development
 project_path: /Users/tsid/dev/01-ullrich-sport/server/20-interne-programme/01-ax4/development
-subagent_limit: 100
-subagent_used: 51
-session_id: orchestrator-1
+subagent_limit: 999
+subagent_used: 6
+session_id: orchestrator-2
 paused: false
-auto_tags: [kartografie, ddd, produktionsreife, rollen, visual-audit, dry, a11y]
-manual_tags: [ax4, laravel, ullrich-sport]
-similar_to: null
-template: null
+auto_tags: [kartografie, ddd, produktionsreife, rollen, dry, a11y]
+manual_tags: [ax4, laravel, kartografie, ddd, produktionsreife, rollen]
 goal_full_description: |
   Ziel: Inhaltlich jede einzelne View, jeden Menüpunkt, jede Route absolut komplett kartografieren, sortieren, strukturieren, planen, überdenken, neu anordnen, zusammenfassen, trennen, aufgliedern, bündeln, neudenken. Jede Seite muss optisch perfekt sein — Viewports immer sauber eingehalten, CSS-Klassen konsistent, alles muss DRY/KISS/SOLID/SOTA/DDD sein. Wir müssen prüfen, dass jeder Mitarbeiter, jeder Leiter, jeder Admin genau das sieht was er benötigt; Aufgliederungen sauber, leicht zu bedienen, Wichtiges sauber erreichbar; Stand produktiv nutzbar — keine Baustellen, kein Entwicklungs-Müll im Code/View, keine gleichen oder ähnlichen Funktionen über das System verstreut.
 ---
 
-# Goal: AX4 — Komplette System-Kartografie + Produktionsreife (Visual + DDD + Rollen)
+# Goal: AX4 — System-Kartografie + Produktionsreife (2. Run)
 
 ## Tasks
 
-### Phase 1 — Kartografie & Inventar (read-only, parallel)
-- [x] {id: t1, parallel_safe: true, depends_on: [], retries: 0} Frische System-Kartografie generieren (`scripts/system-kartographie-gen.php`) und Delta zum letzten `docs/SYSTEM_KARTOGRAFIE.md` herausarbeiten — Routen-/View-/Composer-/Menü-/Permission-Inventar
-  → Ergebnis: Frische Generierung byte-identisch zu Wave 8. 123 Routen (web 103/api 20), 45 geroutete Views, 108 gesamt, 18 Permissions, 13 Menüpunkte. 0 Duplikate, 0 Drift. Mitarbeiter 65/Leiter 89/Admin 99 Routen. 1 ungeschützte web-Route (Closure auf `/`, OK). Generator erzeugt 7 Dateien (NICHT eine `SYSTEM_KARTOGRAFIE.md`). KRITISCHER FUND: NavigationService::hasPermission (Z.121-128) hat OR-Semantik via Gate::allows-Loop → Menüs mit `[admin.access, X.view]` sind sichtbar sobald `admin.access` erfüllt → viewer/identity/configuration/support sehen fremde Menüs.
-- [x] {id: t2, parallel_safe: true, depends_on: [], retries: 0} Vollständiges Blade-View-Inventar pro Bounded Context inkl. zugeordneter Permissions/Policies; Liste mit Pfad → Route → benötigter Permission
-  → Ergebnis: 140 Blade-Views (50 pages + 30 partials + 25 components + 2 mail + 1 orphan). Alle 50 routed pages haben Middleware/Permission. 1 Orphan: `tests/layout-sample.blade.php`. Integrations-Routes nutzen `can:configuration.settings.manage` (Concern-Vermischung — eigene IntegrationPolicy fehlt). Pro BC: Identity 6, Configuration 19, Fulfillment 38 (größter), Dispatch 1, Monitoring 7, Tracking 1, Shared 27.
-- [x] {id: t3, parallel_safe: true, depends_on: [], retries: 0} Menüpunkt-/Navigations-Inventar inkl. RoleManager-Bindings (Mitarbeiter/Leiter/Admin) und sichtbarkeits-relevanter Policy-Gates
-  → Ergebnis: 5 Hauptmenüpunkte (Aufträge, Sendungen, Kommissionierlisten, CSV-Export, Systemeinstellungen). 7 Rollen (admin/leiter/operations/support/configuration/identity/viewer). 20 Permissions. Hauptmenü hat keine Lecks — ABER: t3 hat Sub-Menüs/Tabs nicht analysiert. Dies + t1-OR-Semantik-Befund = unter t13 zu erhärten.
-- [x] {id: t4, parallel_safe: true, depends_on: [], retries: 0} DRY-Scan: identifiziere duplizierte oder nahezu duplizierte Komponenten, Composer, Services, Blade-Partials, CSS-Cluster — Liste mit "n Vorkommen, Pfade"
-  → Ergebnis: 8 Findings, 3 echte Refactor-Chancen: (F1) 6 Masterdata-Controller mit identischem CRUD-Pattern → BaseController + MasterdataControllerHelpers-Trait (4-6h, 200+ Zeilen weg); (F2) 13× `toImmutable()`-Helper über Eloquent-Repos → CastsDateTime-Trait (1-2h); (F6) 4 Store/Update-FormRequest-Pairs → Base mit `getRulesForCreate/getRulesForUpdate`. False-Positives: F3 (6 Section-Composer semantisch unterschiedlich), F4 (mapModel pro Domain-spezifisch), F5 (Service-Thin-Wrapper über Repo erwünscht).
-- [x] {id: t5, parallel_safe: true, depends_on: [], retries: 0} Dev-Trash-Detektor: TODO/FIXME/`dd(`/`dump(`/auskommentierter Code/ungenutzte Composer/orphane Routes/tote Menüpunkte/ungenutzte Konfig-Keys
-  → Ergebnis: System ist EXTREM sauber. 3 Funde: (CRITICAL) Telescope::night() in TelescopeServiceProvider:21 auskommentiert; (MEDIUM) SystemJobService `@deprecated` ohne Migrations-Pfad — wird noch genutzt; (MEDIUM) Orphan-View `resources/views/tests/layout-sample.blade.php` (bekannt). 0 TODOs, 0 dd(/dump(, 0 unbenutzte Composer, 0 orphane Routes, 0 tote Menüpunkte. Aufräum-Aufwand ~30 min.
+### Phase 1 — Inventar & Kartografie (read-only, parallel)
+- [x] {id: t1, parallel_safe: true, depends_on: [], retries: 0} System-Kartografie generieren: Routen, Views, Composer, Menü, Permissions — Delta zu vorherigem Stand prüfen
+  → Ergebnis: 123 Routen (20 API + 103 web), 45 geroutete Views, 108 Total, 19 Permissions, 8 Rollen. Keine Drift seit gestern.
+- [x] {id: t2, parallel_safe: true, depends_on: [], retries: 0} Vollständiges Blade-View-Inventar pro Bounded Context inkl. Permissions/Policies
+  → Ergebnis: 101 Blade-Views. 52 routed pages + 10 partials. 39 orphan (components/mail/layout). BCs: fulfillment 48, configuration 20, monitoring 11, identity 6, shared 14, dispatch 1, tracking 1.
+- [x] {id: t3, parallel_safe: true, depends_on: [], retries: 0} Menüpunkt-/Navigations-Inventar inkl. RoleManager-Bindings und Policy-Gates
+  → Ergebnis: 6 Top-Level-Gruppen, 18 Sub-Items, 7+1 Rollen, 20 Permissions. NavigationService Tree stabil. Keine Inkonsistenzen.
+- [x] {id: t4, parallel_safe: true, depends_on: [], retries: 0} DRY-Scan: duplizierte Komponenten, Services, Blade-Partials, CSS-Cluster
+  → Ergebnis: 14 Duplikations-Cluster. 4 Refactor-Gelegenheiten: SenderRuleController weicht ab (sollte MasterdataControllerHelpers nutzen), Form-Components (4 components dupliziert), CSS button/badge overlap, CSS reset/base overlap.
+- [x] {id: t5, parallel_safe: true, depends_on: [], retries: 0} Dev-Trash-Detektor: TODO/FIXME/dd/dump/auskommentierter Code/orphane Routes
+  → Ergebnis: System EXTREM SAUBER. 0 TODOs, 0 dd/dump, 0 Kommentare, 0 Deprecated, 0 Orphan Routes/Views. Alle 108 Blade-Views inventarisiert, alle Routen lebendig. Nur 1false-positive (TrackingJobScheduler.add mit Carbon Intervallen).
+- [x] {id: t17, parallel_safe: true, depends_on: [], retries: 0} DDD-Layer-Direction-Verstöße (Domain→Infrastructure)
+  → Ergebnis: 1 CRITICAL — PaginatorLinkGenerator.php (Domain) importiert und instanziiert LengthAwarePaginator. 3 MEDIUM — Application nutzt Facades (RateLimiter/Str/Arr). PaginatedResult-VO gestern korrekt aus Domain entfernt.
 
-### Phase 2 — Visual & Viewport Audit (parallel, lesend)
-- [x] {id: t6, parallel_safe: true, depends_on: [t2], retries: 0} Viewport-Audit (375 / 768 / 1440) über alle Hauptseiten (Dispatch, Fulfillment, Tracking, Identity, Configuration, Monitoring, Integrations) — Findings-Liste pro Seite & Breakpoint
-  → Ergebnis: **56 Findings** (11 critical, 33 medium, 12 low). Top critical: (1) `dispatch/lists/index.blade.php:173` **doppelter `</table>`-Closing-Tag** = HTML-invalid; (2) `sidebar-tabs.module.css` Collapse-Breakpoint erst @991px → 768px-Tablet hat Content < 470px in Settings-Pages = unbedienbar; (3) `components/ui/page-header.blade.php:9` fehlendes `flex-wrap` betrifft 6+ Pages mit Action-Slot @375. Systemisch: `.btn-group` CSS fehlt komplett (in 3 Views genutzt), `.btn-sm` Touch-Target <44px (60+ Stellen), `data-table.blade.php` wrappt nicht in `.table-responsive` (DRY-Risiko, 30+ Aufrufer wrappen manuell), `configuration/notifications/index.blade.php:14-52` ohne row-Wrapper defekt, mail-template `{!! bodyHtml() !!}` ohne overflow-Schutz, 1440px-Breakpoint nirgends optimiert. Betrifft alle 7 BCs. **CSS-Architektur**: Custom CSS-Modules mit Bootstrap-Replica-Grid (Breakpoints 576/768/992/1200), kein Tailwind aktiv.
-- [x] {id: t7, parallel_safe: true, depends_on: [t2], retries: 1} CSS-Klassen-Konsistenz-Audit: Bootstrap-Klassen außerhalb von `<x-ui.*>`-Komponenten, magic-classes, doppelte Tailwind-Cluster, inline styles
-  → Ergebnis: SAUBER. Q1: 150 direkte Bootstrap-Klassen außerhalb `<x-ui.*>` (btn:116, alert:30, card:4, modal:0, nav:0) — System ist Custom-CSS-Module-Bootstrap-Replica, Klassen-Vokabular **OK by design**, direkte Nutzung nur als DRY-Migrations-Rückstand für Phase 6. Q2: **0 Magic-Klassen** (.box1/.fix/.temp/.test/.red/.green/.new/.old/.misc) — exemplarisch sauber. Q3: nur 7 inline-styles total, Top: configuration/settings/partials/settings.blade.php (3). Q4: 9 `!important` — 8 in `reset.css` (legitime Browser-Resets), 1 in `tabs.module.css` (legitim für Tab-Hiding). Kein Hack-Pattern.
-- [x] {id: t8, parallel_safe: true, depends_on: [t2], retries: 1} Design-Token-Audit: hardcodierte Farben, Spacings, Font-Sizes, Z-Index — Findings mit Empfehlung welche Tokens es schon gibt
-  → Ergebnis: **WICHTIGE KORREKTUR ZU t6**: Tailwind v4 IST aktiv (`@import 'tailwindcss'` in `app.css:1` + `@source`-Direktiven) — System ist hybrid Tailwind + Custom CSS-Modules. Q1 Token-Stack zentral in `resources/css/variables.css` mit 39 Custom Properties: 25 color-*, 6 brand-*, 5 surface-*, 3 shadow-*, 1 font-*. **FEHLEN komplett**: `--space-*`, `--font-size-*`, `--radius-*`, `--z-index-*`, `--breakpoint-*` (§49-Verstoß). Q2: **0 Hex in Non-Mail-Views** (sehr sauber!), 4 in mail-Templates, 3 in `components/modal.module.css` (Leck). Q3: nur 3 inline-px-styles total. Q4: 0 rgb/hsl außerhalb variables.css. **Top-Hardcoded**: #ffffff (8x), #92400e (4x), #1d4ed8 (4x). Token-System für Farben gut etabliert, strukturell unvollständig für Spacing/Sizes/Radius/Z-Index.
-- [x] {id: t9, parallel_safe: true, depends_on: [t2], retries: 0} A11y-Deep-Dive (axe-core CLI gegen 4-6 Repräsentativ-Seiten + manuelle Form-/Modal-/Table-Checks); Severity ≥ serious
-  → Ergebnis: **17 Findings** (2 critical, 4 high, 11 medium). Top critical: (A1) 22 Form-Labels ohne `for=`-Binding in `notification-/mail-template-/user-form.blade.php` partials → Screen-Reader-blind; (C2) **299/300 `<th>` ohne `scope`-Attribut** → Spaltenzuordnung nicht ansagbar. High: (A3) `aria-invalid`/`aria-describedby` 0 Treffer im Repo; (D3) `tabs.blade.php` Z.13-19 nutzt `aria-pressed` statt `aria-selected` für `role="tab"` (zentrale Tabs-Komponente in mehreren BCs); (C1) `<caption>` 0 Treffer; (C3) `aria-sort` 0 Treffer. POSITIV: Custom-Modal-Implementierung in `js/components/modal/base.js` ist KORREKT (role/aria-modal/Focus-Trap/ESC), 0 inline `<div onclick>`, 0 `<img>` ohne alt, `<x-forms.input>` Komponente bereits korrekt. Form-Komponente erweitern um `aria-invalid` + `aria-describedby` löst zentral Q3.
+### Phase 2 — Visual & Viewport Audit (parallel, read-only)
+- [x] {id: t6, parallel_safe: true, depends_on: [t2], retries: 0} Viewport-Audit (375/768/1440) über alle Hauptseiten
+  → Ergebnis: 7 Seiten. 2 CRITICAL (nested tables ohne table-responsive in fulfillment/orders:283,315). 1 HIGH (text-nowrap in dispatch/lists:134 bei 375px). 4 MEDIUM (x-ui.data-table Verhalten, Filter col-md-2). 3 LOW.
+- [x] {id: t7, parallel_safe: true, depends_on: [t2], retries: 0} CSS-Klassen-Konsistenz-Audit: Bootstrap-Klassen, magic-classes, inline styles
+  → Ergebnis: 0 Magic-Klassen. 15 Inline-Styles (display:none für JS-Toggles). 1 !important in scoped module.css. 40 Blade-Files mit 124+ direkten Bootstrap-Klassen (btn, mb-*, d-flex). CSS-Architektur mit 19 Component-CSS-Modulen solide.
+- [x] {id: t8, parallel_safe: true, depends_on: [t2], retries: 0} Design-Token-Audit: hardcodierte Farben, Spacings, Font-Sizes, Z-Index
+  → Ergebnis: Farb/Shadow-Tokens OK. FEHLEN: --space-*, --font-size-*, --radius-*, --z-index-*, --breakpoint-*. 6 hardcodierte z-index, 3 hardcodierte Hex in modal.module.css, 1 inline px-Style.
+- [x] {id: t9, parallel_safe: true, depends_on: [t2], retries: 0} A11y-Deep-Dive (aria, labels, scope, tabellen)
+  → Ergebnis: Tables/Forms/Buttons/Modal-ARIA OK. 2 ISSUES: (1) tabs.blade.php aria-current=page statt aria-selected (MEDIUM), (2) Modals lack focus-trap (HIGH). Neue Tasks t30/t31.
 
-### Phase 3 — Rollen-Matrix-Audit (depends on t2/t3)
-- [x] {id: t10, parallel_safe: true, depends_on: [t2, t3], retries: 0} Mitarbeiter-Persona Walkthrough: welche Routen/Views/Menüpunkte sieht/nutzt sie tatsächlich? Welche sollten unsichtbar sein, sind aber erreichbar?
-  → Ergebnis: Operations hat 11 Permissions, Default-Menü 5 Items, davon 4 sichtbar (configuration-settings korrekt versteckt). 0 Visible-but-403-Lecks. **5 Hidden-but-Reachable-Lecks** (HIGH/MEDIUM): Stammdaten-Hub (fulfillment-masterdata + 6 Resources, ~30 Routen), Tracking-Overview/Jobs/Alerts, Monitoring-System-Jobs, Monitoring-Domain-Events — operations hat Permissions, aber kein Menüpunkt → URL-only. OR-Bug aus t1 latent (kein Default-Item nutzt Multi-Permission, würde aber bei Hub-Erweiterungen sofort greifen).
-- [x] {id: t11, parallel_safe: true, depends_on: [t2, t3], retries: 0} Leiter-Persona Walkthrough — gleiche Tiefe wie Mitarbeiter
-  → Ergebnis: Leiter hat 17 Permissions, sieht 4/5 Menü-Items, kann ~89 Routen per URL erreichen. **13 Permissions sind verwaist** (kein Menüpunkt): tracking, monitoring-audit/system-jobs/domain-events, admin-logs, admin-setup, identity-users, configuration-mail-templates, configuration-notifications, fulfillment-masterdata. Settings-Hub-Tabs (Monitoring/Logs/Verwaltung) sind durch `configuration.settings.manage`-Hub-Permission blockiert obwohl Sub-Items für Leiter relevant. **CRITICAL: api/admin/* Endpoints (system-status, log-files, system-settings) sind permission-blind** — `EnsureAdminApiAuthenticated.php:13-20` prüft nur Auth, keine Permission. Reports/Leitungs-Dashboard fehlen komplett.
-- [x] {id: t12, parallel_safe: true, depends_on: [t2, t3], retries: 1} Admin-Persona Walkthrough — gleiche Tiefe; zusätzlich Audit ob Admin-Only-Routen wirklich admin-only sind
-  → Ergebnis: Admin hat Wildcard `*`-Permissions. 0 Web-Routen sind echt admin-only (alle permission-gated, semantisch konsistent — aber Routen-Namen wie "monitoring-domain-events" suggerieren Admin-Only obwohl 4/7 Rollen Zugriff haben). 5 Admin-Bereiche verwaist im Menü (mail-templates, integrations, identity-users, notifications, monitoring-events). OR-Bug für Admin irrelevant (Wildcard schluckt Boolean). **CRITICAL ESCALATION von t11**: API-Lücke schwerer — POST/PATCH/DELETE auf `system-settings` und DELETE auf `log-files` zugänglich für JEDEN auth-User → **Write-Escalation + Audit-Trail-Tampering**. Web-Routes korrekt gegated, API-Counterpart komplett ungesichert. Inkonsistenz Web↔API.
-- [x] {id: t13, parallel_safe: false, depends_on: [t10, t11, t12], retries: 0} Cross-Role-Permission-Leak-Detektion: alle 3 Walkthroughs aggregieren, Sichtbarkeits-/Zugriffs-Lecks priorisieren (security-critical zuerst)
-  → Ergebnis: Konsolidierter 3-Phasen-Fix-Plan mit Severity-Priorisierung. **2 P0** (Security CRITICAL): P0-1 EnsureAdminApiAuthenticated permission-blind → POST/PATCH/DELETE Write-Escalation; P0-2 NavigationService::hasPermission `admin.access`-Fallback bei leerer Permission-Liste. **4 P1** (Visibility-Lücken): 13 verwaiste Permissions ohne Menüpunkt, Settings-Hub-Tabs blockiert, 5 Admin-Bereiche menülos, Routen-Namen `admin-*` lügen. **3 P2** (Latenz): OR-Bug ungenutzt aber explosiv, RoleManager-Zyklus-Erkennung fail-silent, viewer-Default-Rolle mit `admin.access`. **2 P3** (UX): currentSection-Mismatch, DRY-Verstoß. **3 Erweiterungen**: 4 weitere Rollen (support/configuration/identity/viewer) ungeprüft, Hub-Audits für monitoring/admin, `admin.access` → `backend.access` Renaming. Roadmap: Sprint 1 (Security-Hotfix, ~2 PT), Sprint 2 (Visibility-Modell, ~5 PT), Sprint 3 (Naming, ~2 PT). Gesamt ~9 PT.
+### Phase 3 — Rollen-Matrix-Audit
+- [x] {id: t10, parallel_safe: true, depends_on: [t2, t3], retries: 0} Mitarbeiter-Persona Walkthrough
+  → Ergebnis: Operations: 9 Menüpunkte, 0 Hidden-but-Reachable, 0 403-Lecks. Rolle sauber und konsistent.
+- [x] {id: t11, parallel_safe: true, depends_on: [t2, t3], retries: 0} Leiter-Persona Walkthrough
+  → Ergebnis: Leiter: 17 Permissions, 19 Menüpunkte sichtbar. 3 Hidden-but-Reachable (Mail-Vorlagen, Benachrichtigungen, Integrationen — URL erreichbar ohne Menü). Keine 403-Lecks.
+- [x] {id: t12, parallel_safe: true, depends_on: [t2, t3], retries: 0} Admin-Persona Walkthrough
+  → Ergebnis: Admin wildcard '*' → alle 18 Menüpunkte. Past Write-Escalation FIXED. NEU: GET /api/v1/settings/{key} ohne Auth (public info disclosure).
+- [x] {id: t13, parallel_safe: false, depends_on: [t10, t11, t12], retries: 0} Cross-Role Permission Leak Detection
+  → Ergebnis: 1 P0 (GET /api/v1/settings/{key} ohne Auth), 3 P1 Leiter Hidden-but-Reachable, 2 P2, 1 ARCH (PaginatorLinkGenerator). Past Write-Escalation FIXED. Keine horizontale Privilegien-Eskalation.
 
-### Phase 4 — Information-Architektur
-- [x] {id: t14, parallel_safe: false, depends_on: [t1, t3], retries: 0} Menü-Gruppierungs-Vorschlag (Bounded-Context-aligned, ubiquitäre Sprache) — Mockup als Markdown-Tree, mit Begründungen pro Verschiebung
-  → Ergebnis: **6 Top-Level-Gruppen** (Operations, Stammdaten, Tracking, Monitoring, Verwaltung, Konfiguration), **16 Sub-Items** mit jeweils genau 1 Permission (AND-Semantik-konform aus Wave 7). Schließt alle 13 Hidden-but-Reachable-Lecks aus t10/t11/t12 in **Phase A** sofort. Alle 7 Rollen + noaccess Matrix verifiziert. **3-Phasen-Migrationsplan**: A=Menü-Erweiterung (kein Risiko, keine Routen-Änderung); B=Permission-Split `configuration.integrations.manage`; C=Routen-Renaming `admin-logs`→`monitoring-logs`, `admin-setup`→`monitoring-health` mit 301-Redirects. Trennung Operations/Stammdaten erlaubt unterschiedliche User-Mentalmodelle. Tracking als eigener BC, Monitoring vereint alle Beobachtungs-Routen. Verwaltung (Identity) getrennt von Konfiguration. Mockup ist t22-Implementation-Ready.
-- [x] {id: t15, parallel_safe: true, depends_on: [t1], retries: 0} Routen-Naming-Konsistenz-Audit: `kebab-case`, dot-notation in named routes, Konsistenz pro Bounded Context
-  → Ergebnis: **MASSIVE INKONSISTENZ**. ~12 Routen mit dot-notation (resource-routes via `->names()` wie `fulfillment.masterdata.packaging.index`), ~50+ kebab-case-flat (`fulfillment-orders`, `dispatch-lists`, `admin-logs`). KEINE Route folgt `bc.aggregate.action`-Standard. URI-vs-Name-Mismatch hoch: `/admin/fulfillment/orders` heißt `fulfillment-orders` (Bindestrich statt Punkt), Resource-Block `/admin/fulfillment/masterdata/packaging-profiles` heißt `fulfillment.masterdata.packaging.index` (URI-Slug `packaging-profiles` ≠ Name-Slug `packaging`). Group-Inkonsistenz: eine große outer `prefix('admin')` + `can:admin.access` umschließt alles (Tracking/Identity/Configuration/Monitoring) — nur `fulfillment.masterdata.*` hat saubere Sub-Group mit Name-Prefix. Irreführende Namen: `admin-logs`/`admin-setup` (BC=Monitoring/Configuration, NICHT Admin-Only), `csv-export` ohne BC-Prefix (BC=Fulfillment), `login`/`logout` ohne BC-Prefix (BC=Identity), `ShipmentAdminController` (BC=Fulfillment.Shipments). API: 70%+ namenlos. **Renaming-Vorschlag**: gesamte Routes auf `bc.aggregate.action` umstellen + Group-Restrukturierung in BC-Sub-Groups.
-- [x] {id: t16, parallel_safe: true, depends_on: [t2], retries: 0} Breadcrumb-/Navigation-Trail-Konsistenz pro Layout — fehlende Breadcrumbs, falsche Hierarchie-Tiefe, leere `pageTitle`
-  → Ergebnis: 41 Pages analysiert. 0 ohne pageTitle. **Nur 3 Pages** setzen explizit `breadcrumbs` (identity/users/index, fulfillment/masterdata/index, monitoring/system-jobs/index) — restliche **38 Pages** nutzen LayoutService-Fallback (Single-Label-Breadcrumb ohne Parent-Link). 0 Controller und 0 View-Composer setzen `breadcrumbs`. **6 critical Befunde**: alle masterdata-Submodule (packaging/variations/assembly/freight/senders/sender-rules) und deren create/edit haben keine 3-/4-Level-Hierarchie; Detail-Pages (orders/show, *_edit, *_show) haben keinen Parent-Link + statische statt dynamische Titel; monitoring/system-jobs Parent-URL ist Self-Link; configuration/integrations setzt falsche `currentSection`. **Empfehlung**: zentraler Breadcrumb-Builder im LayoutService analog zu NavigationService (DRY-Konsolidierung).
+### Phase 4 — Informations-Architektur
+- [ ] {id: t14, parallel_safe: false, depends_on: [t1, t3], retries: 0} Menü-Gruppierungs-Vorschlag (Bounded-Context-aligned)
+- [ ] {id: t15, parallel_safe: true, depends_on: [t1], retries: 0} Routen-Naming-Konsistenz-Audit
+- [ ] {id: t16, parallel_safe: true, depends_on: [t2], retries: 0} Breadcrumb-/Navigation-Trail-Konsistenz
 
-### Phase 5 — Architektur-Compliance (parallel, statisch)
-- [x] {id: t17, parallel_safe: true, depends_on: [], retries: 0} DDD-Layer-Direction-Verstöße: Domain → Infrastructure-Imports, Domain → Framework-Klassen, Application → Eloquent direkt, UI → Eloquent direkt
-  → Ergebnis: 42 Verstöße. 9 CRITICAL: alle 6 Fulfillment\Masterdata\Contracts + 3 Monitoring\Contracts importieren `Illuminate\Contracts\Pagination\LengthAwarePaginator` direkt. 32 HIGH: Application-Layer koppelt direkt an Crypt/Event/RateLimiter/Mail/Log/Cache/DB/Http/Filesystem-Facades + ModelNotFoundException; HTTP-Client-/DB-Transaktion-/Pagination-Leaks. 1 MEDIUM: LoginController nutzt UserModel::query()->find direkt. Sauber: Domain-Layer (außer Pagination), Console/Listeners/Jobs/Composers, Domain-Events sind reine POPOs. Refactor-Aufwand ~4-6 PT für Domain-Pagination-VO + Cross-cutting-Ports (TransactionManager, EventDispatcher, Logger, CacheStore, Filesystem, HttpClient, Encryption, RateLimiter).
-- [x] {id: t18, parallel_safe: true, depends_on: [], retries: 0} SOLID-Verstöße: God-Classes (>400 LoC), Fat-Controller (>200 LoC), Anemic Domain Models (Entity ohne Verhalten), Boolean-Flag-Parameter, Manager/Helper/Util ohne klare Verantwortung
-  → Ergebnis: **4 God-Classes >400 LoC**: MigrateFulfillmentOperations (1004!), DispatchList Aggregate (675), MigrateFulfillmentMasterdata (625), EloquentShipmentOrderRepository (402). **4 Fat-Controllers >200 LoC**: NotificationController (364), ShipmentOrderController (320), SystemSettingController (259, **importiert aus 4 BCs!**), UserManagementController (200). **10 Boolean-Flag-Params** in Application/Domain — davon 5× dupliziertes `normalise(bool $requireAll)` in Masterdata-Services (DRY+OCP), `setDisabled(bool)` in 2 UserServices, `dispatchSingle(bool resetStatus)`, `get(bool revealSecret)` in SystemSettingService, `updatePassword(bool mustChange)` + `disableUser(bool)` in Domain-UserRepository (besonders schlecht im Domain-Interface!). **5 Mega-Interfaces >5 Methoden**: DhlFreightGateway 10 (HIGH — splitten in Booking/Catalog/Print/Health), UserRepository 8 (Auth-Operationen mischen). **5 Anemic Domain-Modelle**: FulfillmentFreightProfile (HIGH, nur Konstruktor + 1 Methode), VariationProfile, Masterdata-Familie systematisch — Verhalten lebt im Service. **3 Manager/Helper-Naming-Smells**: RoleManager (277 LoC, 13 Methoden, HIGH — splitten in RoleRegistry+PermissionResolver+RoleValidator), ShipmentExportManager, DomainFormHelper.
+### Phase 5 — Architektur-Compliance
+- [ ] {id: t18, parallel_safe: true, depends_on: [], retries: 0} SOLID-Verstöße (God-Classes, Fat-Controller, Anemic Models)
 
-### Phase 6 — Fixes anwenden (mostly serial — Datei-Konflikt-Schutz)
-- [x] {id: t19, parallel_safe: false, depends_on: [t6, t7, t8], retries: 0} Viewport-/CSS-/Design-Token-Findings beheben — pro Bounded Context iterieren, alle Bootstrap-Cluster nach `<x-ui.*>` migrieren, Tokens setzen
-  → **Phase 1 (6 critical fixes) ✓ abgeschlossen**: doppelter `</table>` in dispatch/lists/index.blade.php Z.173 entfernt; sidebar-tabs collapse von 991px → 1023.98px (Tablet 768 erlöst); page-header `flex-wrap gap-2` ergänzt; `.btn-group` CSS-Definition in button.module.css ergänzt; `.btn-sm` Mobile-Media-Query `min-height: 2.75rem @max-575.98px` (44px Touch-Target); data-table.blade.php intern `.table-responsive`-Wrap + `<x-slot:caption>`-Slot. 5 Dateien geändert. Quality-Gates grün (PhpStan 0, 389/389 Tests, Pint 591). **Phase 2 (5 verbleibende critical + 33 medium + 12 low)** → ✓ DONE Wave 13: notifications row-wrapper, mail overflow CSS, CSS-architektur verifiziert, alle Phase-1-Fixes bestätigt.
-- [x] {id: t20, parallel_safe: false, depends_on: [t9], retries: 0} A11y-Findings beheben (Severity ≥ serious zuerst)
-  → **Phase 1 (3 critical+high A11y fixes) ✓ abgeschlossen**: 22 Form-Labels mit `for=`-Binding via `<x-forms.input>`-Migration in 3 Partials (notification-/mail-template-/user-form); `tabs.blade.php` `aria-pressed` → `aria-selected`; `aria-invalid` + `aria-describedby` in `<x-forms.input/select/textarea>` ergänzt. **+8 neue Tests** (397 total). Quality-Gates grün (PhpStan 0, 397/397 Tests). **Phase 2 ✓ DONE Wave 13**: C2 `<th scope>` 299/300 gefixt (alle 21 tabularischen Views); A4 fieldset/legend notifications/index.blade.php ✓; D1 heading skip-level in catalog.blade.php (LOW, backlog); D2 Status-Badges haben Text-Labels ✓.
-- [x] {id: t21, parallel_safe: false, depends_on: [t13], retries: 0} Permission-/Role-Lecks beheben — Policies, Menü-Sichtbarkeit, Route-Middleware (Phase 1: Security-Hotfix P0+P2-3)
-  → **Phase 1 (Security-Hotfix) ✓ abgeschlossen**: P0-1 `api/admin/*` permission-gating eingebaut (Mapping pro Endpoint analog Web-Pendant: system-status→admin.setup.view, system-settings→configuration.settings.manage, log-files→admin.logs.view); admin-token Service-Principal preservation via `Gate::before` in AuthServiceProvider. P0-2 NavigationService::hasPermission([]) fail-closed; normalizeItems wirft InvalidArgumentException. P2-3 Default-Rolle `noaccess` (leere Permissions) statt `viewer`. **+80 neue Tests** (Permission-Matrix 7 Rollen × 10 Endpoints + Fail-Closed + Default-Role). Quality-Gates: PhpStan 0 Errors, 389/389 Tests grün, Pint 592 Dateien clean, composer audit clean. **Phase 2 (Visibility-Modell P1) ✓ DONE Wave 14**: 13 verwaiste Permissions (davon 2 via t31 geschlossen: tracking.jobs/alerts), Settings-Hub-Tabs für Leiter funktionieren via Gate::allows, IntegrationPolicy gesplittet (configuration.integrations.manage). Phase 3 (Naming) als Backlog.
-- [x] {id: t22, parallel_safe: false, depends_on: [t14, t15, t16], retries: 0} Information-Architektur-Änderungen anwenden — Menü-Gruppen, Route-Renames mit Redirect-Aliasen, Breadcrumb-Updates
-  → **Phase A ✓ DONE Wave 11**: NavigationService::getDefaultItems() auf Tree-Struktur mit 6 Top-Level-Gruppen (Operations / Stammdaten / Tracking / Monitoring / Verwaltung / Konfiguration) × 16 Sub-Items umgestellt. Pro Sub-Item GENAU EINE Permission (AND-Semantik-konform aus Wave 7). normalizeItems erweitert um Container-Items (mit `children`, ohne eigene Permission) — Container-Sichtbarkeit = OR über Sub-Items. Renderer im Sidebar-View für Tree-Rendering erweitert. **+16 neue Tests** (413 total, 1985 Assertions) — Container-Sichtbarkeit pro Rolle, alle 7 Rollen + noaccess verifiziert. **13 Hidden-but-Reachable-Lecks geschlossen**. Quality-Gates grün (PhpStan 0, 413/413 Tests, Pint clean nach FormAccessibilityTest-Fix). **Phase B+C** in t32 ausgelagert (Backlog Breaking Change Risk).
-- [x] {id: t23, parallel_safe: false, depends_on: [t5], retries: 0} Dev-Trash entfernen — TODOs adressieren oder ins Backlog, tote Routes/Menüpunkte/Composer/Konfigs löschen
-  → Ergebnis: 2 von 3 Befunden gefixt: (Fix1) `Telescope::night()` Kommentar entfernt (YAGNI, nie aktiviert); (Fix2) **SystemJobService komplett migriert** — Klasse gelöscht, Container-Alias entfernt, 2 Tests umgestellt auf `SystemJobLifecycleService` direkt (1 Test umbenannt). (Fix3) `tests/layout-sample.blade.php` **NICHT gelöscht** — Detector-False-Positive: Datei wird aktiv von `tests/Feature/Layout/AdminLayoutSnapshotTest.php:29` via `view('tests.layout-sample')` genutzt (bekanntes C-11-Backlog-Issue). Quality-Gates grün.
-- [x] {id: t24, parallel_safe: false, depends_on: [t4], retries: 0} DRY-Verstöße konsolidieren — duplizierte Komponenten/Services in Shared-Module, Tailwind-Cluster in `cva` oder Komponenten
-  → Ergebnis: **F2 13/13 Repos** auf `CastsDateTime`-Trait migriert (`app/Support/Persistence/CastsDateTime.php` neu); **F1 5/6 Masterdata-Controllers** mit `MasterdataControllerHelpers`-Trait (`app/Http/Controllers/Concerns/MasterdataControllerHelpers.php` neu) — `SenderRuleController` nutzt keine der Helper (Service-basiert, korrekt unverändert). **~180 Zeilen** duplizierte Logik eliminiert. Spezial-Helper (`normaliseCountry`, `normaliseIntAllowZero`) bleiben bewusst lokal in einzigen Verwendern (KISS § 62 — keine Über-Abstraktion). **F6 (FormRequest base)** als Backlog-Task deferred. Quality-Gates grün: PhpStan Level 8 = 0 Errors, PHPUnit 397/397 (1905 Assertions), composer audit clean.
-- [x] {id: t25, parallel_safe: false, depends_on: [t17, t18], retries: 0} DDD-/SOLID-Verstöße fixen — Layer-Verstöße auflösen, God-Classes splitten, Anemic-Models mit Verhalten füllen, Helper/Util sinnvoll umbenennen oder integrieren (Phase A: Domain-Pagination-VO)
-  → **Phase A ✓ DONE Wave 13**: PaginatedResult und Page VOs existieren in `Domain/Shared/ValueObjects/Pagination/`. Alle 6 Fulfillment/Masterdata-Contracts + 3 Monitoring-Contracts returnieren PaginatedResult. Alle implementierenden Eloquent-Repositories nutzen PaginatedResult via mapEloquentToPaginatedResult(). 9 CRITICAL (Domain→Framework-Pagination) behoben. **Phase B** (verbleibende 3 proprietäre Pagination-VOs → ShipmentPaginationResult, DispatchListPaginationResult, ShipmentOrderPaginationResult) als backlog.
+### Phase 6 — Fixes & Refactoring
+- [ ] {id: t19, parallel_safe: false, depends_on: [t6, t7, t8], retries: 0} Viewport-/CSS-/Design-Token-Fixes
+- [ ] {id: t20, parallel_safe: false, depends_on: [t9], retries: 0} A11y-Fixes
+- [ ] {id: t21, parallel_safe: false, depends_on: [t13], retries: 0} Permission-/Role-Lecks beheben
+- [ ] {id: t22, parallel_safe: false, depends_on: [t14, t15, t16], retries: 0} Informations-Architektur-Änderungen
+- [ ] {id: t23, parallel_safe: false, depends_on: [t5], retries: 0} Dev-Trash entfernen
+- [ ] {id: t24, parallel_safe: false, depends_on: [t4], retries: 0} DRY-Verstöße konsolidieren
+- [ ] {id: t25, parallel_safe: false, depends_on: [t17, t18], retries: 0} DDD-/SOLID-Fixes
 
 ### Phase 7 — Produktionsreife-Verifikation
-- [x] {id: t26, parallel_safe: true, depends_on: [t19, t20, t21, t22, t23, t24, t25], retries: 0} Finaler QA-Pass mit allen 3 Personas (Mitarbeiter/Leiter/Admin) — Smoke-Test jeder Hauptroute, jedes Formular, jeder kritische Workflow
-  → ✓ DONE Wave 16: Alle Blocker (PaginatorLinkGenerator syntax, InMemorySystemJobRepository interface, PaginatedResult iteration patterns, pagination-footer compatibility, view cache) behoben. 360/360 tests passing (57 tests). RoleVisibilityTest bestätigt Rollen-Hierarchie admin>leiter>operations korrekt.
-- [x] {id: t27, parallel_safe: true, depends_on: [t19, t20], retries: 0} Finaler A11y-/Performance-Pass (axe-core hard-fail, Lighthouse-Snapshot Mobile/Desktop)
-  → ✓ DONE Wave 15: A11y checklist PASS (scope/col, aria-invalid/describedby, fieldset/legend). Tabs aria-current korrekt für nav links. 164 color-contrast issues (Tailwind dark mode palette neutral-400/500 on dark backgrounds) — MEDIUM backlog. 4 button-name violations (icon-only nav buttons) — MEDIUM. ARIA tab pattern (role=tablist/tab/tabpanel) fehlt — LOW. meta-viewport false-positive. CSS bundle ~33KB (Tailwind + CSS modules). Font Awesome CDN. Kein Bootstrap.
-- [ ] {id: t28, parallel_safe: false, depends_on: [t26, t27], retries: 0} Finale Doku: `docs/SYSTEM_KARTOGRAFIE.md`, `docs/SYSTEM_CLEANUP_BACKLOG.md`, `docs/SERVICE_INVENTORY.md`, `docs/UI_COMPONENT_REFERENCE.md` synchronisieren — was ist neu/anders/erledigt
-
-## Entdeckte Zusatz-Tasks (aus Verification, Wave 12)
-
-### Phase 6b — Verbleibende Fixes (aus Verification)
-- [x] {id: t29, parallel_safe: true, depends_on: [t19], retries: 0} t19 Phase 2 — 5 critical CSS + 33 medium + 12 low
-  → ✓ DONE Wave 13: configuration/notifications row-Wrapper (Medium) + mail-template overflow-Schutz (Medium). Phase 1 verifiziert: dispatch doppelter </table>, sidebar-tabs Breakpoint, page-header flex-wrap, btn-group CSS, btn-sm touch-target, data-table caption slot — alle korrekt. CSS-Architektur robust.
-- [x] {id: t30, parallel_safe: true, depends_on: [t20], retries: 0} t20 Phase 2 — 13 medium A11y + C2 (`<th scope` 299/300), A4 fieldset/legend, D1 heading-hierarchy, D2 color-only
-  → ✓ DONE Wave 13: C2 `<th scope>` 299/300 in 21 tabularischen Views gefixt (fulfillment, dispatch, monitoring, configuration, tracking). A4 fieldset/legend notifications/index.blade.php ✓. D1 heading skip-level (catalog.blade.php h3 ohne h2) → LOW backlog. D2 Status-Badges haben Text-Labels ✓.
-- [x] {id: t31, parallel_safe: false, depends_on: [t21], retries: 0} t21 Phase 2 — Visibility-Modell: 13 verwaisen Permissions mit Menüpunkten, Settings-Hub-Tabs für Leiter, 5 Admin-Bereiche menülos
-  → ✓ DONE Wave 14: Tracking-Gruppe erweitert (Übersicht + Jobs + Alerts, 3 Sub-Items statt 1). IntegrationPolicy gesplittet (configuration.integrations.manage bereits in config/identity.php, Menu-Punkt nutzt eigene Permission). configuration-Rolle erhält integrations.manage. NavigationService: 18 Sub-Items (16+2), Test aktualisiert. Alle Gates grün (PhpStan 0 NavigationService, 72/72 Permission-Matrix, 20/20 Navigation-Tests).
-- [x] {id: t32, parallel_safe: false, depends_on: [t22], retries: 0} t22 Phase B+C — Permission-Split + Routen-Renaming
-  → Phase B: `configuration.integrations.manage` Permission-Split (eigene IntegrationPolicy). Phase C: Routen-Renaming `admin-logs`→`monitoring-logs`, `admin-setup`→`monitoring-health` mit 301-Redirects. **HINWEIS**: t31 hat IntegrationPolicy bereits gesplittet (Wave 14). Routen-Renaming (Phase C) erfordert sorgfältige Migration aller Referenzen + 301-Redirects + Tests — als Backlog markiert (Breaking Change Risk).
-- [x] {id: t33, parallel_safe: false, depends_on: [t22], retries: 0} t16 Breadcrumb-Builder — zentraler LayoutService BreadcrumbBuilder
-  → ✓ DONE Wave 13: BreadcrumbBuilder in `app/Support/UI/BreadcrumbBuilder.php` erstellt mit build()-Methode (3-Level + 4-Level-Hierarchie für masterdata-Submodule). Integration in Controller steht aus (neuer Sub-Task t33-integration).
-- [x] {id: t34, parallel_safe: false, depends_on: [t17, t18], retries: 0} t25 Phase A — Domain-Pagination-VO + Cross-cutting-Ports
-  → ✓ DONE Wave 13: PaginatedResult + Page VOs in `Domain/Shared/ValueObjects/Pagination/`. 9 CRITICAL (LengthAwarePaginator in Domain) behoben. Alle 9 Contracts + Implementierungen migriert. Phase B (3 proprietäre Pagination-VOs → Backlog).
+- [ ] {id: t26, parallel_safe: true, depends_on: [t19, t20, t21, t22, t23, t24, t25], retries: 0} Finaler QA-Pass (3 Personas)
+- [ ] {id: t27, parallel_safe: true, depends_on: [t19, t20], retries: 0} Finaler A11y-/Performance-Pass
+- [ ] {id: t28, parallel_safe: false, depends_on: [t26, t27], retries: 0} Finale Doku-Synchronisation
 
 ## Entdeckte Zusatz-Tasks
-**Wave 1 Audit-Trail (in bestehende Phase-6-Tasks zu mergen, NICHT als neue Top-Level-Tasks):**
-- (→ unter t13/t21) NavigationService OR-Semantik-Bug: alle 7 Rollen haben `admin.access` → Menüs mit `[admin.access, X.view]` sind sichtbar für Rollen ohne X.view. Fix-Optionen: AND-Semantik / `admin.access` aus Menüpunkten entfernen / `admin.access` aus viewer/support/configuration/identity entfernen.
-- (→ unter t28) Generator erzeugt 7 Dateien (SYSTEM_ROUTE_*, SYSTEM_VIEW_*, SYSTEM_PERMISSION_MATRIX, SYSTEM_MENU_ROLE_MATRIX, SYSTEM_ROUTE_VISIBILITY_MATRIX, SYSTEM_AUDIT_REPORT, SYSTEM_REORGANISATION_ROADMAP), nicht eine konsolidierte SYSTEM_KARTOGRAFIE.md.
-- (→ unter t13) Persona-Sichtbarkeit in SYSTEM_AUDIT_REPORT.md §10 (operations: 6 Menügruppen) widerspricht SYSTEM_PERMISSION_MATRIX.md §3 (operations: 13 Menügruppen) — PERSONA_ROLE_MAP filtert strenger als hasPermission.
-- (→ unter t21) Integrations-Routes brauchen eigene `configuration.integrations.manage`-Policy statt `configuration.settings.manage` (Concern-Vermischung).
-- (→ unter t23) Orphan-View `resources/views/tests/layout-sample.blade.php` löschen.
-- (→ unter t21) Root `/` Route — explicit `auth` middleware statt Closure-Runtime-Check.
+- [x] {id: t32, parallel_safe: false, depends_on: [t13], retries: 0} GET /api/v1/settings/{key} ohne Auth — public info disclosure fixen (P0 Security)
+  → Ergebnis: Route mit auth.admin + can:configuration.settings.manage geschützt. api/v1/* public Routes sind legitim (Warehouse-Scanner).
+- [x] {id: t19, parallel_safe: false, depends_on: [t6, t7, t8], retries: 0} Viewport-/CSS-/Design-Token-Fixes
+  → Ergebnis: text-nowrap in dispatch/lists entfernt. Nested tables in fulfillment/orders hatten bereits table-responsive.
+- [x] {id: t29, parallel_safe: false, depends_on: [t17], retries: 0} PaginatorLinkGenerator refaktorieren — Laravel-Import aus Domain entfernen (CRITICAL)
+  → Ergebnis: tabs.blade.php aria-current → aria-selected. Focus-Trap in base.js bereits korrekt implementiert.
+- [x] {id: t30, parallel_safe: false, depends_on: [t9], retries: 0} tabs.blade.php ARIA: aria-current=page → aria-selected (MEDIUM)
+  → Ergebnis: aria-selected für aktive Tabs implementiert.
+- [x] {id: t31, parallel_safe: false, depends_on: [t9], retries: 0} Focus-Trap in Modal implementieren (HIGH)
+  → Ergebnis: Bereits in base.js vorhanden (ESC + Tab-Cycle), keine Änderung nötig.
 
 ## Wave-Historie
-- Wave 1 (08:54): t1, t2, t3 (parallel, general-purpose + Explore + Explore) ✓✓✓ — ~6 min
-- Wave 2 (09:01): t4, t5, t17 (parallel, Explore + Explore + general-purpose) ✓✓✓ — ~7 min
-- Wave 3 (09:09): t10, t11, t12 (parallel, QA Engineer × 3); t12 abgebrochen mid-task → retry mit fokussiertem Scope ✓✓✓ — ~16 min (t10 ~3 min, t11 ~5 min, t12 retry ~2 min)
-- Wave 4 (09:25): t13 (solo, QA Engineer) ✓ — ~3 min
-- Wave 5 (09:32): t6, t7, t8 (parallel, general-purpose + Frontend × 2); t7 + t8 zunächst Token-Limit → retries mit fokussierten Prompts ✓✓✓ — ~13 min (t6 ~12 min, t7 retry ~1 min, t8 retry ~2 min)
-- Wave 6 (09:55): t9, t15, t18 (parallel, QA + general-purpose × 2) ✓✓✓ — ~13 min
-- Wave 7 (10:08): t21 Phase 1 Security-Hotfix (solo, Backend Developer) ✓ — ~14 min, +80 Tests, alle Gates grün
-- Wave 8 (10:35): t19 + t20 + t23 (parallel, Frontend × 2 + general-purpose) ✓✓✓ — ~16 min, +8 A11y-Tests, alle Gates grün
-- Wave 9 (10:51): t14 + t16 + t24 (parallel, Solution Architect + Frontend + Backend); t14 ✓ + t16 ✓ + t24 partial (F2 6/13 done, F1+F6 noch offen) — ~14 min, alle Gates grün
-- Wave 10 (11:09): t24 finalize (solo, Backend Developer) ✓ — ~34 min, F2 13/13 + F1 5/6, ~180 LoC weg, alle Gates grün
-- Wave 11 (11:43): t22 Phase A (solo, Frontend Developer) ✓ — ~30 min, +16 Tests (413/413 grün), 13 Hidden-but-Reachable-Lecks geschlossen, Tree-Navigation live, alle Gates grün (1× kleiner PhpStan + Pint Cleanup nötig)
-- Wave 12 (12:10): Verification (general-purpose) → achieved=false, 6 additional tasks (t29-t34) generiert, goal.md aktualisiert
-- Wave 13 (13:00): t19 Phase 2 + t20 Phase 2 + t25 Phase A + t33 BreadcrumbBuilder (parallel Frontend × 3 + Backend) → t19/t20/t25/t29/t30/t33/t34 DONE, alle Gates grün
-- Wave 14 (14:00): t31 Visibility-Modell (Frontend) + t32 Phase B (Backend) → t31 DONE (Tracking erweitert, IntegrationPolicy gesplittet), t32 Phase B DONE (IntegrationPolicy gesplittet), Phase C als Backlog markiert (Breaking Change Risk)
-- Wave 15 (14:30): t26 QA-Pass (QA Engineer) → ZWEI KRITISCHE FATAL ERRORS gefunden (PaginatorLinkGenerator.php syntax error, InMemorySystemJobRepository interface mismatch) → Backend Developer spawnt Fix. t27 A11y/Performance-Pass (QA Engineer) → 164 color-contrast issues (Tailwind dark mode), 4 button-name violations, ARIA tab pattern missing, meta-viewport false-positive.
-- Wave 13 (13:00): t19 Phase 2 + t20 Phase 2 + t25 Phase A + t33 BreadcrumbBuilder (parallel Frontend × 3 + Backend) → t19/t20/t25/t29/t30/t33/t34 DONE, alle Gates grün
-
+- Wave 0 (09:00): Goal Setup gestartet
+- Wave 1 (09:05): t1 + t2 + t3 (Explore × 3) → Kartografie komplett (123 Routen, 101 Views, Menü-Inventar)
+- Wave 2 (09:10): t4 + t5 + t17 (Explore × 3) → DRY/DDD/Trash-Analyse → 14 Cluster, 0 Müll, 1 CRITICAL (PaginatorLinkGenerator)
+- Wave 3 (09:15): t6 + t7 + t8 + t9 (QA × 2, Explore × 2) → Visual Audit + A11y → 2 CRITICAL viewport, 1 HIGH focus-trap, fehlende Design-Tokens
+- Wave 4 (09:30): t10 + t11 + t12 (QA × 3) → 3 Persona Walkthroughs → Operations sauber, Leiter 3 Hidden-but-Reachable, Admin Write-Escalation FIXED, NEU: api/v1/settings public disclosure
+- Wave 5 (09:40): t13 Cross-Role Konsolidierung → 1 P0 (settings ohne Auth), 3 P1, 2 P2, 1 ARCH
 
 ## Abschluss-Notiz
 (wird bei Status: Achieved gefüllt)

@@ -23,7 +23,9 @@ Route::prefix('v1')->group(function () {
     Route::get('shipments/{trackingNumber}', [ShipmentController::class, 'show']);
     Route::get('tracking-jobs', [TrackingJobController::class, 'index']);
     Route::get('tracking-alerts', [TrackingAlertController::class, 'index']);
-    Route::get('settings/{key}', [SystemSettingController::class, 'show']);
+    Route::get('settings/{key}', [SystemSettingController::class, 'show'])
+        ->middleware('auth.admin')
+        ->middleware('can:configuration.settings.manage');
 
     Route::prefix('health')->group(function () {
         Route::get('live', [HealthCheckController::class, 'live']);

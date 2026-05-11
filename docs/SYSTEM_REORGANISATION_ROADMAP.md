@@ -1,5 +1,5 @@
 # Systemreorganisation-Roadmap
-Stand: 2026-05-10 19:54:15
+Stand: 2026-05-11 05:13:07
 
 ## 0) Überblick
 
