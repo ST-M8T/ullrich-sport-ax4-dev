@@ -109,12 +109,17 @@ final class PaginatedResult
     }
 
     /**
-     * Returns a paginator-compatible wrapper for use in views.
+     * Returns a paginator link generator for use in views.
      *
-     * @return PaginatorLinkGenerator<T>
+     * The concrete implementation (LaravelPaginatorLinkAdapter) lives in
+     * Infrastructure and handles the framework-specific pagination logic.
+     *
+     * @return PaginatorLinkGeneratorInterface
      */
-    public function toLinks(string $route, array $routeParams = []): PaginatorLinkGenerator
+    public function toLinks(string $route, array $routeParams = []): PaginatorLinkGeneratorInterface
     {
-        return new PaginatorLinkGenerator($this, $route, $routeParams);
+        $routeParams = array_merge($routeParams, ['page' => $this->currentPage]);
+
+        return new \App\Infrastructure\Pagination\LaravelPaginatorLinkAdapter($this, $route, $routeParams);
     }
 }

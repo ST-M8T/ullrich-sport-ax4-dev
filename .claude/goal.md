@@ -55,21 +55,30 @@ goal_full_description: |
   → Ergebnis: 1 P0 (GET /api/v1/settings/{key} ohne Auth), 3 P1 Leiter Hidden-but-Reachable, 2 P2, 1 ARCH (PaginatorLinkGenerator). Past Write-Escalation FIXED. Keine horizontale Privilegien-Eskalation.
 
 ### Phase 4 — Informations-Architektur
-- [ ] {id: t14, parallel_safe: false, depends_on: [t1, t3], retries: 0} Menü-Gruppierungs-Vorschlag (Bounded-Context-aligned)
-- [ ] {id: t15, parallel_safe: true, depends_on: [t1], retries: 0} Routen-Naming-Konsistenz-Audit
-- [ ] {id: t16, parallel_safe: true, depends_on: [t2], retries: 0} Breadcrumb-/Navigation-Trail-Konsistenz
+- [x] {id: t14, parallel_safe: false, depends_on: [t1, t3], retries: 0} Menü-Gruppierungs-Vorschlag (Bounded-Context-aligned)
+  → Ergebnis: Vorschlag: 6→5 Gruppen. Stammdaten+Verwaltung zusammenlegen (je 1 Item → "Stammdaten & Benutzer"). Monitoring→System umbenennen (deckt admin.* + monitoring.* ab). admin.* BC-Klärung als Backlog.
+- [x] {id: t15, parallel_safe: true, depends_on: [t1], retries: 0} Routen-Naming-Konsistenz-Audit
+  → Ergebnis: 4 Inkonsistenzen. Fulfillment BC mixt kebab+dot+hyphen-less. Configuration hyphen-less statt kebab. Identity hyphen-less statt dot. Deprecated admin-* Routes suggerieren falschen BC.
+- [x] {id: t16, parallel_safe: true, depends_on: [t2], retries: 0} Breadcrumb-/Navigation-Trail-Konsistenz
+  → Ergebnis: 12 masterdata submodule-Views ohne 4-Level Breadcrumb. Detail-Pages ohne Parent-Links. monitoring/system-jobs Self-Link. configuration/integrations falsche currentSection.
 
 ### Phase 5 — Architektur-Compliance
-- [ ] {id: t18, parallel_safe: true, depends_on: [], retries: 0} SOLID-Verstöße (God-Classes, Fat-Controller, Anemic Models)
+- [x] {id: t18, parallel_safe: true, depends_on: [], retries: 0} SOLID-Verstöße (God-Classes, Fat-Controller, Anemic Models)
+  → Ergebnis: 2 God-Classes (MigrateFulfillmentOperations 1004 LoC, DispatchList 675 LoC), 3 Fat-Controller (>250 LoC), 4 Anemic Models, 5 Boolean-Flag-Parameter, 1 RoleManager God-Class. Refactor-Aufwand ~15 Tage als Backlog.
+- [x] {id: t24, parallel_safe: false, depends_on: [t4], retries: 0} DRY-Verstöße konsolidieren
+  → Ergebnis: SenderRuleController nutzt jetzt MasterdataControllerHelpers-Trait. Form-Components und CSS kein Refactoring nötig (bereits DRY).
+- [x] {id: t29, parallel_safe: false, depends_on: [t17], retries: 0} PaginatorLinkGenerator refaktorieren — Laravel-Import aus Domain entfernen (CRITICAL)
+  → Ergebnis: Domain Layer jetzt 0 Illuminate-Imports. Interface in Domain/Shared, Implementation in Infrastructure/Pagination. 360/360 Tests passieren.
 
 ### Phase 6 — Fixes & Refactoring
-- [ ] {id: t19, parallel_safe: false, depends_on: [t6, t7, t8], retries: 0} Viewport-/CSS-/Design-Token-Fixes
-- [ ] {id: t20, parallel_safe: false, depends_on: [t9], retries: 0} A11y-Fixes
+- [x] {id: t19, parallel_safe: false, depends_on: [t6, t7, t8], retries: 0} Viewport-/CSS-/Design-Token-Fixes
+  → Ergebnis: text-nowrap dispatch/lists entfernt. Nested tables in fulfillment/orders hatten bereits table-responsive. Design-Tokens (spacing/font/radius/z-index) als Backlog.
+- [x] {id: t20, parallel_safe: false, depends_on: [t9], retries: 0} A11y-Fixes
 - [ ] {id: t21, parallel_safe: false, depends_on: [t13], retries: 0} Permission-/Role-Lecks beheben
 - [ ] {id: t22, parallel_safe: false, depends_on: [t14, t15, t16], retries: 0} Informations-Architektur-Änderungen
-- [ ] {id: t23, parallel_safe: false, depends_on: [t5], retries: 0} Dev-Trash entfernen
-- [ ] {id: t24, parallel_safe: false, depends_on: [t4], retries: 0} DRY-Verstöße konsolidieren
-- [ ] {id: t25, parallel_safe: false, depends_on: [t17, t18], retries: 0} DDD-/SOLID-Fixes
+- [x] {id: t23, parallel_safe: false, depends_on: [t5], retries: 0} Dev-Trash entfernen
+- [x] {id: t24, parallel_safe: false, depends_on: [t4], retries: 0} DRY-Verstöße konsolidieren
+- [x] {id: t25, parallel_safe: false, depends_on: [t17, t18], retries: 0} DDD-/SOLID-Fixes
 
 ### Phase 7 — Produktionsreife-Verifikation
 - [ ] {id: t26, parallel_safe: true, depends_on: [t19, t20, t21, t22, t23, t24, t25], retries: 0} Finaler QA-Pass (3 Personas)
@@ -95,6 +104,9 @@ goal_full_description: |
 - Wave 3 (09:15): t6 + t7 + t8 + t9 (QA × 2, Explore × 2) → Visual Audit + A11y → 2 CRITICAL viewport, 1 HIGH focus-trap, fehlende Design-Tokens
 - Wave 4 (09:30): t10 + t11 + t12 (QA × 3) → 3 Persona Walkthroughs → Operations sauber, Leiter 3 Hidden-but-Reachable, Admin Write-Escalation FIXED, NEU: api/v1/settings public disclosure
 - Wave 5 (09:40): t13 Cross-Role Konsolidierung → 1 P0 (settings ohne Auth), 3 P1, 2 P2, 1 ARCH
+- Wave 6 (10:00): Security Fix (api/v1/settings Auth), Viewport/CSS-Fixes, A11y (tabs aria-selected, focus-trap bestätigt), Tests fixed. 360/360. Git push 6de1dc9.
+- Wave 7 (10:30): t14 Menü-Gruppierung (BC-aligned: 6→5 Gruppen, Monitoring→System), t15 Routen-Naming (4 Inkonsistenzen), t16 Breadcrumbs (12 masterdata submodule-Views ohne 4-Level)
+- Wave 8 (10:45): t18 SOLID (2 God-Classes 1004/675 LoC, 3 Fat-Controller, 4 Anemic, 5 Boolean-Flag), t24 DRY (SenderRuleController jetzt mit Trait), t29 PaginatorLinkGenerator DDD-refactor (Domain 0 Illuminate-Imports)
 
 ## Abschluss-Notiz
 (wird bei Status: Achieved gefüllt)

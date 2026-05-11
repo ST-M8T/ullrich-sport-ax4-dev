@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Fulfillment\Masterdata;
 
 use App\Application\Fulfillment\Masterdata\Services\SenderRuleService;
 use App\Domain\Shared\ValueObjects\Identifier;
+use App\Http\Controllers\Concerns\MasterdataControllerHelpers;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Fulfillment\Masterdata\StoreSenderRuleRequest;
 use App\Http\Requests\Fulfillment\Masterdata\UpdateSenderRuleRequest;
@@ -16,6 +17,7 @@ use Throwable;
 
 final class SenderRuleController extends Controller
 {
+    use MasterdataControllerHelpers;
     private const RULE_TYPES = [
         'billing_email_contains' => 'E-Mail enthält',
         'plenty_id_equals' => 'Plenty-ID gleich',
