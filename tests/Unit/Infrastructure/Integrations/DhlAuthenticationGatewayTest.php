@@ -3,8 +3,8 @@
 namespace Tests\Unit\Infrastructure\Integrations;
 
 use App\Domain\Integrations\Contracts\DhlAuthenticationGateway;
-use Illuminate\Http\Client\RequestException;
 use Illuminate\Http\Client\Request;
+use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use InvalidArgumentException;

@@ -26,7 +26,7 @@ final class DhlFreightGatewayTest extends TestCase
     public function test_timetable_uses_bearer_token_and_configured_path(): void
     {
         Http::fake([
-            'https://freight.example/timetable/gettimetable' => Http::response(['slots' => []], 200),
+            'https://freight.example/info/time-table/v1/gettimetable' => Http::response(['slots' => []], 200),
         ]);
 
         $gateway = app(DhlFreightGateway::class);
@@ -41,7 +41,7 @@ final class DhlFreightGatewayTest extends TestCase
             $authHeader = $request->header('Authorization')[0] ?? '';
 
             return $request->method() === 'POST'
-                && str_contains($request->url(), '/timetable/gettimetable')
+                && str_contains($request->url(), '/info/time-table/v1/gettimetable')
                 && str_starts_with($authHeader, 'Bearer test-token')
                 && $request->data()['origin'] === 'HAM'
                 && $request->data()['destination'] === 'MUC';
@@ -51,9 +51,9 @@ final class DhlFreightGatewayTest extends TestCase
     public function test_can_book_shipment_and_print_label(): void
     {
         Http::fake([
-            'https://freight.example/sendtransportinstruction' => Http::response(['id' => 'ABC123'], 201),
-            'https://freight.example/print/printdocumentsbyid' => Http::response(['label' => 'pdf'], 200),
-            'https://freight.example/pricequote/quoteforprice' => Http::response(['price' => 42], 200),
+            'https://freight.example/shipping/orders/v1/sendtransportinstruction' => Http::response(['id' => 'ABC123'], 201),
+            'https://freight.example/shipping/labels/v1/printdocumentsbyid' => Http::response(['label' => 'pdf'], 200),
+            'https://freight.example/info/pricequote/v1/quoteforprice' => Http::response(['price' => 42], 200),
         ]);
 
         $gateway = app(DhlFreightGateway::class);
@@ -65,16 +65,16 @@ final class DhlFreightGatewayTest extends TestCase
         $this->assertSame(['label' => 'pdf'], $label);
         $this->assertSame(['price' => 42], $quote);
 
-        Http::assertSent(fn (Request $request): bool => $request->method() === 'POST' && str_contains($request->url(), '/sendtransportinstruction') && ($request->data()['reference'] ?? null) === '123');
-        Http::assertSent(fn (Request $request): bool => $request->method() === 'POST' && str_contains($request->url(), '/print/printdocumentsbyid') && ($request->data()['shipmentId'] ?? null) === 'ABC123');
-        Http::assertSent(fn (Request $request): bool => $request->method() === 'POST' && str_contains($request->url(), '/pricequote/quoteforprice'));
+        Http::assertSent(fn (Request $request): bool => $request->method() === 'POST' && str_contains($request->url(), '/shipping/orders/v1/sendtransportinstruction') && ($request->data()['reference'] ?? null) === '123');
+        Http::assertSent(fn (Request $request): bool => $request->method() === 'POST' && str_contains($request->url(), '/shipping/labels/v1/printdocumentsbyid') && ($request->data()['shipmentId'] ?? null) === 'ABC123');
+        Http::assertSent(fn (Request $request): bool => $request->method() === 'POST' && str_contains($request->url(), '/info/pricequote/v1/quoteforprice'));
     }
 
     public function test_additional_services_and_validation_use_product_id(): void
     {
         Http::fake([
-            'https://freight.example/products/DFI/additionalservices/validationresults' => Http::response(['valid' => true], 200),
-            'https://freight.example/products/DFI/additionalservices*' => Http::response(['services' => []], 200),
+            'https://freight.example/info/products/services/v1/products/DFI/additionalservices/validationresults' => Http::response(['valid' => true], 200),
+            'https://freight.example/info/products/services/v1/products/DFI/additionalservices*' => Http::response(['services' => []], 200),
         ]);
 
         $gateway = app(DhlFreightGateway::class);
@@ -85,11 +85,11 @@ final class DhlFreightGatewayTest extends TestCase
         $this->assertSame(['services' => []], $services);
         $this->assertSame(['valid' => true], $validation);
 
-        Http::assertSent(fn (Request $request): bool => $request->method() === 'GET' && str_contains($request->url(), '/products/DFI/additionalservices'));
-        Http::assertSent(fn (Request $request): bool => $request->method() === 'POST' && str_contains($request->url(), '/products/DFI/additionalservices/validationresults') && ($request->data()['services'][0] ?? null) === 'svc1');
+        Http::assertSent(fn (Request $request): bool => $request->method() === 'GET' && str_contains($request->url(), '/info/products/services/v1/products/DFI/additionalservices'));
+        Http::assertSent(fn (Request $request): bool => $request->method() === 'POST' && str_contains($request->url(), '/info/products/services/v1/products/DFI/additionalservices/validationresults') && ($request->data()['services'][0] ?? null) === 'svc1');
     }
 
-    public function test_bearer_auth_fails_fast_without_token_or_api_key(): void
+    public function test_bearer_auth_fails_fast_without_token(): void
     {
         config(['services.dhl_freight.api_key' => '']);
 
@@ -106,7 +106,7 @@ final class DhlFreightGatewayTest extends TestCase
         $gateway = app(DhlFreightGateway::class);
 
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('DHL Freight bearer auth requires a DHL Auth token or API key fallback.');
+        $this->expectExceptionMessage('DHL Freight bearer auth requires a DHL Auth token response with access_token.');
 
         $gateway->bookShipment(['reference' => '123']);
     }
@@ -114,8 +114,8 @@ final class DhlFreightGatewayTest extends TestCase
     public function test_print_documents_variants(): void
     {
         Http::fake([
-            'https://freight.example/print/printdocuments' => Http::response(['document' => 'pdf'], 200),
-            'https://freight.example/print/printmultipledocuments' => Http::response(['batch' => true], 200),
+            'https://freight.example/shipping/labels/v1/printdocuments' => Http::response(['document' => 'pdf'], 200),
+            'https://freight.example/shipping/labels/v1/printmultipledocuments' => Http::response(['batch' => true], 200),
         ]);
 
         $gateway = app(DhlFreightGateway::class);
@@ -126,8 +126,8 @@ final class DhlFreightGatewayTest extends TestCase
         $this->assertSame(['document' => 'pdf'], $single);
         $this->assertSame(['batch' => true], $multi);
 
-        Http::assertSent(fn (Request $request): bool => $request->method() === 'POST' && str_contains($request->url(), '/print/printdocuments') && ($request->data()['shipmentId'] ?? null) === 'A1');
-        Http::assertSent(fn (Request $request): bool => $request->method() === 'POST' && str_contains($request->url(), '/print/printmultipledocuments') && count($request->data()['shipments'] ?? []) === 2);
+        Http::assertSent(fn (Request $request): bool => $request->method() === 'POST' && str_contains($request->url(), '/shipping/labels/v1/printdocuments') && ($request->data()['shipmentId'] ?? null) === 'A1');
+        Http::assertSent(fn (Request $request): bool => $request->method() === 'POST' && str_contains($request->url(), '/shipping/labels/v1/printmultipledocuments') && count($request->data()['shipments'] ?? []) === 2);
     }
 
     public function test_ping_uses_configured_endpoint(): void
@@ -167,15 +167,15 @@ final class DhlFreightGatewayTest extends TestCase
                 'api_key_header' => 'DHL-API-Key',
                 'api_secret_header' => null,
                 'paths' => [
-                    'timetable' => '/timetable/gettimetable',
-                    'products' => '/products',
-                    'additional_services' => '/products/{productId}/additionalservices',
-                    'additional_services_validation' => '/products/{productId}/additionalservices/validationresults',
-                    'shipments' => '/sendtransportinstruction',
-                    'price_quote' => '/pricequote/quoteforprice',
-                    'label' => '/print/printdocumentsbyid',
-                    'print_documents' => '/print/printdocuments',
-                    'print_multiple_documents' => '/print/printmultipledocuments',
+                    'timetable' => '/info/time-table/v1/gettimetable',
+                    'products' => '/info/products/services/v1/products',
+                    'additional_services' => '/info/products/services/v1/products/{productId}/additionalservices',
+                    'additional_services_validation' => '/info/products/services/v1/products/{productId}/additionalservices/validationresults',
+                    'shipments' => '/shipping/orders/v1/sendtransportinstruction',
+                    'price_quote' => '/info/pricequote/v1/quoteforprice',
+                    'label' => '/shipping/labels/v1/printdocumentsbyid',
+                    'print_documents' => '/shipping/labels/v1/printdocuments',
+                    'print_multiple_documents' => '/shipping/labels/v1/printmultipledocuments',
                 ],
                 'timeout' => 5,
                 'connect_timeout' => 2,
