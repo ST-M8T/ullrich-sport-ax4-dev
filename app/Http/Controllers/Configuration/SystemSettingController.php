@@ -222,7 +222,10 @@ final class SystemSettingController
         }
 
         return $this->redirector
-            ->route('configuration-settings')
+            ->route('configuration-settings', [
+                'tab' => 'settings',
+                'settings_group' => $group,
+            ])
             ->with('success', sprintf('%s gespeichert.', $schema['label'] ?? 'Einstellungen'));
     }
 

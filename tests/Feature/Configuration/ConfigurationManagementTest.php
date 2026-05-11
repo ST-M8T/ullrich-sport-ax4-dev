@@ -159,6 +159,44 @@ final class ConfigurationManagementTest extends TestCase
         ]);
     }
 
+    public function test_system_setting_group_redirects_back_to_saved_group(): void
+    {
+        $response = $this->post(route('configuration-settings.group-update', ['group' => 'dhl']), [
+            'dhl_auth_base_url' => 'https://api-sandbox.dhl.com',
+            'dhl_auth_username' => 'client-id',
+            'dhl_auth_path' => '/auth/v1/token',
+            'dhl_auth_token_cache_ttl' => '0',
+            'dhl_base_url' => 'https://api-test.dhl.com/tracking',
+            'dhl_api_key' => 'tracking-key',
+            'dhl_timeout' => '10',
+            'dhl_connect_timeout' => '5',
+            'dhl_verify_ssl' => '1',
+            'dhl_push_base_url' => 'https://api-test.dhl.com/tracking/push/v1',
+            'dhl_push_api_key' => 'push-key',
+            'dhl_push_api_key_header' => 'DHL-API-Key',
+            'tracking_api_key' => 'backend-key',
+            'tracking_default_service' => 'freight',
+            'tracking_origin_cc' => 'DE',
+            'tracking_requester_cc' => 'DE',
+        ]);
+
+        $response->assertRedirect(route('configuration-settings', [
+            'tab' => 'settings',
+            'settings_group' => 'dhl',
+        ]));
+    }
+
+    public function test_settings_page_shows_flash_once_and_exposes_dhl_navigation(): void
+    {
+        $response = $this
+            ->withSession(['success' => 'DHL Integration gespeichert.'])
+            ->get(route('configuration-settings'));
+
+        $response->assertOk();
+        $response->assertSee('sidebar-tabs__link-text">DHL Integration', false);
+        $this->assertSame(1, substr_count($response->getContent(), 'DHL Integration gespeichert.'));
+    }
+
     public function test_notification_channel_settings_validation(): void
     {
         $response = $this->from(route('configuration-notifications'))

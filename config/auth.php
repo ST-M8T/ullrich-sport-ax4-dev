@@ -66,7 +66,8 @@ return [
     'providers' => [
         'users' => [
             'driver' => 'eloquent',
-            'model' => env('AUTH_MODEL', \App\Infrastructure\Persistence\Identity\Eloquent\UserModel::class),
+            // Leere AUTH_MODEL= in .env würde sonst "" laden und den Eloquent-Provider brechen.
+            'model' => env('AUTH_MODEL') ?: \App\Infrastructure\Persistence\Identity\Eloquent\UserModel::class,
         ],
 
         // 'users' => [

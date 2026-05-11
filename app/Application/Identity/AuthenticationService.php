@@ -61,7 +61,7 @@ final class AuthenticationService
             ];
         }
 
-        $user = $this->users->getByUsername($username);
+        $user = $this->resolveLoginUser($username);
         $attemptId = $this->attempts->nextIdentity();
 
         if (! $user || ! $user->canLogin() || ! $this->hasher->verify($password, $user->passwordHash())) {
@@ -135,6 +135,26 @@ final class AuthenticationService
         );
 
         $this->attempts->record($attempt);
+    }
+
+    private function resolveLoginUser(string $loginInput): ?User
+    {
+        $trimmed = trim($loginInput);
+
+        if ($trimmed === '') {
+            return null;
+        }
+
+        $user = $this->users->getByUsername($trimmed);
+        if ($user !== null) {
+            return $user;
+        }
+
+        if (str_contains($trimmed, '@')) {
+            return $this->users->getByEmail($trimmed);
+        }
+
+        return null;
     }
 
     private function throttleKey(string $username, ?string $ip): string

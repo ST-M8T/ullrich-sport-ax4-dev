@@ -171,6 +171,14 @@ Stand: 2026-05-11
 - `SenderRuleController` nutzt jetzt `MasterdataControllerHelpers` Trait
 - Redundante CRUD-Logik eliminiert
 
+### 5.7 t33 — Settings UX Fix
+- Doppelte Success-Meldung in `configuration.settings.index` entfernt. Flash Messages kommen zentral aus `layouts.admin` ueber `x-flash-messages`.
+- Settings-Gruppen speichern leitet jetzt auf `tab=settings&settings_group={group}` zurueck. DHL bleibt nach dem Speichern direkt sichtbar.
+- Die primaere Settings-Navigation nutzt das Label der aktiven Setting-Gruppe. Dadurch ist `DHL Integration` in der linken Settings-Navigation sichtbar.
+- Build-Check: `npm run build` erfolgreich am 2026-05-11.
+- QA-Check: `php artisan test tests/Feature/Configuration/ConfigurationManagementTest.php --filter='system_setting_group_redirects_back_to_saved_group|settings_page_shows_flash_once_and_exposes_dhl_navigation'` erfolgreich am 2026-05-11.
+- Offene Risiken oder Blocker: PHPUnit meldet weiterhin die bestehende PHP 8.5 Deprecation `PDO::MYSQL_ATTR_SSL_CA` in `config/database.php:62`; kein Blocker fuer diese Aenderung.
+
 ---
 
 ## 6. Test-Abdeckung
@@ -181,6 +189,7 @@ Stand: 2026-05-11
 | NavigationSnapshotTest | tests/Feature/Layout/NavigationSnapshotTest.php | Snapshot-upgedatet (t21) |
 | NavigationServiceFailClosedTest | tests/Feature/Layout/NavigationServiceFailClosedTest.php | Bestehend |
 | AdminNavigationTest | tests/Browser/AdminNavigationTest.php | Bestehend |
+| ConfigurationManagementTest | tests/Feature/Configuration/ConfigurationManagementTest.php | Settings Flash und DHL Navigation geprueft (t33) |
 
 ---
 

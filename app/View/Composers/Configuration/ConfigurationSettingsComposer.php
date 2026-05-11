@@ -25,9 +25,12 @@ final class ConfigurationSettingsComposer
         $groupTabParam = 'settings_group';
         $requestedGroup = request()->query($groupTabParam);
         $activeGroup = in_array($requestedGroup, $groupSlugs, true) ? $requestedGroup : ($groupSlugs[0] ?? null);
+        $settingsTabLabel = $activeGroup !== null
+            ? ($data['groups'][$activeGroup]['label'] ?? 'Konfiguration')
+            : 'Konfiguration';
 
         $primaryTabs = [
-            'settings' => ['label' => 'Konfiguration', 'visible' => ! empty($data['groups'])],
+            'settings' => ['label' => $settingsTabLabel, 'visible' => ! empty($data['groups'])],
             'masterdata' => ['label' => 'Stammdaten', 'visible' => isset($data['catalog'])],
             'monitoring' => ['label' => 'Monitoring', 'visible' => true],
             'logs' => ['label' => 'Logs', 'visible' => true],
@@ -142,6 +145,7 @@ final class ConfigurationSettingsComposer
             ->values()
             ->all();
 
+        $primaryTabs['settings'] = ['label' => $settingsTabLabel, 'visible' => ! empty($data['groups'])];
         $primaryTabs['monitoring'] = ['label' => 'Monitoring', 'visible' => ! empty($availableMonitoring)];
         $primaryTabs['logs'] = ['label' => 'Logs', 'visible' => ! empty($availableLogTools)];
         $primaryTabs['verwaltung'] = ['label' => 'Verwaltung', 'visible' => ! empty($availableVerwaltung)];

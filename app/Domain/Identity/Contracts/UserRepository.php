@@ -17,6 +17,8 @@ interface UserRepository
 
     public function getByUsername(string $username): ?User;
 
+    public function getByEmail(string $email): ?User;
+
     /**
      * @param  array<string,mixed>  $filters
      * @return iterable<User>

@@ -35,7 +35,7 @@
                     @endphp
 
                     <div class="stack stack-xs">
-                        <label class="form-label" for="username">Benutzername</label>
+                        <label class="form-label" for="username">Benutzername oder E-Mail</label>
                         <input
                             id="username"
                             type="text"

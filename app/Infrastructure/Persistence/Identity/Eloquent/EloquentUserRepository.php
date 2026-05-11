@@ -31,6 +31,18 @@ final class EloquentUserRepository implements UserRepository
         return $model ? $this->mapModel($model) : null;
     }
 
+    public function getByEmail(string $email): ?User
+    {
+        $normalized = strtolower(trim($email));
+        if ($normalized === '') {
+            return null;
+        }
+
+        $model = UserModel::query()->where('email', $normalized)->first();
+
+        return $model ? $this->mapModel($model) : null;
+    }
+
     public function search(array $filters = []): iterable
     {
         $query = UserModel::query()

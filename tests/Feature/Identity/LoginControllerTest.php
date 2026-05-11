@@ -55,6 +55,26 @@ final class LoginControllerTest extends TestCase
         $this->assertAuthenticatedAs($user);
     }
 
+    public function test_user_can_login_using_email_instead_of_username(): void
+    {
+        UserModel::factory()->create([
+            'username' => 'mail-login-user',
+            'email' => 'mail-login@example.test',
+            'role' => 'admin',
+            'password_hash' => bcrypt('Password!123456'),
+            'must_change_password' => false,
+            'disabled' => false,
+        ]);
+
+        $response = $this->post(route('login.perform'), [
+            'username' => 'mail-login@example.test',
+            'password' => 'Password!123456',
+        ]);
+
+        $response->assertRedirect(route('dispatch-lists'));
+        $this->assertAuthenticated();
+    }
+
     public function test_login_rejects_invalid_credentials(): void
     {
         UserModel::factory()->create([
