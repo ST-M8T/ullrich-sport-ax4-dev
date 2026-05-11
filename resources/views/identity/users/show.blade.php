@@ -26,6 +26,20 @@
     @php
         $isDisabled = $user->disabled();
         $mustChangePassword = $user->requiresPasswordChange();
+        $roleValue = new \Illuminate\Support\HtmlString(
+            '<span class="badge bg-secondary text-uppercase">' . e($user->role()) . '</span>'
+            . '<span class="d-block small text-muted">' . e($roleMetadata['label'] ?? '—') . '</span>'
+        );
+        $statusValue = new \Illuminate\Support\HtmlString(
+            $isDisabled
+                ? '<span class="badge bg-danger">Deaktiviert</span>'
+                : '<span class="badge bg-success">Aktiv</span>'
+        );
+        $passwordChangeValue = new \Illuminate\Support\HtmlString(
+            $mustChangePassword
+                ? '<span class="badge bg-warning text-dark">Erforderlich</span>'
+                : '<span class="badge bg-success">Nicht erforderlich</span>'
+        );
     @endphp
 
     @if($isDisabled)
@@ -52,9 +66,9 @@
                 :items="[
                     ['label' => 'Anzeigename', 'value' => $user->displayName() ?? '—'],
                     ['label' => 'E-Mail', 'value' => $user->email() ?? '—'],
-                    ['label' => 'Rolle', 'value' => '<span class=\"badge bg-secondary text-uppercase\">' . $user->role() . '</span><span class=\"d-block small text-muted\">' . ($roleMetadata['label'] ?? '—') . '</span>'],
-                    ['label' => 'Status', 'value' => $user->disabled() ? '<span class=\"badge bg-danger\">Deaktiviert</span>' : '<span class=\"badge bg-success\">Aktiv</span>'],
-                    ['label' => 'Passwortwechsel', 'value' => $user->requiresPasswordChange() ? '<span class=\"badge bg-warning text-dark\">Erforderlich</span>' : '<span class=\"badge bg-success\">Nicht erforderlich</span>'],
+                    ['label' => 'Rolle', 'value' => $roleValue],
+                    ['label' => 'Status', 'value' => $statusValue],
+                    ['label' => 'Passwortwechsel', 'value' => $passwordChangeValue],
                 ]"
             />
         </x-ui.info-card>

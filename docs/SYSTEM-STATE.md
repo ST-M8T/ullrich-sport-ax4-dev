@@ -179,6 +179,21 @@ Stand: 2026-05-11
 - QA-Check: `php artisan test tests/Feature/Configuration/ConfigurationManagementTest.php --filter='system_setting_group_redirects_back_to_saved_group|settings_page_shows_flash_once_and_exposes_dhl_navigation'` erfolgreich am 2026-05-11.
 - Offene Risiken oder Blocker: PHPUnit meldet weiterhin die bestehende PHP 8.5 Deprecation `PDO::MYSQL_ATTR_SSL_CA` in `config/database.php:62`; kein Blocker fuer diese Aenderung.
 
+### 5.8 t34 — Layout Footer Fix
+- `x-ui.info-card` erzwingt keine volle Hoehe mehr. Lange Inhalte wie Tracking-Tabellen bleiben dadurch im normalen Dokumentfluss.
+- Der Admin-Footer ist kompakt und ohne Bootstrap-Grid-Abstand gerendert.
+- Build-Check: `npm run build` erfolgreich am 2026-05-11.
+- QA-Check: `php artisan test tests/Feature/Layout/AdminLayoutSnapshotTest.php tests/Feature/Configuration/ConfigurationManagementTest.php --filter='layout_renders_components_snapshot|settings_page_shows_flash_once_and_exposes_dhl_navigation'` erfolgreich am 2026-05-11.
+- Offene Risiken oder Blocker: Reale Browserpruefung der Auftragsdetailseite war wegen Auth und lokalen Daten nicht vollstaendig moeglich. PHPUnit meldet weiterhin die bestehende PHP 8.5 Deprecation `PDO::MYSQL_ATTR_SSL_CA` in `config/database.php:62`.
+
+### 5.9 t35 — Order Detail Definition List Fix
+- Auftragsdetaildaten werden nicht mehr als komplexes Inline-Array im Blade-Komponentenattribut aufgebaut. Dadurch wird `?->` nicht mehr als Tag-Ende fehlinterpretiert und PHP-Fragmente werden nicht mehr im Browser ausgegeben.
+- `x-ui.definition-list` escaped normale Werte standardmaessig und rendert bewusstes HTML nur noch ueber `Htmlable` oder View-Objekte.
+- Die User-Detailseite markiert Badge-Markup explizit als `HtmlString`, damit die gemeinsame Komponente konsistent bleibt.
+- QA-Check: `php artisan test tests/Feature/Fulfillment/ShipmentOrderControllerTest.php` erfolgreich am 2026-05-11.
+- QA-Check: `php artisan test tests/Feature/Identity/UserManagementTest.php` erfolgreich am 2026-05-11.
+- Offene Risiken oder Blocker: PHPUnit meldet weiterhin die bestehende PHP 8.5 Deprecation `PDO::MYSQL_ATTR_SSL_CA` in `config/database.php:62`.
+
 ---
 
 ## 6. Test-Abdeckung
@@ -190,6 +205,9 @@ Stand: 2026-05-11
 | NavigationServiceFailClosedTest | tests/Feature/Layout/NavigationServiceFailClosedTest.php | Bestehend |
 | AdminNavigationTest | tests/Browser/AdminNavigationTest.php | Bestehend |
 | ConfigurationManagementTest | tests/Feature/Configuration/ConfigurationManagementTest.php | Settings Flash und DHL Navigation geprueft (t33) |
+| AdminLayoutSnapshotTest | tests/Feature/Layout/AdminLayoutSnapshotTest.php | Footer und Card Layout geprueft (t34) |
+| ShipmentOrderControllerTest | tests/Feature/Fulfillment/ShipmentOrderControllerTest.php | Auftragsdetail ohne Blade-Fragmente geprueft (t35) |
+| UserManagementTest | tests/Feature/Identity/UserManagementTest.php | Definition-List HTML-Werte geprueft (t35) |
 
 ---
 

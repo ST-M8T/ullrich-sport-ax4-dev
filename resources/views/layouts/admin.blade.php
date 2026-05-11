@@ -103,20 +103,12 @@
     </div>
 
     @if($showFooter ?? true)
-        <footer class="admin-footer py-5 mt-5">
-            <div class="container">
-                <div class="row text-center gy-4">
-                    <div class="col-md-4"></div>
-                    <div class="col-md-4"></div>
-                    <div class="col-md-4">
-                        <div class="admin-powered-by">
-                            <span class="fw-medium">Made with</span>
-                            <i class="fa fa-heart icon text-danger"></i>
-                            <span class="fw-medium">by</span>
-                            <span class="admin-powered-name">Samuel Tubach</span>
-                        </div>
-                    </div>
-                </div>
+        <footer class="admin-footer">
+            <div class="admin-powered-by">
+                <span class="fw-medium">Made with</span>
+                <i class="fa fa-heart icon text-danger"></i>
+                <span class="fw-medium">by</span>
+                <span class="admin-powered-name">Samuel Tubach</span>
             </div>
         </footer>
     @endif

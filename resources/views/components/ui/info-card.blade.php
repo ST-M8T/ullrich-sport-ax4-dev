@@ -3,7 +3,7 @@
     'header' => false,
 ])
 
-<div class="card h-100">
+<div class="card">
     @if($header)
         <div class="card-header">{{ $title ?? $header }}</div>
     @endif
@@ -14,4 +14,3 @@
         {{ $slot }}
     </div>
 </div>
-

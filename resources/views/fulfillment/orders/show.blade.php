@@ -11,14 +11,37 @@
 
 
 @section('content')
+    @php
+        $contactValue = new \Illuminate\Support\HtmlString(
+            e($order->contactEmail() ?? '—') . '<br><small class="text-muted">' . e($order->contactPhone() ?? '—') . '</small>'
+        );
+        $senderValue = new \Illuminate\Support\HtmlString(
+            e($order->senderCode() ?? '—') . '<br><small class="text-muted">' . e($order->destinationCountry() ?? '??') . '</small>'
+        );
+        $totalValue = new \Illuminate\Support\HtmlString(
+            e($order->totalAmount() !== null ? number_format($order->totalAmount(), 2, ',', '.') : '—')
+            . ' <small class="text-muted">' . e($order->currency()) . '</small>'
+        );
+
+        $orderSummaryLeftItems = [
+            ['label' => 'Interne ID', 'value' => $order->id()->toInt()],
+            ['label' => 'Kunde', 'value' => $order->customerNumber() ?? '—'],
+            ['label' => 'Kontakt', 'value' => $contactValue],
+            ['label' => 'Sender', 'value' => $senderValue],
+        ];
+
+        $orderSummaryRightItems = [
+            ['label' => 'Summe', 'value' => $totalValue],
+            ['label' => 'Status', 'value' => view('components.order-status', ['order' => $order])],
+            ['label' => 'Verarbeitet', 'value' => $order->processedAt()?->format('d.m.Y H:i') ?? '—'],
+            ['label' => 'Aktualisiert', 'value' => $order->updatedAt()->format('d.m.Y H:i')],
+        ];
+    @endphp
+
     <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
         <h1 class="mb-0">Auftrag #{{ $order->externalOrderId() }}</h1>
         <a href="{{ route('fulfillment-orders') }}" class="btn btn-outline-secondary">Zurück zur Übersicht</a>
     </div>
-
-    @if(session('success'))
-        <div class="alert alert-success">{{ session('success') }}</div>
-    @endif
 
     @if($errors->any())
         <div class="alert alert-danger">
@@ -34,22 +57,8 @@
         <div class="col-lg-8">
             <x-ui.info-card title="Auftragsdaten">
                 <div class="row g-3">
-                    <x-ui.definition-list
-                        :items="[
-                            ['label' => 'Interne ID', 'value' => $order->id()->toInt()],
-                            ['label' => 'Kunde', 'value' => $order->customerNumber() ?? '—'],
-                            ['label' => 'Kontakt', 'value' => ($order->contactEmail() ?? '—') . '<br><small class=\"text-muted\">' . ($order->contactPhone() ?? '—') . '</small>'],
-                            ['label' => 'Sender', 'value' => ($order->senderCode() ?? '—') . '<br><small class=\"text-muted\">' . ($order->destinationCountry() ?? '??') . '</small>'],
-                        ]"
-                    />
-                    <x-ui.definition-list
-                        :items="[
-                            ['label' => 'Summe', 'value' => ($order->totalAmount() !== null ? number_format($order->totalAmount(), 2, ',', '.') : '—') . ' <small class=\"text-muted\">' . $order->currency() . '</small>'],
-                            ['label' => 'Status', 'value' => view('components.order-status', ['order' => $order])],
-                            ['label' => 'Verarbeitet', 'value' => $order->processedAt()?->format('d.m.Y H:i') ?? '—'],
-                            ['label' => 'Aktualisiert', 'value' => $order->updatedAt()->format('d.m.Y H:i')],
-                        ]"
-                    />
+                    <x-ui.definition-list :items="$orderSummaryLeftItems" />
+                    <x-ui.definition-list :items="$orderSummaryRightItems" />
                 </div>
                 <hr>
                 <p class="mb-0">

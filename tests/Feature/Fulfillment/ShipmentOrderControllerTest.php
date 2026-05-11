@@ -123,6 +123,8 @@ final class ShipmentOrderControllerTest extends TestCase
         $response->assertSee('PKG-REF');
         $response->assertSee('TRACK-2001');
         $response->assertSee('Abfahrt aus dem Paketzentrum');
+        self::assertStringNotContainsString('$order', $response->getContent());
+        self::assertStringNotContainsString("['label' =>", $response->getContent());
     }
 
     public function test_it_books_an_order(): void
