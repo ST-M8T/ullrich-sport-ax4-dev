@@ -3,6 +3,7 @@
 namespace Tests\Unit\Infrastructure\Integrations;
 
 use App\Domain\Integrations\Contracts\DhlAuthenticationGateway;
+use InvalidArgumentException;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
@@ -45,6 +46,23 @@ final class DhlAuthenticationGatewayTest extends TestCase
                 && str_starts_with($authHeader, 'Basic ')
                 && ($request->data()['grant_type'] ?? '') === 'client_credentials';
         });
+    }
+
+    public function test_get_token_fails_fast_when_credentials_are_missing(): void
+    {
+        config([
+            'services.dhl_auth.username' => '',
+            'services.dhl_auth.password' => '',
+        ]);
+
+        Http::fake();
+
+        $gateway = app(DhlAuthenticationGateway::class);
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('DHL Auth client ID is not configured.');
+
+        $gateway->getToken();
     }
 
     private function configureGateway(): void

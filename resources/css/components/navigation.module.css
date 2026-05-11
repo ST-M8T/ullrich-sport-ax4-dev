@@ -70,12 +70,39 @@
     padding: 0;
 }
 
+.admin-nav__group {
+    margin: 0;
+}
+
+.admin-nav__group + .admin-nav__group {
+    border-top: 1px solid rgba(255, 255, 255, 0.16);
+}
+
+.admin-nav__group-label {
+    margin: 0;
+    padding: 0.95rem 1.25rem 0.45rem;
+    color: rgba(255, 255, 255, 0.74);
+    font-size: 0.72rem;
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.admin-nav__sublist {
+    list-style: none;
+    margin: 0;
+    padding: 0 0 0.4rem;
+}
+
 .admin-nav__item + .admin-nav__item {
     border-top: 1px solid rgba(255, 255, 255, 0.16);
 }
 
 .admin-nav__link {
     display: block;
+    box-sizing: border-box;
+    width: 100%;
     padding: 0.95rem 1.25rem;
     color: var(--color-white);
     text-decoration: none;
@@ -87,10 +114,22 @@
     background: rgba(255, 255, 255, 0.05);
 }
 
+.admin-nav__link--sub {
+    padding: 0.7rem 1.25rem 0.7rem 2rem;
+    background: transparent;
+    font-size: 0.95rem;
+    letter-spacing: 0;
+}
+
 .admin-nav__link:hover,
 .admin-nav__link:focus {
     background: rgba(0, 0, 0, 0.18);
     padding-left: 1.5rem;
+}
+
+.admin-nav__link--sub:hover,
+.admin-nav__link--sub:focus {
+    padding-left: 2.25rem;
 }
 
 .admin-nav__link.is-active {
@@ -100,3 +139,6 @@
     padding-left: 1.5rem;
 }
 
+.admin-nav__link--sub.is-active {
+    padding-left: 2.25rem;
+}

@@ -25,7 +25,7 @@ final class FulfillmentSenderProfileModelFactory extends Factory
             'phone' => $this->faker->e164PhoneNumber(),
             'street_name' => $this->faker->streetName(),
             'street_number' => $this->faker->buildingNumber(),
-            'address_addition' => $this->faker->optional()->secondaryAddress(),
+            'address_addition' => $this->faker->optional()->buildingNumber(),
             'postal_code' => $this->faker->postcode(),
             'city' => $this->faker->city(),
             'country_iso2' => strtoupper($this->faker->countryCode()),

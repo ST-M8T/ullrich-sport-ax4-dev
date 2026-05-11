@@ -6,6 +6,7 @@ namespace Tests\Unit\Infrastructure\Integrations;
 
 use App\Domain\Integrations\Contracts\DhlAuthenticationGateway;
 use App\Domain\Integrations\Contracts\DhlFreightGateway;
+use InvalidArgumentException;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
@@ -86,6 +87,28 @@ final class DhlFreightGatewayTest extends TestCase
 
         Http::assertSent(fn (Request $request): bool => $request->method() === 'GET' && str_contains($request->url(), '/products/DFI/additionalservices'));
         Http::assertSent(fn (Request $request): bool => $request->method() === 'POST' && str_contains($request->url(), '/products/DFI/additionalservices/validationresults') && ($request->data()['services'][0] ?? null) === 'svc1');
+    }
+
+    public function test_bearer_auth_fails_fast_without_token_or_api_key(): void
+    {
+        config(['services.dhl_freight.api_key' => '']);
+
+        $this->app->bind(DhlAuthenticationGateway::class, fn () => new class implements DhlAuthenticationGateway
+        {
+            public function getToken(string $responseType = 'access_token'): array
+            {
+                return [];
+            }
+        });
+
+        Http::fake();
+
+        $gateway = app(DhlFreightGateway::class);
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('DHL Freight bearer auth requires a DHL Auth token or API key fallback.');
+
+        $gateway->bookShipment(['reference' => '123']);
     }
 
     public function test_print_documents_variants(): void

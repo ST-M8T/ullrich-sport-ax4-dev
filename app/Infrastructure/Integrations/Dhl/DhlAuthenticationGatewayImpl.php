@@ -10,6 +10,7 @@ use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Arr;
+use InvalidArgumentException;
 use Psr\Log\LoggerInterface;
 use Throwable;
 
@@ -32,6 +33,8 @@ final class DhlAuthenticationGatewayImpl implements DhlAuthenticationGateway
 
     public function getToken(string $responseType = 'access_token'): array
     {
+        $this->assertConfiguration();
+
         $cached = $this->cache->get($this->cacheKey($responseType));
         if (is_array($cached) && isset($cached['access_token'])) {
             return $cached;
@@ -53,6 +56,25 @@ final class DhlAuthenticationGatewayImpl implements DhlAuthenticationGateway
         $this->cache->put($this->cacheKey($responseType), $payload, $ttl);
 
         return $payload;
+    }
+
+    private function assertConfiguration(): void
+    {
+        if (trim($this->baseUrl) === '') {
+            throw new InvalidArgumentException('DHL Auth base URL is not configured.');
+        }
+
+        if (trim($this->path()) === '') {
+            throw new InvalidArgumentException('DHL Auth token path is not configured.');
+        }
+
+        if (trim($this->username) === '') {
+            throw new InvalidArgumentException('DHL Auth client ID is not configured.');
+        }
+
+        if (trim($this->password) === '') {
+            throw new InvalidArgumentException('DHL Auth client secret is not configured.');
+        }
     }
 
     private function request(callable $callback): Response

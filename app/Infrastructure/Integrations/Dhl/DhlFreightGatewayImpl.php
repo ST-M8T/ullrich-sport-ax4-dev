@@ -166,6 +166,8 @@ final class DhlFreightGatewayImpl implements DhlFreightGateway
 
     private function client(): PendingRequest
     {
+        $this->assertConfiguration();
+
         $request = $this->http
             ->withOptions([
                 'verify' => Arr::get($this->options, 'verify', true),
@@ -216,6 +218,26 @@ final class DhlFreightGatewayImpl implements DhlFreightGateway
         }
 
         return $request->withToken($this->apiKey);
+    }
+
+    private function assertConfiguration(): void
+    {
+        if (trim($this->baseUrl) === '') {
+            throw new InvalidArgumentException('DHL Freight base URL is not configured.');
+        }
+
+        $auth = (string) Arr::get($this->options, 'auth', 'bearer');
+        if (! in_array($auth, ['bearer', 'basic', 'header'], true)) {
+            throw new InvalidArgumentException('DHL Freight auth mode is invalid.');
+        }
+
+        if ($auth === 'basic' && (trim($this->apiKey) === '' || trim($this->apiSecret) === '')) {
+            throw new InvalidArgumentException('DHL Freight basic auth requires API key and API secret.');
+        }
+
+        if ($auth === 'header' && trim($this->apiKey) === '') {
+            throw new InvalidArgumentException('DHL Freight header auth requires an API key.');
+        }
     }
 
     private function shouldRetry(mixed $exception): bool
@@ -308,7 +330,15 @@ final class DhlFreightGatewayImpl implements DhlFreightGateway
     {
         $token = $this->authGateway->getToken()['access_token'] ?? null;
 
-        return $token ?: $this->apiKey;
+        if (is_string($token) && trim($token) !== '') {
+            return $token;
+        }
+
+        if (trim($this->apiKey) !== '') {
+            return $this->apiKey;
+        }
+
+        throw new InvalidArgumentException('DHL Freight bearer auth requires a DHL Auth token or API key fallback.');
     }
 
     private function safeBody(Response $response): mixed

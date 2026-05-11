@@ -81,7 +81,7 @@ Convenience scripts are available in `composer.json` (`composer test`, `composer
 
 ## DHL Freight API Setup
 
-- Configure the sandbox credentials from the DHL developer portal in `.env`: `DHL_FREIGHT_BASE_URL`, `DHL_FREIGHT_API_KEY`, `DHL_FREIGHT_API_SECRET` (Basic auth by default).
+- Configure the sandbox credentials from the DHL developer portal in `.env`: `DHL_AUTH_BASE_URL`, `DHL_AUTH_USERNAME`, `DHL_AUTH_PASSWORD`, `DHL_FREIGHT_BASE_URL`, `DHL_FREIGHT_API_KEY`, `DHL_FREIGHT_API_SECRET`, `DHL_FREIGHT_AUTH`.
 - Optional tuning via `DHL_FREIGHT_TIMEOUT`, `DHL_FREIGHT_CONNECT_TIMEOUT`, retry/circuit breaker keys, and the path overrides (`DHL_FREIGHT_*_PATH`) bundled in `config/services.php`.
 - Bearer tokens come from the DHL Auth API (`DHL_AUTH_*`), cached via `DHL_AUTH_TOKEN_CACHE_TTL`; push webhooks use `DHL_PUSH_*` keys.
 - The gateway is available via `App\Domain\Integrations\Contracts\DhlFreightGateway` and ships helpers for timetable (POST), price quotes, product/additional-service catalogs with validation, shipment booking, label/print variants, and a health check.

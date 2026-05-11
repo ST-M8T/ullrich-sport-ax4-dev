@@ -351,15 +351,30 @@ Stand: 2026-05-11
 ### 9.8 Konfiguration
 
 **config/services.php:**
-- DHL Freight Credentials (SOAP/MTOM)
-- API-Endpoint URLs
-- Timeout-Einstellungen
+- DHL Auth Credentials fuer Bearer Token
+- DHL Freight Credentials und Auth Modus
+- API Endpoint URLs
+- Timeout Einstellungen
+
+**ENV-Variablen (DHL_AUTH_*):**
+- DHL_AUTH_BASE_URL
+- DHL_AUTH_USERNAME
+- DHL_AUTH_PASSWORD
+- DHL_AUTH_PATH
 
 **ENV-Variablen (DHL_FREIGHT_*):**
+- DHL_FREIGHT_BASE_URL
 - DHL_FREIGHT_API_KEY
 - DHL_FREIGHT_API_SECRET
-- DHL_FREIGHT_ENDPOINT
-- DHL_FREIGHT_CUSTOMER_ID
+- DHL_FREIGHT_AUTH
+
+### 9.9 QA Nachweis 2026-05-11
+
+**Build Check:** `npm run build` erfolgreich. Neues Asset: `public/build/assets/css/app-C38LkUfX.css`.
+
+**QA Check:** `php artisan test tests/Unit/Infrastructure/Integrations/DhlAuthenticationGatewayTest.php tests/Unit/Infrastructure/Integrations/DhlFreightGatewayTest.php tests/Feature/Fulfillment/Integrations/DhlShipmentBookingTest.php` erfolgreich mit 40 Assertions.
+
+**Offene Risiken:** Die lokale `.env` enthaelt aktuell keine DHL Auth und Freight Secrets. Reale DHL Sandbox Buchungen koennen erst funktionieren, wenn `DHL_AUTH_USERNAME`, `DHL_AUTH_PASSWORD`, `DHL_FREIGHT_API_KEY` und je nach Auth Modus `DHL_FREIGHT_API_SECRET` gesetzt sind. Die Testausgabe enthaelt weiterhin eine bestehende PHP 8.5 Deprecation aus `config/database.php` fuer `PDO::MYSQL_ATTR_SSL_CA`.
 
 ---
 
