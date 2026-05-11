@@ -54,6 +54,9 @@ class ShipmentOrderModel extends Model
         'dhl_booking_response',
         'dhl_booking_error',
         'dhl_booked_at',
+        'dhl_cancelled_at',
+        'dhl_cancelled_by',
+        'dhl_cancellation_reason',
     ];
 
     protected $casts = [
@@ -68,6 +71,7 @@ class ShipmentOrderModel extends Model
         'dhl_booking_payload' => 'array',
         'dhl_booking_response' => 'array',
         'dhl_booked_at' => 'datetime',
+        'dhl_cancelled_at' => 'datetime',
     ];
 
     /**

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Fulfillment;
 
 use App\Application\Fulfillment\Integrations\Dhl\DTOs\DhlBookingOptions;
+use App\Application\Fulfillment\Integrations\Dhl\Services\DhlCancellationService;
 use App\Application\Fulfillment\Integrations\Dhl\Services\DhlLabelService;
 use App\Application\Fulfillment\Integrations\Dhl\Services\DhlPriceQuoteService;
 use App\Application\Fulfillment\Integrations\Dhl\Services\DhlShipmentBookingService;
@@ -17,10 +18,12 @@ use App\Http\Requests\Fulfillment\DhlBookingRequest;
 use App\Http\Requests\Fulfillment\ShipmentOrderBookingRequest;
 use App\Http\Requests\Fulfillment\ShipmentOrderIndexRequest;
 use App\Http\Requests\Fulfillment\ShipmentOrderTrackingTransferRequest;
+use App\ViewHelpers\Fulfillment\ShipmentTrackingViewHelper;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 
 final class ShipmentOrderController
@@ -33,6 +36,7 @@ final class ShipmentOrderController
         private readonly DhlShipmentBookingService $dhlBookingService,
         private readonly DhlLabelService $dhlLabelService,
         private readonly DhlPriceQuoteService $dhlPriceQuoteService,
+        private readonly DhlCancellationService $dhlCancellationService,
     ) {
         // Dependencies are injected; no additional setup needed.
     }
@@ -164,9 +168,16 @@ final class ShipmentOrderController
         $details = $this->orderViews->getOrderWithShipments($identifier);
         abort_if($details === null, 404);
 
+        // Transform shipments to include German labels and chronological event order
+        $shipmentsWithLabels = array_map(
+            static fn ($shipment) => ShipmentTrackingViewHelper::toOrderDetailArray($shipment),
+            $details['shipments']
+        );
+
         return view('fulfillment.orders.show', [
             'order' => $details['order'],
             'shipments' => $details['shipments'],
+            'shipmentsWithLabels' => $shipmentsWithLabels,
         ]);
     }
 
@@ -254,6 +265,33 @@ final class ShipmentOrderController
         }
     }
 
+    public function previewLabel(int $order): View|RedirectResponse
+    {
+        $identifier = Identifier::fromInt($order);
+        $shipmentOrder = $this->orderViews->getOrder($identifier);
+        abort_if($shipmentOrder === null, 404);
+
+        if ($shipmentOrder->dhlShipmentId() === null) {
+            return redirect()
+                ->route('fulfillment-orders.show', ['order' => $order])
+                ->withErrors(['label' => 'Kein DHL-Label vorhanden. Buchen Sie zuerst bei DHL.']);
+        }
+
+        $labelData = $this->getLabelData($identifier, $shipmentOrder);
+
+        if ($labelData === null) {
+            return redirect()
+                ->route('fulfillment-orders.show', ['order' => $order])
+                ->withErrors(['label' => 'Label konnte nicht geladen werden.']);
+        }
+
+        return view('fulfillment.orders.dhl.label-preview', [
+            'order' => $shipmentOrder,
+            'labelData' => $labelData,
+            'downloadUrl' => route('fulfillment-orders.dhl.label.download', ['order' => $order]),
+        ]);
+    }
+
     public function downloadLabel(int $order): Response|RedirectResponse
     {
         $identifier = Identifier::fromInt($order);
@@ -287,6 +325,33 @@ final class ShipmentOrderController
         }
     }
 
+    /**
+     * @return array{tracking_numbers: array<int,string>, product_id: ?string, pickup_reference: ?string, generated_at: ?string, label_url: ?string, label_pdf_base64: ?string}|null
+     */
+    private function getLabelData(Identifier $identifier, object $shipmentOrder): ?array
+    {
+        $labelPdfBase64 = $shipmentOrder->dhlLabelPdfBase64();
+        $labelUrl = $shipmentOrder->dhlLabelUrl();
+
+        if ($labelPdfBase64 === null && $labelUrl === null) {
+            $result = $this->dhlLabelService->generateLabel($identifier);
+            if ($result->success === false) {
+                return null;
+            }
+            $labelPdfBase64 = $result->labelPdfBase64;
+            $labelUrl = $result->labelUrl;
+        }
+
+        return [
+            'tracking_numbers' => $shipmentOrder->trackingNumbers() ?? [],
+            'product_id' => $shipmentOrder->dhlProductId(),
+            'pickup_reference' => $shipmentOrder->dhlPickupReference(),
+            'generated_at' => $shipmentOrder->updatedAt()->format('d.m.Y H:i'),
+            'label_url' => $labelUrl,
+            'label_pdf_base64' => $labelPdfBase64,
+        ];
+    }
+
     public function getPriceQuote(int $order): JsonResponse
     {
         $identifier = Identifier::fromInt($order);
@@ -316,5 +381,30 @@ final class ShipmentOrderController
                 'error' => $exception->getMessage(),
             ], 500);
         }
+    }
+
+    public function cancelDhl(Request $request, int $order): RedirectResponse
+    {
+        $identifier = Identifier::fromInt($order);
+        $redirect = $request->input('redirect_to') ?? route('fulfillment-orders.show', ['order' => $order]);
+
+        $validated = $request->validate([
+            'reason' => ['nullable', 'string', 'max:500'],
+        ]);
+
+        $reason = $validated['reason'] ?? 'No reason provided';
+        $cancelledBy = $request->user()?->email ?? 'system';
+
+        $result = $this->dhlCancellationService->cancel($order, $reason, $cancelledBy);
+
+        if ($result->success === false) {
+            return redirect()->to($redirect)->withErrors([
+                'dhl_cancellation' => $result->error ?? 'DHL-Stornierung fehlgeschlagen.',
+            ]);
+        }
+
+        return redirect()
+            ->to($redirect)
+            ->with('success', 'DHL-Sendung wurde storniert am '.$result->cancelledAt);
     }
 }

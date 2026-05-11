@@ -1,5 +1,14 @@
 <?php
 
+use App\Http\Controllers\Api\Admin\DhlBookingController;
+use App\Http\Controllers\Api\Admin\DhlBulkBookingController;
+use App\Http\Controllers\Api\Admin\DhlBulkCancellationController;
+use App\Http\Controllers\Api\Admin\DhlCancellationController;
+use App\Http\Controllers\Api\Admin\DhlLabelController;
+use App\Http\Controllers\Api\Admin\DhlPriceQuoteController;
+use App\Http\Controllers\Api\Admin\DhlProductCatalogController;
+use App\Http\Controllers\Api\Admin\DhlTimetableController;
+use App\Http\Controllers\Api\Admin\DhlTrackingEventsController;
 use App\Http\Controllers\Api\Admin\LogFileController;
 use App\Http\Controllers\Api\Admin\SystemSettingController as AdminSystemSettingController;
 use App\Http\Controllers\Api\Admin\SystemStatusController;
@@ -43,6 +52,49 @@ Route::prefix('admin')
     ->group(function () {
         Route::get('system-status', SystemStatusController::class)
             ->middleware('can:admin.setup.view');
+
+        Route::get('dhl/products', [DhlProductCatalogController::class, 'listProducts'])
+            ->middleware('can:fulfillment.orders.view');
+
+        Route::get('dhl/services', [DhlProductCatalogController::class, 'listAdditionalServices'])
+            ->middleware('can:fulfillment.orders.view');
+
+        Route::get('dhl/tracking/{trackingNumber}/events', [DhlTrackingEventsController::class, 'show'])
+            ->where('trackingNumber', '.+')
+            ->middleware('can:fulfillment.orders.view')
+            ->name('dhl.tracking.events');
+
+        Route::post('dhl/validate-services', [DhlProductCatalogController::class, 'validateServices'])
+            ->middleware('can:fulfillment.orders.view');
+
+        Route::get('dhl/timetable', [DhlTimetableController::class, 'show'])
+            ->middleware('can:fulfillment.orders.view');
+
+        Route::post('dhl/booking', [DhlBookingController::class, 'store'])
+            ->middleware('can:fulfillment.orders.manage');
+
+        Route::post('dhl/bulk-book', [DhlBulkBookingController::class, 'store'])
+            ->middleware('can:fulfillment.orders.manage');
+
+        Route::get('dhl/booking/{shipmentOrderId}', [DhlBookingController::class, 'show'])
+            ->whereNumber('shipmentOrderId')
+            ->middleware('can:fulfillment.orders.view');
+
+        Route::get('dhl/price-quote', [DhlPriceQuoteController::class, 'show'])
+            ->middleware('can:fulfillment.orders.view');
+
+        Route::get('dhl/label/{shipmentOrderId}', [DhlLabelController::class, 'show'])
+            ->whereNumber('shipmentOrderId')
+            ->middleware('can:fulfillment.orders.view');
+
+        Route::delete('dhl/shipment/{shipmentOrderId}', [DhlCancellationController::class, 'destroy'])
+            ->whereNumber('shipmentOrderId')
+            ->middleware('can:fulfillment.orders.manage')
+            ->name('dhl.shipment.cancel');
+
+        Route::post('dhl/bulk-cancel', [DhlBulkCancellationController::class, 'store'])
+            ->middleware('can:fulfillment.orders.manage')
+            ->name('dhl.bulk-cancel');
 
         Route::get('system-settings', [AdminSystemSettingController::class, 'index'])
             ->middleware('can:configuration.settings.manage');

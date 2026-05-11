@@ -27,6 +27,10 @@ interface FulfillmentFreightProfileRepository
      * @param array{
      *     shipping_profile_id: int,
      *     label?: string|null,
+     *     dhl_product_id?: string|null,
+     *     dhl_default_service_codes?: array<int, string>|null,
+     *     shipping_method_mapping?: array<string, array{product_id: string, service_codes?: array<int, string>}>|null,
+     *     account_number?: string|null,
      * } $attributes
      */
     public function create(array $attributes): FulfillmentFreightProfile;
@@ -34,6 +38,10 @@ interface FulfillmentFreightProfileRepository
     /**
      * @param array{
      *     label?: string|null,
+     *     dhl_product_id?: string|null,
+     *     dhl_default_service_codes?: array<int, string>|null,
+     *     shipping_method_mapping?: array<string, array{product_id: string, service_codes?: array<int, string>}>|null,
+     *     account_number?: string|null,
      * } $attributes
      */
     public function update(Identifier $shippingProfileId, array $attributes): FulfillmentFreightProfile;

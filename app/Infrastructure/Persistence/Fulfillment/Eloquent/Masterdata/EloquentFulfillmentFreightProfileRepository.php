@@ -104,9 +104,23 @@ final class EloquentFulfillmentFreightProfileRepository implements FulfillmentFr
 
     private function mapModel(FulfillmentFreightProfileModel $model): FulfillmentFreightProfile
     {
+        $serviceCodes = $model->dhl_default_service_codes;
+        if (is_string($serviceCodes)) {
+            $serviceCodes = json_decode($serviceCodes, true) ?? null;
+        }
+
+        $shippingMapping = $model->shipping_method_mapping;
+        if (is_string($shippingMapping)) {
+            $shippingMapping = json_decode($shippingMapping, true) ?? null;
+        }
+
         return FulfillmentFreightProfile::hydrate(
             Identifier::fromInt((int) $model->getKey()),
             $model->label,
+            $model->dhl_product_id,
+            is_array($serviceCodes) ? $serviceCodes : null,
+            is_array($shippingMapping) ? $shippingMapping : null,
+            $model->account_number,
         );
     }
 
@@ -129,6 +143,42 @@ final class EloquentFulfillmentFreightProfileRepository implements FulfillmentFr
         if (array_key_exists('label', $attributes)) {
             $value = $attributes['label'];
             $payload['label'] = $value !== null && $value !== ''
+                ? trim((string) $value)
+                : null;
+        }
+
+        if (array_key_exists('dhl_product_id', $attributes)) {
+            $value = $attributes['dhl_product_id'];
+            $payload['dhl_product_id'] = $value !== null && $value !== ''
+                ? trim((string) $value)
+                : null;
+        }
+
+        if (array_key_exists('dhl_default_service_codes', $attributes)) {
+            $value = $attributes['dhl_default_service_codes'];
+            if ($value === null || $value === '' || $value === []) {
+                $payload['dhl_default_service_codes'] = null;
+            } elseif (is_array($value)) {
+                $payload['dhl_default_service_codes'] = json_encode(array_values($value));
+            } else {
+                $payload['dhl_default_service_codes'] = $value;
+            }
+        }
+
+        if (array_key_exists('shipping_method_mapping', $attributes)) {
+            $value = $attributes['shipping_method_mapping'];
+            if ($value === null || $value === '' || $value === []) {
+                $payload['shipping_method_mapping'] = null;
+            } elseif (is_array($value)) {
+                $payload['shipping_method_mapping'] = json_encode($value);
+            } else {
+                $payload['shipping_method_mapping'] = $value;
+            }
+        }
+
+        if (array_key_exists('account_number', $attributes)) {
+            $value = $attributes['account_number'];
+            $payload['account_number'] = $value !== null && $value !== ''
                 ? trim((string) $value)
                 : null;
         }

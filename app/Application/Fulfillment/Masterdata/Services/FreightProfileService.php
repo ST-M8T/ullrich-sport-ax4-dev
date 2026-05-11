@@ -51,6 +51,28 @@ final class FreightProfileService
         return $this->freightProfiles->update($identifier, $normalised);
     }
 
+    /**
+     * @param  array<int, string>  $serviceCodes
+     * @param  array<string, array{product_id: string, service_codes?: array<int, string>}>  $mapping
+     */
+    public function updateDhlMappings(
+        int $shippingProfileId,
+        ?string $dhlProductId,
+        array $serviceCodes,
+        array $mapping,
+        ?string $accountNumber,
+    ): FulfillmentFreightProfile {
+        $identifier = Identifier::fromInt($shippingProfileId);
+        $normalised = [
+            'dhl_product_id' => $this->stringOrNull($dhlProductId),
+            'dhl_default_service_codes' => $serviceCodes,
+            'shipping_method_mapping' => $mapping,
+            'account_number' => $this->stringOrNull($accountNumber),
+        ];
+
+        return $this->freightProfiles->update($identifier, $normalised);
+    }
+
     public function delete(int $shippingProfileId): void
     {
         $identifier = Identifier::fromInt($shippingProfileId);
@@ -78,6 +100,30 @@ final class FreightProfileService
 
         if (array_key_exists('label', $payload)) {
             $payload['label'] = $this->stringOrNull($payload['label']);
+        }
+
+        if (array_key_exists('dhl_product_id', $payload)) {
+            $payload['dhl_product_id'] = $this->stringOrNull($payload['dhl_product_id']);
+        }
+
+        if (array_key_exists('dhl_default_service_codes', $payload)) {
+            $value = $payload['dhl_default_service_codes'];
+            if ($value === null || $value === '' || $value === []) {
+                $payload['dhl_default_service_codes'] = null;
+            } elseif (is_array($value)) {
+                $payload['dhl_default_service_codes'] = array_values($value);
+            }
+        }
+
+        if (array_key_exists('shipping_method_mapping', $payload)) {
+            $value = $payload['shipping_method_mapping'];
+            if ($value === null || $value === '' || $value === []) {
+                $payload['shipping_method_mapping'] = null;
+            }
+        }
+
+        if (array_key_exists('account_number', $payload)) {
+            $payload['account_number'] = $this->stringOrNull($payload['account_number']);
         }
 
         return $payload;

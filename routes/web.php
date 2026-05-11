@@ -134,15 +134,30 @@ Route::middleware(['web', 'auth', 'can:admin.access'])
             ->middleware('can:fulfillment.orders.view')
             ->name('fulfillment-orders.dhl.book');
 
-        Route::get('/fulfillment/orders/{order}/dhl/label', [ShipmentOrderController::class, 'downloadLabel'])
+        Route::get('/fulfillment/orders/{order}/dhl/label', [ShipmentOrderController::class, 'previewLabel'])
             ->whereNumber('order')
             ->middleware('can:fulfillment.orders.view')
             ->name('fulfillment-orders.dhl.label');
+
+        Route::get('/fulfillment/orders/{order}/dhl/label/download', [ShipmentOrderController::class, 'downloadLabel'])
+            ->whereNumber('order')
+            ->middleware('can:fulfillment.orders.view')
+            ->name('fulfillment-orders.dhl.label.download');
+
+        Route::get('/fulfillment/orders/{order}/dhl/label/preview', [ShipmentOrderController::class, 'previewLabel'])
+            ->whereNumber('order')
+            ->middleware('can:fulfillment.orders.view')
+            ->name('fulfillment-orders.dhl.label.preview');
 
         Route::get('/fulfillment/orders/{order}/dhl/price-quote', [ShipmentOrderController::class, 'getPriceQuote'])
             ->whereNumber('order')
             ->middleware('can:fulfillment.orders.view')
             ->name('fulfillment-orders.dhl.price-quote');
+
+        Route::post('/fulfillment/orders/{order}/dhl/cancel', [ShipmentOrderController::class, 'cancelDhl'])
+            ->whereNumber('order')
+            ->middleware('can:fulfillment.orders.manage')
+            ->name('fulfillment-orders.dhl.cancel');
 
         Route::post('/fulfillment/orders/actions/sync-visible', [ShipmentOrderActionController::class, 'syncVisible'])
             ->middleware('can:fulfillment.orders.view')

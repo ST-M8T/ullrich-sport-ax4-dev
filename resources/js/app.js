@@ -22,6 +22,7 @@ import './components/settings-modal';
 // Domains
 import './domains/monitoring/modal';
 import './domains/fulfillment/masterdata';
+import './domains/fulfillment/dhl-product-catalog';
 import './domains/dispatch/scans-modal';
 import './domains/tracking/overview';
 

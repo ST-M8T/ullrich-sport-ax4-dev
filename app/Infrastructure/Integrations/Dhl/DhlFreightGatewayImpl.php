@@ -144,6 +144,26 @@ final class DhlFreightGatewayImpl implements DhlFreightGateway
         ];
     }
 
+    public function cancelShipment(string $shipmentId, string $reason): array
+    {
+        // DHL Freight API has no standard cancellation endpoint.
+        // Booking is a one-way POST to /sendtransportinstruction with no built-in undo.
+        // We perform local cancellation marking only.
+        // If DHL introduces a proper cancel API in the future, this method should call it.
+        $this->logger->info('[DHL Freight] Cancellation requested (local marking only)', [
+            'shipment_id' => $shipmentId,
+            'reason' => $reason,
+            'service' => 'dhl.freight',
+        ]);
+
+        return [
+            'success' => true,
+            'cancelled_at' => (new \DateTimeImmutable)->format(\DateTimeInterface::ATOM),
+            'confirmation_number' => null,
+            'error' => null,
+        ];
+    }
+
     private function client(): PendingRequest
     {
         $request = $this->http

@@ -67,4 +67,18 @@ interface DhlFreightGateway
      * @return array{status:int,duration_ms:float,body:mixed}
      */
     public function ping(): array;
+
+    /**
+     * Cancel a DHL shipment.
+     *
+     * Note: DHL Freight API has no standard cancel endpoint.
+     * This method performs local cancellation marking and returns the result.
+     * External API cancellation must be handled by the calling application service
+     * if DHL introduces a cancel API.
+     *
+     * @param  string  $shipmentId  The DHL shipment ID to cancel
+     * @param  string  $reason  The cancellation reason
+     * @return array{success:bool,cancelled_at:string,confirmation_number:string|null,error:string|null}
+     */
+    public function cancelShipment(string $shipmentId, string $reason): array;
 }

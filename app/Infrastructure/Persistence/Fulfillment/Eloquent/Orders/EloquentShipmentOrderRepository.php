@@ -183,6 +183,9 @@ final class EloquentShipmentOrderRepository implements ShipmentOrderRepository
             $model->dhl_booking_response = $order->dhlBookingResponse();
             $model->dhl_booking_error = $order->dhlBookingError();
             $model->dhl_booked_at = $order->dhlBookedAt();
+            $model->dhl_cancelled_at = $order->dhlCancelledAt();
+            $model->dhl_cancelled_by = $order->dhlCancelledBy();
+            $model->dhl_cancellation_reason = $order->dhlCancellationReason();
             $model->setAttribute('updated_at', $order->updatedAt());
             $model->save();
 
@@ -264,6 +267,9 @@ final class EloquentShipmentOrderRepository implements ShipmentOrderRepository
             is_array($model->dhl_booking_response) ? $model->dhl_booking_response : [],
             $model->dhl_booking_error,
             $this->toImmutable($model->dhl_booked_at),
+            $model->dhl_cancelled_at?->format('Y-m-d H:i:s'),
+            $model->dhl_cancelled_by,
+            $model->dhl_cancellation_reason,
         );
     }
 

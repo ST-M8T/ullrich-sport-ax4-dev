@@ -151,12 +151,22 @@
                         Gebuchte ins Tracking übertragen
                     </button>
                 </form>
+
+                <button type="button" class="btn btn-primary btn-sm" id="bulk-dhl-book-btn" disabled>
+                    <i class="bi bi-truck"></i> DHL bulk buchen
+                </button>
+                <button type="button" class="btn btn-danger btn-sm" id="bulk-dhl-cancel-btn" disabled>
+                    <i class="bi bi-x-circle"></i> Ausgewählte stornieren
+                </button>
             </div>
         </div>
         <div class="table-responsive">
             <table class="table table-hover table-striped align-middle mb-0">
                 <thead>
                 <tr>
+                    <th scope="col" class="text-nowrap">
+                        <input type="checkbox" id="select-all-orders" class="form-check-input" title="Alle auswählen">
+                    </th>
                     <th scope="col" class="text-nowrap">#</th>
                     <th scope="col" class="text-nowrap">Auftrag</th>
                     <th scope="col">Kunde</th>
@@ -179,7 +189,12 @@
                         $currentQuery = $buildQuery(['expand' => $isExpanded ? null : $orderExternalId, 'page' => $page]);
                         $expandUrl = $baseRoute . '?' . http_build_query($currentQuery);
                     @endphp
-                    <tr class="{{ $isExpanded ? 'table-info' : '' }}">
+                    <tr class="{{ $isExpanded ? 'table-info' : '' }}" data-order-id="{{ $order->id()->toInt() }}">
+                        <td>
+                            @if($order->dhlShipmentId() && !$order->dhlCancelledAt())
+                                <input type="checkbox" class="form-check-input order-checkbox" name="order_ids[]" value="{{ $order->id()->toInt() }}">
+                            @endif
+                        </td>
                         <td class="fw-semibold">
                             {{ $rowNumber }}
                         </td>
@@ -412,4 +427,342 @@
             </li>
         </ul>
     </nav>
+
+    <x-dhl.bulk-booking-modal />
+
+    {{-- Bulk Cancellation Modal --}}
+    <x-ui.modal title="DHL-Sendungen stornieren" id="dhl-bulk-cancel-modal" size="md">
+        <form id="dhl-bulk-cancel-form" method="post">
+            @csrf
+            <input type="hidden" name="action" value="bulk-cancel">
+            <input type="hidden" name="order_ids" id="bulk-cancel-order-ids">
+            <div class="mb-3">
+                <div class="alert alert-warning mb-0">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    <span id="bulk-cancel-count">0</span> Aufträge zum Stornieren ausgewählt
+                </div>
+            </div>
+            <div class="mb-3">
+                <label for="bulk_cancel_reason" class="form-label">Stornierungsgrund (optional)</label>
+                <textarea class="form-control" id="bulk_cancel_reason" name="reason" rows="3" maxlength="500" placeholder="z.B. Kunde hat storniert, doppelte Buchung, etc."></textarea>
+            </div>
+            <div class="d-flex justify-content-end gap-2">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
+                <button type="submit" class="btn btn-danger" id="bulk-cancel-submit-btn">
+                    <span class="spinner-border spinner-border-sm d-none" id="bulk-cancel-spinner"></span>
+                    <span id="bulk-cancel-submit-text">Stornieren</span>
+                </button>
+            </div>
+        </form>
+    </x-ui.modal>
+
+    @section('scripts')
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const selectAllCheckbox = document.getElementById('select-all-orders');
+        const orderCheckboxes = document.querySelectorAll('.order-checkbox');
+        const bulkDhlBtn = document.getElementById('bulk-dhl-book-btn');
+        const bulkModal = document.getElementById('dhl-bulk-booking-modal');
+
+        // Select all functionality
+        if (selectAllCheckbox) {
+            selectAllCheckbox.addEventListener('change', function () {
+                orderCheckboxes.forEach(function (cb) {
+                    cb.checked = selectAllCheckbox.checked;
+                });
+                updateBulkButtonState();
+            });
+        }
+
+        // Individual checkbox change
+        orderCheckboxes.forEach(function (cb) {
+            cb.addEventListener('change', function () {
+                updateBulkButtonState();
+                // Update "select all" checkbox state
+                if (selectAllCheckbox) {
+                    const allChecked = Array.from(orderCheckboxes).every(function (c) { return c.checked; });
+                    const noneChecked = Array.from(orderCheckboxes).every(function (c) { return !c.checked; });
+                    selectAllCheckbox.checked = allChecked;
+                    selectAllCheckbox.indeterminate = !allChecked && !noneChecked;
+                }
+            });
+        });
+
+        function updateBulkButtonState() {
+            const checked = document.querySelectorAll('.order-checkbox:checked');
+            const count = checked.length;
+            bulkDhlBtn.disabled = count === 0;
+            bulkDhlBtn.innerHTML = '<i class="bi bi-truck"></i> DHL bulk buchen' + (count > 0 ? ' (' + count + ')' : '');
+
+            const bulkCancelBtn = document.getElementById('bulk-dhl-cancel-btn');
+            if (bulkCancelBtn) {
+                bulkCancelBtn.disabled = count === 0;
+                bulkCancelBtn.innerHTML = '<i class="bi bi-x-circle"></i> Ausgewählte stornieren' + (count > 0 ? ' (' + count + ')' : '');
+            }
+        }
+
+        // Open bulk cancel modal when button clicked
+        const bulkCancelBtn = document.getElementById('bulk-dhl-cancel-btn');
+        const bulkCancelModal = document.getElementById('dhl-bulk-cancel-modal');
+        if (bulkCancelBtn && bulkCancelModal) {
+            bulkCancelBtn.addEventListener('click', function () {
+                const checked = document.querySelectorAll('.order-checkbox:checked');
+                const orderIds = Array.from(checked).map(function (cb) { return parseInt(cb.value, 10); });
+
+                if (orderIds.length === 0) {
+                    return;
+                }
+
+                document.getElementById('bulk-cancel-order-ids').value = JSON.stringify(orderIds);
+                document.getElementById('bulk-cancel-count').textContent = orderIds.length;
+            });
+        }
+
+        // Bulk cancel form submission
+        document.getElementById('dhl-bulk-cancel-form').addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            const form = this;
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const spinner = document.getElementById('bulk-cancel-spinner');
+            const submitText = document.getElementById('bulk-cancel-submit-text');
+
+            // Disable button
+            submitBtn.disabled = true;
+            spinner.classList.remove('d-none');
+            submitText.textContent = 'Wird storniert…';
+
+            const orderIds = JSON.parse(document.getElementById('bulk-cancel-order-ids').value || '[]');
+            const reason = document.getElementById('bulk_cancel_reason').value;
+
+            fetch('/api/admin/dhl/bulk-cancel', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'Authorization': 'Bearer ' + getCsrfToken(),
+                    'X-CSRF-TOKEN': getCsrfToken(),
+                },
+                body: JSON.stringify({
+                    order_ids: orderIds,
+                    reason: reason,
+                })
+            })
+            .then(function (response) { return response.json(); })
+            .then(function (data) {
+                if (data.errors && data.errors.length > 0) {
+                    alert('Fehler: ' + (data.errors[0].detail || 'Unbekannt'));
+                    submitBtn.disabled = false;
+                    spinner.classList.add('d-none');
+                    submitText.textContent = 'Stornieren';
+                    return;
+                }
+
+                const attrs = data.data?.attributes || {};
+                let message = 'Erfolgreich storniert: ' + (attrs.succeeded || 0) + ' / Fehlgeschlagen: ' + (attrs.failed || 0);
+                if (attrs.failed > 0) {
+                    message += '\n\nFehlgeschlagene Aufträge:\n';
+                    (data.results || []).forEach(function (r) {
+                        if (!r.attributes?.success) {
+                            message += ' - Auftrag ' + r.attributes?.order_id + ': ' + (r.attributes?.error || 'Unbekannt') + '\n';
+                        }
+                    });
+                }
+                alert(message);
+
+                // Close modal
+                const modalInstance = bootstrap.Modal.getInstance(bulkCancelModal);
+                if (modalInstance) modalInstance.hide();
+
+                // Refresh page
+                location.reload();
+            })
+            .catch(function (error) {
+                alert('Fehler: ' + error.message);
+                submitBtn.disabled = false;
+                spinner.classList.add('d-none');
+                submitText.textContent = 'Stornieren';
+            });
+        });
+
+        // Open modal when button clicked
+        if (bulkDhlBtn && bulkModal) {
+            bulkDhlBtn.addEventListener('click', function () {
+                const checked = document.querySelectorAll('.order-checkbox:checked');
+                const orderIds = Array.from(checked).map(function (cb) { return parseInt(cb.value, 10); });
+
+                if (orderIds.length === 0) {
+                    return;
+                }
+
+                // Set hidden values
+                document.getElementById('selected-order-ids').value = JSON.stringify(orderIds);
+                document.getElementById('selected-orders-count').textContent = orderIds.length;
+
+                // Load DHL products
+                fetchProducts();
+            });
+        }
+
+        async function fetchProducts() {
+            const productSelect = document.getElementById('product_id');
+            if (!productSelect) return;
+
+            productSelect.innerHTML = '<option value="">Laden…</option>';
+
+            try {
+                const response = await fetch('/api/admin/dhl/products', {
+                    headers: {
+                        'Accept': 'application/json',
+                        'Authorization': 'Bearer ' + getCsrfToken(),
+                    }
+                });
+
+                if (!response.ok) throw new Error('Failed to load products');
+
+                const data = await response.json();
+                const products = data.data || [];
+
+                productSelect.innerHTML = '<option value="">-- Bitte wählen --</option>';
+                products.forEach(function (product) {
+                    const attrs = product.attributes || {};
+                    const option = document.createElement('option');
+                    option.value = attrs.product_id || '';
+                    option.textContent = attrs.name || attrs.product_id || '';
+                    productSelect.appendChild(option);
+                });
+            } catch (error) {
+                productSelect.innerHTML = '<option value="">Fehler beim Laden</option>';
+            }
+        }
+
+        // Load services when product changes
+        document.getElementById('product_id').addEventListener('change', function () {
+            const productId = this.value;
+            const container = document.getElementById('additional-services-container');
+
+            if (!productId) {
+                container.innerHTML = '<span class="text-muted">Produkt wählen, um Services zu laden …</span>';
+                return;
+            }
+
+            container.innerHTML = '<span class="text-muted">Laden…</span>';
+
+            fetch('/api/admin/dhl/services?product_id=' + encodeURIComponent(productId), {
+                headers: {
+                    'Accept': 'application/json',
+                    'Authorization': 'Bearer ' + getCsrfToken(),
+                }
+            })
+            .then(function (response) { return response.json(); })
+            .then(function (data) {
+                const services = data.data || [];
+                container.innerHTML = '';
+
+                if (services.length === 0) {
+                    container.innerHTML = '<span class="text-muted">Keine Zusatzservices verfügbar</span>';
+                    return;
+                }
+
+                services.forEach(function (service) {
+                    const attrs = service.attributes || {};
+                    const div = document.createElement('div');
+                    div.className = 'form-check';
+                    div.innerHTML = '<input class="form-check-input" type="checkbox" name="additional_services[]" value="' + (attrs.service_code || '') + '" id="svc_' + (attrs.service_code || '') + '">' +
+                        '<label class="form-check-label" for="svc_' + (attrs.service_code || '') + '">' + (attrs.name || attrs.service_code || '') + '</label>';
+                    container.appendChild(div);
+                });
+            })
+            .catch(function () {
+                container.innerHTML = '<span class="text-danger">Fehler beim Laden der Services</span>';
+            });
+        });
+
+        // Form submission
+        document.getElementById('dhl-bulk-booking-form').addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            const form = this;
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const spinner = document.getElementById('bulk-booking-spinner');
+            const submitText = document.getElementById('bulk-booking-submit-text');
+
+            // Collect additional services
+            const services = [];
+            form.querySelectorAll('input[name="additional_services[]"]:checked').forEach(function (cb) {
+                services.push(cb.value);
+            });
+            document.getElementById('selected-services').value = JSON.stringify(services);
+
+            // Disable button
+            submitBtn.disabled = true;
+            spinner.classList.remove('d-none');
+            submitText.textContent = 'Wird gebucht…';
+
+            const orderIds = JSON.parse(document.getElementById('selected-order-ids').value || '[]');
+            const productId = document.getElementById('product_id').value;
+            const pickupDate = document.getElementById('pickup_date').value;
+
+            fetch('/api/admin/dhl/bulk-book', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'Authorization': 'Bearer ' + getCsrfToken(),
+                    'X-CSRF-TOKEN': getCsrfToken(),
+                },
+                body: JSON.stringify({
+                    order_ids: orderIds,
+                    product_id: productId,
+                    additional_services: services,
+                    pickup_date: pickupDate,
+                })
+            })
+            .then(function (response) { return response.json(); })
+            .then(function (data) {
+                if (data.errors && data.errors.length > 0) {
+                    alert('Fehler: ' + (data.errors[0].detail || 'Unbekannt'));
+                    submitBtn.disabled = false;
+                    spinner.classList.add('d-none');
+                    submitText.textContent = 'DHL buchen';
+                    return;
+                }
+
+                const attrs = data.data?.attributes || {};
+                if (attrs.queued) {
+                    alert('Bulk-Buchung wurde in die Queue gelegt und wird im Hintergrund verarbeitet.');
+                } else {
+                    let message = 'Erfolgreich: ' + (attrs.succeeded || 0) + ' / Fehlgeschlagen: ' + (attrs.failed || 0);
+                    if (attrs.failed > 0) {
+                        message += '\n\nFehlgeschlagene Aufträge:\n';
+                        (data.results || []).forEach(function (r) {
+                            if (!r.attributes?.success) {
+                                message += ' - Auftrag ' + r.attributes?.order_id + ': ' + (r.attributes?.error || 'Unbekannt') + '\n';
+                            }
+                        });
+                    }
+                    alert(message);
+                }
+
+                // Close modal
+                const modalInstance = bootstrap.Modal.getInstance(bulkModal);
+                if (modalInstance) modalInstance.hide();
+
+                // Refresh page
+                location.reload();
+            })
+            .catch(function (error) {
+                alert('Fehler: ' + error.message);
+                submitBtn.disabled = false;
+                spinner.classList.add('d-none');
+                submitText.textContent = 'DHL buchen';
+            });
+        });
+
+        function getCsrfToken() {
+            return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+        }
+    });
+    </script>
+    @endsection
 @endsection

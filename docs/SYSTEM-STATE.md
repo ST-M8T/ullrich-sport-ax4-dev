@@ -213,4 +213,105 @@ Stand: 2026-05-11
 
 ---
 
+---
+
+## 9. DHL-Freight Integration (t2-t10)
+
+### 9.1 Gateways (4 Contracts + 4 Implementations)
+
+| Interface | Implementierung |
+| --- | --- |
+| DhlFreightGatewayInterface | DhlFreightGateway |
+| DhlTrackingGatewayInterface | DhlTrackingGateway |
+| DhlAuthenticationGatewayInterface | DhlAuthenticationGateway |
+| DhlPushGatewayInterface | DhlPushGateway |
+
+### 9.2 Application Services (7)
+
+| Service | Verantwortung |
+| --- | --- |
+| DhlShipmentBookingService | Buchungslogik (t2) |
+| DhlLabelService | Label-Generierung (t3) |
+| DhlPriceQuoteService | Preisanfragen (t4) |
+| DhlPayloadMapperService | Payload-Mapping (t5) |
+| DhlBulkBookingService | Mehrfach-Buchung (t6) |
+| DhlCancellationService | Stornierung (t7) |
+| DhlProductCatalogService | Produktkatalog (ProductCatalog) |
+
+### 9.3 DTOs (7 + 2 Collections)
+
+| DTO | Zweck |
+| --- | --- |
+| DhlServiceDto | Service-Struktur |
+| DhlProductDto | Produkt-Struktur |
+| DhlTimeTableEntryDto | Zeitplan-Eintrag |
+| DhlBookingRequestDto | Buchungsanfrage |
+| DhlBookingResponseDto | Buchungsantwort |
+| DhlPriceQuoteRequestDto | Preisanfrage |
+| DhlPriceQuoteResponseDto | Preisangebot |
+| DhlEventCodeLabel | Event-Code Label |
+| DhlServiceOptionCollection | Service-Option-Sammlung |
+
+### 9.4 Masterdata: FreightProfile CRUD
+
+| Komponente | Pfad |
+| --- | --- |
+| Entity | Domain/Entities/FreightProfile |
+| Repository | Application/Repositories/FreightProfileRepository |
+| Service | Application/Services/FreightProfileService |
+| Controller | Http/Controllers/Admin/FreightProfileController |
+| Views | resources/views/admin/fulfillment/freight-profiles/ |
+| Requests | Http/Requests/FreightProfile/ |
+
+### 9.5 Migrations (3)
+
+| Migration | Inhalt |
+| --- | --- |
+| dhl_fields in shipment_orders | tracking_number, label_url, booking_reference, dhl_product, dhl_service |
+| dhl_fields in freight_profiles | dhl_product_code, dhl_service_options, estimated_delivery_days |
+| cancellation fields | cancellation_reason, cancelled_at, cancelled_by |
+
+### 9.6 API-Endpunkte (14)
+
+| Methode | URI | Beschreibung | Task |
+| --- | --- | --- | --- |
+| GET | /api/admin/dhl/products | DHL-Produktliste | t2 |
+| GET | /api/admin/dhl/services | Zusatzservices | t2 |
+| POST | /api/admin/dhl/validate-services | Service-Validierung | t2 |
+| GET | /api/admin/dhl/timetable | Zeitplantabelle | t4 |
+| POST | /api/admin/dhl/booking | Buchung | t2 |
+| GET | /api/admin/dhl/booking/{id} | Buchungsstatus | t2 |
+| GET | /api/admin/dhl/price-quote | Preisanfrage | t4 |
+| GET | /api/admin/dhl/label/{id} | Label-Abruf | t3 |
+| DELETE | /api/admin/dhl/shipment/{id} | Stornierung | t7 |
+| POST | /api/admin/dhl/bulk-book | Mehrfach-Buchung | t6 |
+| POST | /api/admin/dhl/bulk-cancel | Mehrfach-Stornierung | t7 |
+| GET | /api/admin/dhl/tracking/{trackingNumber}/events | Tracking-Events | t8 |
+| GET | /admin/fulfillment/orders/{order}/dhl/label/preview | Label-Vorschau | t3 |
+| GET | /admin/fulfillment/orders/{order}/dhl/label/download | PDF-Download | t3 |
+
+### 9.7 Neue Komponenten (4)
+
+| Komponente | Typ | Task |
+| --- | --- | --- |
+| x-dhl.product-catalog-modal | Blade-Component | t2 |
+| x-dhl.tracking-timeline | Blade-Component | t8 |
+| x-dhl.bulk-booking-modal | Blade-Component | t6 |
+| x-ui.modal | Blade-Component | t3 |
+
+### 9.8 Konfiguration
+
+**config/services.php:**
+- DHL Freight Credentials (SOAP/MTOM)
+- API-Endpoint URLs
+- Timeout-Einstellungen
+
+**ENV-Variablen (DHL_FREIGHT_*):**
+- DHL_FREIGHT_API_KEY
+- DHL_FREIGHT_API_SECRET
+- DHL_FREIGHT_ENDPOINT
+- DHL_FREIGHT_CUSTOMER_ID
+
+---
+
 *Generiert: 2026-05-11 — AX4 Development*

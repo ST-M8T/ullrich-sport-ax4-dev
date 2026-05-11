@@ -9,6 +9,10 @@
 
     $fieldMappers = [
         'shipping_profile_id' => fn($p) => $p->shippingProfileId()?->toInt(),
+        'dhl_product_id' => fn($p) => $p->dhlProductId(),
+        'dhl_default_service_codes' => fn($p) => $p->dhlDefaultServiceCodes(),
+        'shipping_method_mapping' => fn($p) => $p->shippingMethodMapping(),
+        'account_number' => fn($p) => $p->accountNumber(),
     ];
 
     $value = fn(string $field, $fallback = null) => DomainFormHelper::value($field, $fallback, $profile, $fieldMappers);
@@ -35,6 +39,22 @@
         type="text"
         :value="$value('label')"
         col-class="col-md-8"
+    />
+    <x-forms.input
+        name="dhl_product_id"
+        label="DHL-Produkt-ID"
+        type="text"
+        :value="$value('dhl_product_id')"
+        placeholder="z.B. V2PK"
+        col-class="col-md-4"
+    />
+    <x-forms.input
+        name="account_number"
+        label="DHL-Kundennummer"
+        type="text"
+        :value="$value('account_number')"
+        placeholder="123456789"
+        col-class="col-md-4"
     />
 
     <x-slot name="actions">

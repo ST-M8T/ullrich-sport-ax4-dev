@@ -121,35 +121,44 @@
                         @if($order->dhlShipmentId())
                             <hr>
                             <h3 class="h6 mb-3">DHL-Aktionen</h3>
-                            @if($order->dhlLabelUrl() || $order->dhlLabelPdfBase64())
-                                <a href="{{ route('fulfillment-orders.dhl.label', $order->id()->toInt()) }}" class="btn btn-outline-success w-100 mb-2" target="_blank">
-                                    Label herunterladen
-                                </a>
+                            @if($order->dhlCancelledAt())
+                                <div class="alert alert-danger mb-3">
+                                    <strong>STORNIERT</strong>
+                                    <br><small>
+                                        am {{ \Carbon\Carbon::parse($order->dhlCancelledAt())->format('d.m.Y H:i') }}
+                                        von {{ $order->dhlCancelledBy() }}
+                                    </small>
+                                    @if($order->dhlCancellationReason())
+                                        <br><small>Grund: {{ $order->dhlCancellationReason() }}</small>
+                                    @endif
+                                </div>
+                                <button type="button" class="btn btn-outline-secondary w-100" disabled>
+                                    Stornierung vorhanden
+                                </button>
                             @else
-                                <a href="{{ route('fulfillment-orders.dhl.label', $order->id()->toInt()) }}" class="btn btn-outline-success w-100 mb-2">
-                                    Label generieren
-                                </a>
+                                @if($order->dhlLabelUrl() || $order->dhlLabelPdfBase64())
+                                    <a href="{{ route('fulfillment-orders.dhl.label', $order->id()->toInt()) }}" class="btn btn-outline-success w-100 mb-2">
+                                        Label Vorschau
+                                    </a>
+                                @else
+                                    <a href="{{ route('fulfillment-orders.dhl.label', $order->id()->toInt()) }}" class="btn btn-outline-success w-100 mb-2">
+                                        Label generieren
+                                    </a>
+                                @endif
+                                <button type="button" class="btn btn-outline-info w-100 mb-2" onclick="loadPriceQuote({{ $order->id()->toInt() }})">
+                                    Preisabfrage
+                                </button>
+                                <button type="button" class="btn btn-outline-danger w-100" data-bs-toggle="modal" data-bs-target="#cancelDhlModal">
+                                    DHL-Sendung stornieren
+                                </button>
+                                <div id="price-quote-result" class="mt-2 hidden"></div>
                             @endif
-                            <button type="button" class="btn btn-outline-info w-100" onclick="loadPriceQuote({{ $order->id()->toInt() }})">
-                                Preisabfrage
-                            </button>
-                            <div id="price-quote-result" class="mt-2 hidden"></div>
                         @elseif($order->senderProfileId())
                             <hr>
                             <h3 class="h6 mb-3">DHL-Buchung</h3>
-                            <x-forms.form method="POST" action="{{ route('fulfillment-orders.dhl.book', $order->id()->toInt()) }}">
-                                <input type="hidden" name="redirect_to" value="{{ request()->fullUrl() }}">
-                                <x-forms.input
-                                    name="product_id"
-                                    label="Produkt-ID (optional)"
-                                    type="text"
-                                    :value="old('product_id')"
-                                    placeholder="Standard-Produkt"
-                                    class="form-control-sm"
-                                    col-class="col-12"
-                                />
-                                <button type="submit" class="btn btn-outline-primary w-100">Bei DHL buchen</button>
-                            </x-forms.form>
+                            <x-dhl.product-catalog-modal
+                                :order-id="$order->id()->toInt()"
+                            />
                         @endif
                     @endif
             </x-ui.action-card>
@@ -271,58 +280,74 @@
             </div>
     </x-ui.info-card>
 
-    <x-ui.info-card title="Sendungen ({{ count($shipments) }})">
+    <x-ui.info-card title="Sendungsverfolgung ({{ count($shipments) }})">
+            @php
+                // Index shipmentsWithLabels by tracking number for easy lookup
+                $shipmentsByTracking = [];
+                foreach ($shipmentsWithLabels as $shipmentData) {
+                    $shipmentsByTracking[$shipmentData['tracking_number']] = $shipmentData;
+                }
+            @endphp
             @forelse($shipments as $shipment)
                 <div class="border rounded p-3 mb-3">
-                    <div class="d-flex flex-wrap justify-content-between align-items-start gap-2">
+                    <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-3">
                         <div>
-                            <strong>{{ $shipment->trackingNumber() }}</strong><br>
-                            <span class="text-muted">{{ $shipment->carrierCode() }}</span>
+                            <strong class="fs-6">{{ $shipment->trackingNumber() }}</strong>
+                            <br>
+                            <span class="text-muted small">{{ $shipment->carrierCode() }}</span>
                         </div>
                         <div class="text-end">
-                            <div>Status: {{ $shipment->statusDescription() ?? $shipment->statusCode() ?? '—' }}</div>
-                            <small class="text-muted">
-                                Letztes Event: {{ $shipment->lastEventAt()?->format('d.m.Y H:i') ?? '—' }}<br>
-                                Geliefert: {{ $shipment->deliveredAt()?->format('d.m.Y H:i') ?? '—' }}
-                            </small>
+                            <a href="{{ route('dhl.tracking.events', ['trackingNumber' => $shipment->trackingNumber()]) }}"
+                               class="btn btn-outline-secondary btn-sm"
+                               target="_blank"
+                               title="API JSON anzeigen"
+                            >
+                                <span class="me-1">&#128259;</span> API
+                            </a>
                         </div>
                     </div>
-                    <div class="table-responsive mt-3">
-                        <x-ui.data-table dense striped>
-                            <thead>
-                            <tr>
-                                <th scope="col">Event-Code</th>
-                                <th scope="col">Status</th>
-                                <th scope="col">Beschreibung</th>
-                                <th scope="col">Ort</th>
-                                <th scope="col">Datum</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            @forelse($shipment->events() as $event)
-                                <tr>
-                                    <td>{{ $event->eventCode() ?? '—' }}</td>
-                                    <td>{{ $event->status() ?? '—' }}</td>
-                                    <td>{{ $event->description() ?? '—' }}</td>
-                                    <td>
-                                        {{ $event->facility() ?? '—' }}
-                                        @if($event->city())
-                                            <br><small class="text-muted">{{ $event->city() }} {{ $event->country() ?? '' }}</small>
-                                        @endif
-                                    </td>
-                                    <td>{{ $event->occurredAt()->format('d.m.Y H:i') }}</td>
-                                </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="5" class="text-muted text-center">Keine Ereignisse vorhanden.</td>
-                                </tr>
-                            @endforelse
-                            </tbody>
-                        </x-ui.data-table>
-                    </div>
+
+                    {{-- Timeline Component --}}
+                    @if(isset($shipmentsByTracking[$shipment->trackingNumber()]))
+                        @php
+                            $shipmentData = $shipmentsByTracking[$shipment->trackingNumber()];
+                        @endphp
+                        <x-dhl.tracking-timeline
+                            :events="$shipmentData['events']"
+                            :current-status="$shipmentData['current_status']"
+                            :is-delivered="$shipmentData['is_delivered']"
+                            :tracking-number="$shipment->trackingNumber()"
+                            :show-refresh-button="true"
+                        />
+                    @else
+                        <div class="text-muted text-center py-3">
+                            <small>Tracking-Daten werden geladen...</small>
+                        </div>
+                    @endif
                 </div>
             @empty
                 <p class="text-muted mb-0">Es sind keine Sendungen mit diesem Auftrag verknüpft.</p>
             @endforelse
     </x-ui.info-card>
+
+    {{-- Cancellation Modal --}}
+    @if($order->dhlShipmentId() && !$order->dhlCancelledAt())
+        <x-ui.modal title="DHL-Sendung stornieren" id="cancelDhlModal" size="md">
+            <form method="POST" action="{{ route('fulfillment-orders.dhl.cancel', $order->id()->toInt()) }}">
+                @csrf
+                <input type="hidden" name="redirect_to" value="{{ request()->fullUrl() }}">
+                <div class="mb-3">
+                    <p class="text-muted">
+                        Möchten Sie die DHL-Sendung <strong>{{ $order->dhlShipmentId() }}</strong> wirklich stornieren?
+                    </p>
+                    <label for="cancel_reason" class="form-label">Stornierungsgrund (optional)</label>
+                    <textarea class="form-control" id="cancel_reason" name="reason" rows="3" maxlength="500" placeholder="z.B. Kunde hat storniert, doppelte Buchung, etc."></textarea>
+                </div>
+                <div class="d-flex justify-content-end gap-2">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
+                    <button type="submit" class="btn btn-danger">Stornieren</button>
+                </div>
+            </form>
+        </x-ui.modal>
+    @endif
 @endsection

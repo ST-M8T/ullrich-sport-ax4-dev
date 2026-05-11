@@ -25,6 +25,10 @@ class FulfillmentFreightProfileModel extends Model
     protected $fillable = [
         'shipping_profile_id',
         'label',
+        'dhl_product_id',
+        'dhl_default_service_codes',
+        'shipping_method_mapping',
+        'account_number',
         'created_at',
     ];
 

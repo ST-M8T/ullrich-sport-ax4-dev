@@ -51,6 +51,9 @@ final class ShipmentOrder
         private readonly array $dhlBookingResponse = [],
         private readonly ?string $dhlBookingError = null,
         private readonly ?DateTimeImmutable $dhlBookedAt = null,
+        private readonly ?string $dhlCancelledAt = null,
+        private readonly ?string $dhlCancelledBy = null,
+        private readonly ?string $dhlCancellationReason = null,
     ) {}
 
     /**
@@ -95,6 +98,9 @@ final class ShipmentOrder
         array $dhlBookingResponse = [],
         ?string $dhlBookingError = null,
         ?DateTimeImmutable $dhlBookedAt = null,
+        ?string $dhlCancelledAt = null,
+        ?string $dhlCancelledBy = null,
+        ?string $dhlCancellationReason = null,
     ): self {
         return new self(
             $id,
@@ -130,6 +136,9 @@ final class ShipmentOrder
             $dhlBookingResponse,
             $dhlBookingError ? trim($dhlBookingError) : null,
             $dhlBookedAt,
+            $dhlCancelledAt ? trim($dhlCancelledAt) : null,
+            $dhlCancelledBy ? trim($dhlCancelledBy) : null,
+            $dhlCancellationReason ? trim($dhlCancellationReason) : null,
         );
     }
 
@@ -314,5 +323,20 @@ final class ShipmentOrder
     public function dhlBookedAt(): ?DateTimeImmutable
     {
         return $this->dhlBookedAt;
+    }
+
+    public function dhlCancelledAt(): ?string
+    {
+        return $this->dhlCancelledAt;
+    }
+
+    public function dhlCancelledBy(): ?string
+    {
+        return $this->dhlCancelledBy;
+    }
+
+    public function dhlCancellationReason(): ?string
+    {
+        return $this->dhlCancellationReason;
     }
 }
