@@ -334,11 +334,7 @@ final class DhlFreightGatewayImpl implements DhlFreightGateway
             return $token;
         }
 
-        if (trim($this->apiKey) !== '') {
-            return $this->apiKey;
-        }
-
-        throw new InvalidArgumentException('DHL Freight bearer auth requires a DHL Auth token or API key fallback.');
+        throw new InvalidArgumentException('DHL Freight bearer auth requires a DHL Auth token response with access_token.');
     }
 
     private function safeBody(Response $response): mixed

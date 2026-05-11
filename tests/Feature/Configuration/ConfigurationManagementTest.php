@@ -7,6 +7,7 @@ use App\Application\Configuration\SystemSettingService;
 use App\Infrastructure\Persistence\Configuration\Eloquent\NotificationModel;
 use App\Infrastructure\Persistence\Configuration\Eloquent\SystemSettingModel;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
 use Tests\TestCase;
 
@@ -195,6 +196,44 @@ final class ConfigurationManagementTest extends TestCase
         $response->assertOk();
         $response->assertSee('sidebar-tabs__link-text">DHL Integration', false);
         $this->assertSame(1, substr_count($response->getContent(), 'DHL Integration gespeichert.'));
+    }
+
+    public function test_integration_form_test_action_uses_post_without_put_spoofing(): void
+    {
+        $response = $this->get(route('configuration-integrations.show', [
+            'integrationKey' => 'dhl_freight',
+        ]));
+
+        $response->assertOk();
+        $response->assertSee('Verbindung testen');
+        $response->assertSee('formaction="'.route('configuration-integrations.test', [
+            'integrationKey' => 'dhl_freight',
+        ]).'"', false);
+        $response->assertDontSee('name="_method"', false);
+    }
+
+    public function test_dhl_freight_connection_test_accepts_post_from_configuration_form(): void
+    {
+        Http::fake([
+            'https://api-sandbox.dhl.com/freight' => Http::response('', 200),
+        ]);
+
+        $response = $this->post(route('configuration-integrations.test', [
+            'integrationKey' => 'dhl_freight',
+        ]), [
+            'configuration' => [
+                'dhl_freight_base_url' => 'https://api-sandbox.dhl.com/freight',
+                'dhl_freight_api_key' => 'test-api-key',
+                'dhl_freight_api_secret' => 'test-api-secret',
+                'dhl_freight_auth' => 'bearer',
+                'dhl_freight_timeout' => '10',
+                'dhl_freight_connect_timeout' => '5',
+                'dhl_freight_verify_ssl' => '1',
+            ],
+        ]);
+
+        $response->assertRedirect();
+        $response->assertSessionHas('success', 'Verbindung erfolgreich getestet.');
     }
 
     public function test_notification_channel_settings_validation(): void

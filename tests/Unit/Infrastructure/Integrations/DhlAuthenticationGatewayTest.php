@@ -3,6 +3,7 @@
 namespace Tests\Unit\Infrastructure\Integrations;
 
 use App\Domain\Integrations\Contracts\DhlAuthenticationGateway;
+use Illuminate\Http\Client\RequestException;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
@@ -61,6 +62,22 @@ final class DhlAuthenticationGatewayTest extends TestCase
 
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('DHL Auth client ID is not configured.');
+
+        $gateway->getToken();
+    }
+
+    public function test_get_token_throws_on_http_error(): void
+    {
+        Http::fake([
+            'https://auth.example/auth/v1/token' => Http::response([
+                'status' => 401,
+                'title' => 'Unauthorized',
+            ], 401),
+        ]);
+
+        $gateway = app(DhlAuthenticationGateway::class);
+
+        $this->expectException(RequestException::class);
 
         $gateway->getToken();
     }

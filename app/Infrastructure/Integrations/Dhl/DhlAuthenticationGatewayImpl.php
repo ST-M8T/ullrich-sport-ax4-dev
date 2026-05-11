@@ -80,7 +80,10 @@ final class DhlAuthenticationGatewayImpl implements DhlAuthenticationGateway
     private function request(callable $callback): Response
     {
         try {
-            return $callback();
+            $response = $callback();
+            $response->throw();
+
+            return $response;
         } catch (Throwable $exception) {
             $this->logger->error('[DHL Auth] Request failed', [
                 'service' => 'dhl.auth',

@@ -27,8 +27,7 @@
         </div>
         <form method="post" action="{{ route('configuration-integrations.update', ['integrationKey' => $provider->key()]) }}">
             @csrf
-            @method('PUT')
-            
+
             <div class="card-body">
                 <div class="row g-4">
                     @foreach($processedFields as $fieldKey => $processed)
@@ -108,4 +107,3 @@
         </form>
     </section>
 @endsection
-

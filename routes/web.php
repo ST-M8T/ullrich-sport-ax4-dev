@@ -375,7 +375,7 @@ Route::middleware(['web', 'auth', 'can:admin.access'])
             ->middleware('can:configuration.integrations.manage')
             ->name('configuration-integrations.show');
 
-        Route::put('/configuration/integrations/{integrationKey}', [\App\Http\Controllers\Configuration\IntegrationController::class, 'update'])
+        Route::match(['post', 'put'], '/configuration/integrations/{integrationKey}', [\App\Http\Controllers\Configuration\IntegrationController::class, 'update'])
             ->where('integrationKey', '[a-z0-9_\-]+')
             ->middleware('can:configuration.integrations.manage')
             ->name('configuration-integrations.update');

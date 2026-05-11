@@ -380,6 +380,10 @@ Stand: 2026-05-11
 
 **UI-Struktur:** Settings- und Stammdaten-Tabs sind wieder zentral ueber Composer-View-Daten aufgebaut. `x-tabs` erzeugt keine unnoetigen Scrollleisten mehr. `x-ui.data-table` bleibt die einzige Quelle fuer responsive Tabellen-Wrapper in den betroffenen Settings- und Stammdaten-Views.
 
+**DHL Freight Testsendung:** Der Integrationstest-Button sendet wieder einen echten POST Request ohne `_method=PUT` Spoofing. Die Speichern-Route akzeptiert POST und PUT, damit das gemeinsame Konfigurationsformular den Test Endpunkt nicht mehr versehentlich mit PUT trifft und bestehende PUT Clients kompatibel bleiben.
+
+**QA Check:** `vendor/bin/pint routes/web.php tests/Feature/Configuration/ConfigurationManagementTest.php` erfolgreich. `php artisan test tests/Feature/Configuration/ConfigurationManagementTest.php --filter='integration_form_test_action_uses_post_without_put_spoofing|dhl_freight_connection_test_accepts_post_from_configuration_form'` erfolgreich mit 6 Assertions. `php artisan test tests/Feature/Configuration/ConfigurationManagementTest.php` erfolgreich mit 37 Assertions.
+
 **Offene Risiken:** Die lokale `.env` enthaelt aktuell keine DHL Auth und Freight Secrets. Reale DHL Sandbox Buchungen koennen erst funktionieren, wenn `DHL_AUTH_USERNAME`, `DHL_AUTH_PASSWORD`, `DHL_FREIGHT_API_KEY` und je nach Auth Modus `DHL_FREIGHT_API_SECRET` gesetzt sind. Die Testausgabe enthaelt weiterhin eine bestehende PHP 8.5 Deprecation aus `config/database.php` fuer `PDO::MYSQL_ATTR_SSL_CA`.
 
 ---
