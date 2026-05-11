@@ -384,6 +384,10 @@ Stand: 2026-05-11
 
 **QA Check:** `vendor/bin/pint routes/web.php tests/Feature/Configuration/ConfigurationManagementTest.php` erfolgreich. `php artisan test tests/Feature/Configuration/ConfigurationManagementTest.php --filter='integration_form_test_action_uses_post_without_put_spoofing|dhl_freight_connection_test_accepts_post_from_configuration_form'` erfolgreich mit 6 Assertions. `php artisan test tests/Feature/Configuration/ConfigurationManagementTest.php` erfolgreich mit 37 Assertions.
 
+**DHL Freight 401 Diagnose:** Freight API Pfade folgen jetzt den lokalen DHL OpenAPI Specs unter `/info/*/v1`, `/shipping/orders/v1` und `/shipping/labels/v1`. Der DHL Auth Gateway wirft bei HTTP Fehlern vom Token Endpoint jetzt fail fast, statt eine 401 Auth Antwort ohne `access_token` still als leeres Token Ergebnis zu behandeln und danach das Freight API Key Feld als Bearer Token zu verwenden.
+
+**QA Check:** `vendor/bin/pint app/Infrastructure/Integrations/Dhl/DhlAuthenticationGatewayImpl.php app/Infrastructure/Integrations/Dhl/DhlFreightGatewayImpl.php config/services.php tests/Unit/Infrastructure/Integrations/DhlAuthenticationGatewayTest.php tests/Unit/Infrastructure/Integrations/DhlFreightGatewayTest.php` erfolgreich. `php artisan test tests/Unit/Infrastructure/Integrations/DhlAuthenticationGatewayTest.php tests/Unit/Infrastructure/Integrations/DhlFreightGatewayTest.php tests/Feature/Fulfillment/Integrations/DhlShipmentBookingTest.php` erfolgreich mit 41 Assertions.
+
 **Offene Risiken:** Die lokale `.env` enthaelt aktuell keine DHL Auth und Freight Secrets. Reale DHL Sandbox Buchungen koennen erst funktionieren, wenn `DHL_AUTH_USERNAME`, `DHL_AUTH_PASSWORD`, `DHL_FREIGHT_API_KEY` und je nach Auth Modus `DHL_FREIGHT_API_SECRET` gesetzt sind. Die Testausgabe enthaelt weiterhin eine bestehende PHP 8.5 Deprecation aus `config/database.php` fuer `PDO::MYSQL_ATTR_SSL_CA`.
 
 ---
