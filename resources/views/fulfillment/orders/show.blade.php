@@ -203,42 +203,40 @@
     @endif
 
     <x-ui.info-card title="Artikel ({{ $totalItemCount }})">
-            <div class="table-responsive">
-                <x-ui.data-table dense striped>
-                    <thead>
-                    <tr>
-                        <th scope="col">ID</th>
-                        <th scope="col">SKU</th>
-                        <th scope="col">Beschreibung</th>
-                        <th scope="col">Menge</th>
-                        <th scope="col">Gewicht (kg)</th>
-                        <th scope="col">Assembly</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    @forelse($items as $item)
-                        <tr>
-                            <td>{{ $item->id()->toInt() }}</td>
-                            <td>{{ $item->sku() ?? '—' }}</td>
-                            <td>{{ $item->description() ?? '—' }}</td>
-                            <td>{{ $item->quantity() }}</td>
-                            <td>{{ $item->weightKg() !== null ? number_format($item->weightKg(), 2, ',', '.') : '—' }}</td>
-                            <td>
-                                @if($item->isAssembly())
-                                    <span class="badge bg-info text-dark">Ja</span>
-                                @else
-                                    <span class="badge bg-light text-dark">Nein</span>
-                                @endif
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="6" class="text-muted text-center">Keine Artikel hinterlegt.</td>
-                        </tr>
-                    @endforelse
-                    </tbody>
-                </x-ui.data-table>
-            </div>
+        <x-ui.data-table dense striped>
+            <thead>
+            <tr>
+                <th scope="col">ID</th>
+                <th scope="col">SKU</th>
+                <th scope="col">Beschreibung</th>
+                <th scope="col">Menge</th>
+                <th scope="col">Gewicht (kg)</th>
+                <th scope="col">Assembly</th>
+            </tr>
+            </thead>
+            <tbody>
+            @forelse($items as $item)
+                <tr>
+                    <td>{{ $item->id()->toInt() }}</td>
+                    <td>{{ $item->sku() ?? '—' }}</td>
+                    <td>{{ $item->description() ?? '—' }}</td>
+                    <td>{{ $item->quantity() }}</td>
+                    <td>{{ $item->weightKg() !== null ? number_format($item->weightKg(), 2, ',', '.') : '—' }}</td>
+                    <td>
+                        @if($item->isAssembly())
+                            <span class="badge bg-info text-dark">Ja</span>
+                        @else
+                            <span class="badge bg-light text-dark">Nein</span>
+                        @endif
+                    </td>
+                </tr>
+            @empty
+                <tr>
+                    <td colspan="6" class="text-muted text-center">Keine Artikel hinterlegt.</td>
+                </tr>
+            @endforelse
+            </tbody>
+        </x-ui.data-table>
     </x-ui.info-card>
 
     <x-ui.info-card>
@@ -246,47 +244,45 @@
             <h2 class="h5 mb-0">Pakete ({{ $totalPackageCount }})</h2>
             <span class="text-muted small">Gesamtgewicht: {{ number_format($totalPackageWeight, 2, ',', '.') }} kg</span>
         </div>
-            <div class="table-responsive">
-                <x-ui.data-table dense striped>
-                    <thead>
-                    <tr>
-                        <th scope="col">ID</th>
-                        <th scope="col">Referenz</th>
-                        <th scope="col">Profil</th>
-                        <th scope="col">Menge</th>
-                        <th scope="col">Gewicht (kg)</th>
-                        <th scope="col">Abmessungen (mm)</th>
-                        <th scope="col">Truck Slots</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    @forelse($packages as $package)
-                        <tr>
-                            <td>{{ $package->id()->toInt() }}</td>
-                            <td>{{ $package->packageReference() ?? '—' }}</td>
-                            <td>{{ $package->packagingProfileId()?->toInt() ?? '—' }}</td>
-                            <td>{{ $package->quantity() }}</td>
-                            <td>{{ $package->weightKg() !== null ? number_format($package->weightKg(), 2, ',', '.') : '—' }}</td>
-                            <td>
-                                @php
-                                    $dimensions = array_filter([
-                                        $package->lengthMillimetres(),
-                                        $package->widthMillimetres(),
-                                        $package->heightMillimetres(),
-                                    ]);
-                                @endphp
-                                {{ $dimensions !== [] ? implode(' × ', $dimensions) : '—' }}
-                            </td>
-                            <td>{{ $package->truckSlotUnits() }}</td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="7" class="text-muted text-center">Keine Pakete hinterlegt.</td>
-                        </tr>
-                    @endforelse
-                    </tbody>
-                </x-ui.data-table>
-            </div>
+        <x-ui.data-table dense striped>
+            <thead>
+            <tr>
+                <th scope="col">ID</th>
+                <th scope="col">Referenz</th>
+                <th scope="col">Profil</th>
+                <th scope="col">Menge</th>
+                <th scope="col">Gewicht (kg)</th>
+                <th scope="col">Abmessungen (mm)</th>
+                <th scope="col">Truck Slots</th>
+            </tr>
+            </thead>
+            <tbody>
+            @forelse($packages as $package)
+                <tr>
+                    <td>{{ $package->id()->toInt() }}</td>
+                    <td>{{ $package->packageReference() ?? '—' }}</td>
+                    <td>{{ $package->packagingProfileId()?->toInt() ?? '—' }}</td>
+                    <td>{{ $package->quantity() }}</td>
+                    <td>{{ $package->weightKg() !== null ? number_format($package->weightKg(), 2, ',', '.') : '—' }}</td>
+                    <td>
+                        @php
+                            $dimensions = array_filter([
+                                $package->lengthMillimetres(),
+                                $package->widthMillimetres(),
+                                $package->heightMillimetres(),
+                            ]);
+                        @endphp
+                        {{ $dimensions !== [] ? implode(' × ', $dimensions) : '—' }}
+                    </td>
+                    <td>{{ $package->truckSlotUnits() }}</td>
+                </tr>
+            @empty
+                <tr>
+                    <td colspan="7" class="text-muted text-center">Keine Pakete hinterlegt.</td>
+                </tr>
+            @endforelse
+            </tbody>
+        </x-ui.data-table>
     </x-ui.info-card>
 
     <x-ui.info-card title="Sendungsverfolgung ({{ count($shipments) }})">

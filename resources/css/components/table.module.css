@@ -17,6 +17,7 @@
     background: var(--brand-primary);
     color: var(--color-white);
     font-weight: 600;
+    text-align: left;
     border-bottom-color: var(--brand-primary);
 }
 

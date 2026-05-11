@@ -194,6 +194,20 @@ Stand: 2026-05-11
 - QA-Check: `php artisan test tests/Feature/Identity/UserManagementTest.php` erfolgreich am 2026-05-11.
 - Offene Risiken oder Blocker: PHPUnit meldet weiterhin die bestehende PHP 8.5 Deprecation `PDO::MYSQL_ATTR_SSL_CA` in `config/database.php:62`.
 
+### 5.10 t36 — Order Detail Tabellenlayout Fix
+- Tabellenkoepfe in der zentralen Tabellenkomponente sind jetzt linksbuendig ausgerichtet. Header und Zellinhalt stehen dadurch wieder optisch auf derselben Spalte.
+- Die Auftragsdetailseite nutzt `x-ui.data-table` ohne zusaetzlich verschachtelten `.table-responsive` Wrapper.
+- Build-Check: `npm run build` erfolgreich am 2026-05-11.
+- QA-Check: `php artisan test tests/Feature/Fulfillment/ShipmentOrderControllerTest.php --filter='it_shows_order_details'` erfolgreich am 2026-05-11.
+- Offene Risiken oder Blocker: PHPUnit meldet weiterhin die bestehende PHP 8.5 Deprecation `PDO::MYSQL_ATTR_SSL_CA` in `config/database.php:62`.
+
+### 5.11 t37 — Pagination Styling Fix
+- Zentrale CSS-Regeln fuer `.pagination`, `.page-item` und `.page-link` ergaenzt.
+- Auftrags-, Sendungs- und Dispatchlisten nutzen dadurch dieselbe Pagination-Darstellung statt nackter Browser-Links.
+- Build-Check: `npm run build` erfolgreich am 2026-05-11.
+- QA-Check: `php artisan test tests/Feature/Fulfillment/ShipmentOrderControllerTest.php tests/Feature/Fulfillment/ShipmentAdminTest.php tests/Feature/Dispatch/DispatchListFeatureTest.php --filter='filters_orders_by_combined_criteria|it_lists_shipments|list_page|index'` erfolgreich am 2026-05-11. Der Filter traf den Auftragslistenfall.
+- Offene Risiken oder Blocker: PHPUnit meldet weiterhin die bestehende PHP 8.5 Deprecation `PDO::MYSQL_ATTR_SSL_CA` in `config/database.php:62`.
+
 ---
 
 ## 6. Test-Abdeckung
@@ -206,7 +220,7 @@ Stand: 2026-05-11
 | AdminNavigationTest | tests/Browser/AdminNavigationTest.php | Bestehend |
 | ConfigurationManagementTest | tests/Feature/Configuration/ConfigurationManagementTest.php | Settings Flash und DHL Navigation geprueft (t33) |
 | AdminLayoutSnapshotTest | tests/Feature/Layout/AdminLayoutSnapshotTest.php | Footer und Card Layout geprueft (t34) |
-| ShipmentOrderControllerTest | tests/Feature/Fulfillment/ShipmentOrderControllerTest.php | Auftragsdetail ohne Blade-Fragmente geprueft (t35) |
+| ShipmentOrderControllerTest | tests/Feature/Fulfillment/ShipmentOrderControllerTest.php | Auftragsdetail ohne Blade-Fragmente und ohne verschachtelte Tabellenwrapper geprueft (t35, t36) |
 | UserManagementTest | tests/Feature/Identity/UserManagementTest.php | Definition-List HTML-Werte geprueft (t35) |
 
 ---

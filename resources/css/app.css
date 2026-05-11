@@ -25,6 +25,7 @@
 @import './components/card.module.css';
 @import './components/form.module.css';
 @import './components/table.module.css';
+@import './components/pagination.module.css';
 @import './components/badge.module.css';
 @import './components/modal.module.css';
 @import './components/tabs.module.css';
