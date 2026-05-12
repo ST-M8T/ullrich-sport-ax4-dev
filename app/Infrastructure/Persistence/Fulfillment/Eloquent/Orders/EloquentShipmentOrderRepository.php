@@ -7,6 +7,7 @@ use App\Domain\Fulfillment\Orders\ShipmentOrder;
 use App\Domain\Fulfillment\Orders\ShipmentOrderItem;
 use App\Domain\Fulfillment\Orders\ShipmentOrderPaginationResult;
 use App\Domain\Fulfillment\Orders\ShipmentPackage;
+use App\Domain\Fulfillment\Orders\ValueObjects\ShipmentReceiverAddress;
 use App\Domain\Shared\ValueObjects\Identifier;
 use App\Infrastructure\Persistence\Fulfillment\Eloquent\FulfillmentSequenceModel;
 use App\Support\Persistence\CastsDateTime;
@@ -162,6 +163,7 @@ final class EloquentShipmentOrderRepository implements ShipmentOrderRepository
             $model->order_type = $order->orderType();
             $model->sender_profile_id = $order->senderProfileId()?->toInt();
             $model->sender_code = $order->senderCode();
+            $model->freight_profile_id = $order->freightProfileId();
             $model->contact_email = $order->contactEmail();
             $model->contact_phone = $order->contactPhone();
             $model->destination_country = $order->destinationCountry();
@@ -186,6 +188,19 @@ final class EloquentShipmentOrderRepository implements ShipmentOrderRepository
             $model->dhl_cancelled_at = $order->dhlCancelledAt();
             $model->dhl_cancelled_by = $order->dhlCancelledBy();
             $model->dhl_cancellation_reason = $order->dhlCancellationReason();
+
+            $receiver = $order->receiverAddress();
+            if ($receiver !== null) {
+                $model->receiver_company_name = $receiver->companyName();
+                $model->receiver_contact_name = $receiver->contactName();
+                $model->receiver_street = $receiver->street();
+                $model->receiver_additional_address_info = $receiver->additionalAddressInfo();
+                $model->receiver_postal_code = $receiver->postalCode();
+                $model->receiver_city_name = $receiver->cityName();
+                $model->receiver_country_code = $receiver->countryCode();
+                $model->receiver_email = $receiver->email();
+                $model->receiver_phone = $receiver->phone();
+            }
             $model->setAttribute('updated_at', $order->updatedAt());
             $model->save();
 
@@ -233,6 +248,8 @@ final class EloquentShipmentOrderRepository implements ShipmentOrderRepository
 
         $trackingNumbers = $model->shipments->pluck('tracking_number')->filter()->map(fn ($value) => (string) $value)->all();
 
+        $receiverAddress = $this->mapReceiverAddress($model);
+
         return ShipmentOrder::hydrate(
             $orderId,
             (int) $model->external_order_id,
@@ -270,7 +287,79 @@ final class EloquentShipmentOrderRepository implements ShipmentOrderRepository
             $model->dhl_cancelled_at?->format('Y-m-d H:i:s'),
             $model->dhl_cancelled_by,
             $model->dhl_cancellation_reason,
+            $receiverAddress,
+            $model->freight_profile_id !== null ? (int) $model->freight_profile_id : null,
         );
+    }
+
+    /**
+     * Builds the {@see ShipmentReceiverAddress} VO from first-class columns.
+     * Backward-compat: if columns are empty but the legacy metadata['receiver'] JSON
+     * structure is present, hydrate from there. Invalid legacy payloads silently
+     * yield null (lazy-migration pre-condition is the dedicated migration backfill).
+     */
+    private function mapReceiverAddress(ShipmentOrderModel $model): ?ShipmentReceiverAddress
+    {
+        $street = $model->getAttribute('receiver_street');
+        $postal = $model->getAttribute('receiver_postal_code');
+        $city = $model->getAttribute('receiver_city_name');
+        $country = $model->getAttribute('receiver_country_code');
+
+        if (is_string($street) && $street !== ''
+            && is_string($postal) && $postal !== ''
+            && is_string($city) && $city !== ''
+            && is_string($country) && $country !== ''
+        ) {
+            try {
+                return ShipmentReceiverAddress::create(
+                    $street,
+                    $postal,
+                    $city,
+                    $country,
+                    $model->getAttribute('receiver_company_name'),
+                    $model->getAttribute('receiver_contact_name'),
+                    $model->getAttribute('receiver_additional_address_info'),
+                    $model->getAttribute('receiver_email'),
+                    $model->getAttribute('receiver_phone'),
+                );
+            } catch (\InvalidArgumentException) {
+                // Fall through to legacy metadata path.
+            }
+        }
+
+        $metadata = is_array($model->metadata) ? $model->metadata : [];
+        $receiver = $metadata['receiver'] ?? null;
+        if (! is_array($receiver)) {
+            return null;
+        }
+
+        $legacyStreet = trim(implode(' ', array_filter([
+            isset($receiver['streetName']) ? (string) $receiver['streetName'] : null,
+            isset($receiver['streetNumber']) ? (string) $receiver['streetNumber'] : null,
+        ], static fn ($v): bool => $v !== null && $v !== '')));
+        $legacyPostal = isset($receiver['postalCode']) ? trim((string) $receiver['postalCode']) : '';
+        $legacyCity = isset($receiver['city']) ? trim((string) $receiver['city']) : '';
+        $legacyCountry = isset($receiver['countryIso2']) ? strtoupper(trim((string) $receiver['countryIso2'])) : '';
+
+        if ($legacyStreet === '' || $legacyPostal === '' || $legacyCity === '' || strlen($legacyCountry) !== 2) {
+            return null;
+        }
+
+        try {
+            return ShipmentReceiverAddress::create(
+                mb_substr($legacyStreet, 0, 50),
+                mb_substr($legacyPostal, 0, 10),
+                mb_substr($legacyCity, 0, 35),
+                $legacyCountry,
+                isset($receiver['companyName']) ? mb_substr((string) $receiver['companyName'], 0, 50) : null,
+                isset($receiver['contactPerson']) ? mb_substr((string) $receiver['contactPerson'], 0, 50) : null,
+                isset($receiver['additionalAddressInfo']) ? mb_substr((string) $receiver['additionalAddressInfo'], 0, 50) : null,
+                isset($receiver['email']) ? (string) $receiver['email'] : null,
+                isset($receiver['phone']) ? (string) $receiver['phone'] : null,
+            );
+        } catch (\InvalidArgumentException) {
+            return null;
+        }
     }
 
     /**

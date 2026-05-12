@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Fulfillment\Orders;
 
+use App\Domain\Fulfillment\Orders\ValueObjects\ShipmentReceiverAddress;
 use App\Domain\Shared\ValueObjects\Identifier;
 use DateTimeImmutable;
 use InvalidArgumentException;
@@ -55,6 +56,8 @@ final class ShipmentOrder
         private readonly ?string $dhlCancelledAt = null,
         private readonly ?string $dhlCancelledBy = null,
         private readonly ?string $dhlCancellationReason = null,
+        private readonly ?ShipmentReceiverAddress $receiverAddress = null,
+        private readonly ?int $freightProfileId = null,
     ) {}
 
     /**
@@ -102,6 +105,8 @@ final class ShipmentOrder
         ?string $dhlCancelledAt = null,
         ?string $dhlCancelledBy = null,
         ?string $dhlCancellationReason = null,
+        ?ShipmentReceiverAddress $receiverAddress = null,
+        ?int $freightProfileId = null,
     ): self {
         return new self(
             $id,
@@ -140,6 +145,8 @@ final class ShipmentOrder
             $dhlCancelledAt ? trim($dhlCancelledAt) : null,
             $dhlCancelledBy ? trim($dhlCancelledBy) : null,
             $dhlCancellationReason ? trim($dhlCancellationReason) : null,
+            $receiverAddress,
+            $freightProfileId !== null && $freightProfileId > 0 ? $freightProfileId : null,
         );
     }
 
@@ -230,6 +237,8 @@ final class ShipmentOrder
             $this->dhlCancelledAt,
             $this->dhlCancelledBy,
             $this->dhlCancellationReason,
+            $this->receiverAddress,
+            $this->freightProfileId,
         );
     }
 
@@ -394,5 +403,123 @@ final class ShipmentOrder
     public function dhlCancellationReason(): ?string
     {
         return $this->dhlCancellationReason;
+    }
+
+    /**
+     * Returns the typed receiver address if the order has been migrated to first-class
+     * receiver columns. During the metadata->columns migration window, callers SHOULD
+     * fall back to {@see metadata()} only when this returns null.
+     */
+    public function receiverAddress(): ?ShipmentReceiverAddress
+    {
+        return $this->receiverAddress;
+    }
+
+    public function withReceiverAddress(
+        ShipmentReceiverAddress $receiverAddress,
+        ?DateTimeImmutable $updatedAt = null
+    ): self {
+        return new self(
+            $this->id,
+            $this->externalOrderId,
+            $this->customerNumber,
+            $this->plentyOrderId,
+            $this->orderType,
+            $this->senderProfileId,
+            $this->senderCode,
+            $this->contactEmail,
+            $this->contactPhone,
+            $this->destinationCountry,
+            $this->currency,
+            $this->totalAmount,
+            $this->processedAt,
+            $this->isBooked,
+            $this->bookedAt,
+            $this->bookedBy,
+            $this->shippedAt,
+            $this->lastExportFilename,
+            $this->items,
+            $this->packages,
+            $this->trackingNumbers,
+            $this->metadata,
+            $this->createdAt,
+            $updatedAt ?? new DateTimeImmutable,
+            $this->dhlShipmentId,
+            $this->dhlLabelUrl,
+            $this->dhlLabelPdfBase64,
+            $this->dhlPickupReference,
+            $this->dhlProductId,
+            $this->dhlBookingPayload,
+            $this->dhlBookingResponse,
+            $this->dhlBookingError,
+            $this->dhlBookedAt,
+            $this->dhlCancelledAt,
+            $this->dhlCancelledBy,
+            $this->dhlCancellationReason,
+            $receiverAddress,
+            $this->freightProfileId,
+        );
+    }
+
+    /**
+     * Returns the linked FulfillmentFreightProfile shipping_profile_id, if any.
+     *
+     * Resolved by {@see DhlSettingsResolver} to apply the per-profile
+     * AccountNumber override (Profile.account_number > System Default).
+     * `null` means: fall back to the system default.
+     */
+    public function freightProfileId(): ?int
+    {
+        return $this->freightProfileId;
+    }
+
+    public function withFreightProfileId(
+        ?int $freightProfileId,
+        ?DateTimeImmutable $updatedAt = null
+    ): self {
+        if ($freightProfileId !== null && $freightProfileId <= 0) {
+            throw new InvalidArgumentException('freightProfileId must be a positive integer or null.');
+        }
+
+        return new self(
+            $this->id,
+            $this->externalOrderId,
+            $this->customerNumber,
+            $this->plentyOrderId,
+            $this->orderType,
+            $this->senderProfileId,
+            $this->senderCode,
+            $this->contactEmail,
+            $this->contactPhone,
+            $this->destinationCountry,
+            $this->currency,
+            $this->totalAmount,
+            $this->processedAt,
+            $this->isBooked,
+            $this->bookedAt,
+            $this->bookedBy,
+            $this->shippedAt,
+            $this->lastExportFilename,
+            $this->items,
+            $this->packages,
+            $this->trackingNumbers,
+            $this->metadata,
+            $this->createdAt,
+            $updatedAt ?? new DateTimeImmutable,
+            $this->dhlShipmentId,
+            $this->dhlLabelUrl,
+            $this->dhlLabelPdfBase64,
+            $this->dhlPickupReference,
+            $this->dhlProductId,
+            $this->dhlBookingPayload,
+            $this->dhlBookingResponse,
+            $this->dhlBookingError,
+            $this->dhlBookedAt,
+            $this->dhlCancelledAt,
+            $this->dhlCancelledBy,
+            $this->dhlCancellationReason,
+            $this->receiverAddress,
+            $freightProfileId,
+        );
     }
 }
