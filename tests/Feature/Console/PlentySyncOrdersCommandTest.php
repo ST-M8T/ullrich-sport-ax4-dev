@@ -54,6 +54,9 @@ final class PlentySyncOrdersCommandTest extends TestCase
         $audit = Mockery::mock(AuditLogger::class);
         $audit->shouldReceive('log')->zeroOrMoreTimes();
 
-        return new PlentyOrderSyncService($gateway, $orders, $events, $audit);
+        $calculator = Mockery::mock(\App\Application\Fulfillment\Orders\Packaging\OrderPackageCalculator::class);
+        $calculator->shouldReceive('calculate')->andReturn([]);
+
+        return new PlentyOrderSyncService($gateway, $orders, $events, $audit, $calculator);
     }
 }

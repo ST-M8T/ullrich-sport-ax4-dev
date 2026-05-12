@@ -14,6 +14,7 @@ use App\Application\Fulfillment\Masterdata\Services\SenderProfileService;
 use App\Application\Fulfillment\Orders\Commands\AssignShipmentOrderSenderProfile;
 use App\Application\Fulfillment\Orders\Commands\BookShipmentOrder;
 use App\Application\Fulfillment\Orders\Commands\TransferShipmentOrderTracking;
+use App\Application\Fulfillment\Orders\Packaging\RecalculateOrderPackages;
 use App\Application\Fulfillment\Orders\Queries\ListShipmentOrders;
 use App\Application\Fulfillment\Orders\Queries\ShipmentOrderViewService;
 use App\Domain\Shared\ValueObjects\Identifier;
@@ -44,8 +45,24 @@ final class ShipmentOrderController
         private readonly DhlLabelService $dhlLabelService,
         private readonly DhlPriceQuoteService $dhlPriceQuoteService,
         private readonly DhlCancellationService $dhlCancellationService,
+        private readonly RecalculateOrderPackages $recalculateOrderPackages,
     ) {
         // Dependencies are injected; no additional setup needed.
+    }
+
+    public function recalculatePackages(int $order): RedirectResponse
+    {
+        $count = $this->recalculateOrderPackages->execute(Identifier::fromInt($order));
+
+        if ($count === 0) {
+            return redirect()
+                ->route('fulfillment-orders.show', $order)
+                ->with('warning', 'Keine Pakete berechenbar — bitte Stammdaten (Variations- und Verpackungsprofil) prüfen.');
+        }
+
+        return redirect()
+            ->route('fulfillment-orders.show', $order)
+            ->with('success', $count.' Paket(e) automatisch aus Stammdaten berechnet.');
     }
 
     public function index(ShipmentOrderIndexRequest $request): View

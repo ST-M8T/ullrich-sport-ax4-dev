@@ -402,11 +402,14 @@ final class EloquentShipmentOrderRepository implements ShipmentOrderRepository
         $incomingIds = [];
 
         foreach ($packages as $package) {
-            $packageId = $package->id()->toInt();
-            $incomingIds[] = $packageId;
+            if ($package->id()->isPlaceholder()) {
+                $model = new ShipmentPackageModel;
+            } else {
+                $packageId = $package->id()->toInt();
+                $model = ShipmentPackageModel::find($packageId) ?? new ShipmentPackageModel;
+                $model->setAttribute('id', $packageId);
+            }
 
-            $model = ShipmentPackageModel::find($packageId) ?? new ShipmentPackageModel;
-            $model->setAttribute('id', $packageId);
             $model->shipment_order_id = $orderId;
             $model->packaging_profile_id = $package->packagingProfileId()?->toInt();
             $model->package_reference = $package->packageReference();
@@ -418,6 +421,8 @@ final class EloquentShipmentOrderRepository implements ShipmentOrderRepository
             $model->truck_slot_units = $package->truckSlotUnits();
             $model->metadata = null;
             $model->save();
+
+            $incomingIds[] = (int) $model->getKey();
         }
 
         ShipmentPackageModel::query()

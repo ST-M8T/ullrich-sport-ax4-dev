@@ -2,6 +2,7 @@
 
 namespace Tests\Unit\Application\Fulfillment\Orders;
 
+use App\Application\Fulfillment\Orders\Packaging\OrderPackageCalculator;
 use App\Application\Fulfillment\Orders\PlentyOrderSyncService;
 use App\Application\Monitoring\AuditLogger;
 use App\Application\Monitoring\DomainEventService;
@@ -24,6 +25,8 @@ final class PlentyOrderSyncServiceTest extends TestCase
 
     private AuditLogger&MockInterface $audit;
 
+    private OrderPackageCalculator&MockInterface $packageCalculator;
+
     private PlentyOrderSyncService $service;
 
     protected function setUp(): void
@@ -34,8 +37,18 @@ final class PlentyOrderSyncServiceTest extends TestCase
         $this->orders = Mockery::mock(ShipmentOrderRepository::class);
         $this->events = Mockery::mock(DomainEventService::class);
         $this->audit = Mockery::mock(AuditLogger::class);
+        $this->packageCalculator = Mockery::mock(OrderPackageCalculator::class);
+        // Default: kein Variation-Profil → Calculator liefert leeres Array,
+        // Sync-Service ändert die Pakete nicht.
+        $this->packageCalculator->shouldReceive('calculate')->andReturn([])->byDefault();
 
-        $this->service = new PlentyOrderSyncService($this->gateway, $this->orders, $this->events, $this->audit);
+        $this->service = new PlentyOrderSyncService(
+            $this->gateway,
+            $this->orders,
+            $this->events,
+            $this->audit,
+            $this->packageCalculator,
+        );
     }
 
     public function test_sync_by_status_creates_new_orders_and_records_audit_trail(): void

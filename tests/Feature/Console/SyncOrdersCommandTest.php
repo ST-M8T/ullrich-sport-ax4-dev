@@ -94,6 +94,7 @@ final class SyncOrdersCommandTest extends TestCase
                 $app->make(ShipmentOrderRepository::class),
                 $app->make(DomainEventService::class),
                 $app->make(AuditLogger::class),
+                $app->make(\App\Application\Fulfillment\Orders\Packaging\OrderPackageCalculator::class),
             );
         });
 

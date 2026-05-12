@@ -415,6 +415,59 @@ final class ShipmentOrder
         return $this->receiverAddress;
     }
 
+    /**
+     * Returns a copy of this aggregate with the given packages replacing the
+     * current ones. Used by {@see \App\Application\Fulfillment\Orders\Packaging\OrderPackageCalculator}
+     * to seed automatically-derived packages from masterdata.
+     *
+     * @param  array<int,ShipmentPackage>  $packages
+     */
+    public function withPackages(
+        array $packages,
+        ?DateTimeImmutable $updatedAt = null
+    ): self {
+        return new self(
+            $this->id,
+            $this->externalOrderId,
+            $this->customerNumber,
+            $this->plentyOrderId,
+            $this->orderType,
+            $this->senderProfileId,
+            $this->senderCode,
+            $this->contactEmail,
+            $this->contactPhone,
+            $this->destinationCountry,
+            $this->currency,
+            $this->totalAmount,
+            $this->processedAt,
+            $this->isBooked,
+            $this->bookedAt,
+            $this->bookedBy,
+            $this->shippedAt,
+            $this->lastExportFilename,
+            $this->items,
+            array_values($packages),
+            $this->trackingNumbers,
+            $this->metadata,
+            $this->createdAt,
+            $updatedAt ?? new DateTimeImmutable,
+            $this->dhlShipmentId,
+            $this->dhlLabelUrl,
+            $this->dhlLabelPdfBase64,
+            $this->dhlPickupReference,
+            $this->dhlProductId,
+            $this->dhlBookingPayload,
+            $this->dhlBookingResponse,
+            $this->dhlBookingError,
+            $this->dhlBookedAt,
+            $this->dhlCancelledAt,
+            $this->dhlCancelledBy,
+            $this->dhlCancellationReason,
+            $this->receiverAddress,
+            $this->freightProfileId,
+        );
+    }
+
     public function withReceiverAddress(
         ShipmentReceiverAddress $receiverAddress,
         ?DateTimeImmutable $updatedAt = null

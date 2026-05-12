@@ -2,6 +2,7 @@
 
 namespace App\Application\Fulfillment\Orders;
 
+use App\Application\Fulfillment\Orders\Packaging\OrderPackageCalculator;
 use App\Application\Monitoring\AuditLogger;
 use App\Application\Monitoring\DomainEventService;
 use App\Domain\Fulfillment\Orders\Contracts\ShipmentOrderRepository;
@@ -17,6 +18,7 @@ final class PlentyOrderSyncService
         private readonly ShipmentOrderRepository $orders,
         private readonly DomainEventService $events,
         private readonly AuditLogger $auditLogger,
+        private readonly OrderPackageCalculator $packageCalculator,
         private readonly PlentyOrderMapper $mapper = new PlentyOrderMapper(),
     ) {}
 
@@ -179,6 +181,16 @@ final class PlentyOrderSyncService
         );
 
         $wasUpdate = $existing !== null;
+
+        // Auto-Paket-Berechnung aus Stammdaten: nur wenn der Auftrag noch
+        // keine Pakete hat (Erstanlage oder existierender Order ohne Pakete).
+        // Manuell konfigurierte Pakete bleiben unangetastet (Override-Schutz).
+        if (count($order->packages()) === 0) {
+            $calculated = $this->packageCalculator->calculate($order);
+            if ($calculated !== []) {
+                $order = $order->withPackages($calculated);
+            }
+        }
 
         $this->orders->save($order);
 

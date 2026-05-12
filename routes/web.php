@@ -140,6 +140,11 @@ Route::middleware(['web', 'auth', 'can:admin.access'])
             ->middleware('can:fulfillment.orders.view')
             ->name('fulfillment-orders.dhl.book');
 
+        Route::post('/fulfillment/orders/{order}/packages/recalculate', [ShipmentOrderController::class, 'recalculatePackages'])
+            ->whereNumber('order')
+            ->middleware('can:fulfillment.orders.view')
+            ->name('fulfillment-orders.packages.recalculate');
+
         Route::get('/fulfillment/orders/{order}/dhl/label', [ShipmentOrderController::class, 'previewLabel'])
             ->whereNumber('order')
             ->middleware('can:fulfillment.orders.view')

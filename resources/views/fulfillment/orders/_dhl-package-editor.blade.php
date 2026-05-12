@@ -83,14 +83,29 @@
 @endphp
 
 <x-ui.info-card>
-    <div class="d-flex justify-content-between align-items-center mb-3">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
         <h2 class="h5 mb-0">Pakete für DHL-Buchung</h2>
-        <button
-            type="button"
-            class="btn btn-outline-primary btn-sm"
-            data-package-editor-add
-            aria-label="Weiteres Paket hinzufügen"
-        >+ Paket hinzufügen</button>
+        <div class="d-flex gap-2">
+            <form
+                method="POST"
+                action="{{ route('fulfillment-orders.packages.recalculate', $order->id()->toInt()) }}"
+                class="d-inline"
+            >
+                @csrf
+                <button
+                    type="submit"
+                    class="btn btn-outline-secondary btn-sm"
+                    aria-label="Pakete aus Stammdaten neu berechnen"
+                    title="Berechnet Pakete automatisch aus Variations- und Verpackungsprofil."
+                >Pakete neu berechnen</button>
+            </form>
+            <button
+                type="button"
+                class="btn btn-outline-primary btn-sm"
+                data-package-editor-add
+                aria-label="Weiteres Paket hinzufügen"
+            >+ Paket hinzufügen</button>
+        </div>
     </div>
 
     {{-- Prominenter Error-Banner fuer DHL-API-Fehler (4xx/5xx vom Backend). §53. --}}
