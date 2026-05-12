@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace App\Application\Fulfillment\Integrations\Dhl\Services;
 
 use App\Application\Fulfillment\Integrations\Dhl\DTOs\DhlBookingOptions;
+use App\Application\Fulfillment\Integrations\Dhl\DTOs\DhlBookingRequestDto;
 use App\Application\Fulfillment\Integrations\Dhl\DTOs\DhlBookingResponseDto;
+use App\Application\Fulfillment\Integrations\Dhl\Settings\DhlSettingsResolver;
 use App\Application\Monitoring\AuditLogger;
 use App\Domain\Fulfillment\Masterdata\Contracts\FulfillmentSenderProfileRepository;
 use App\Domain\Fulfillment\Orders\Contracts\ShipmentOrderRepository;
@@ -24,7 +26,7 @@ class DhlShipmentBookingService
         private readonly DhlFreightGateway $gateway,
         private readonly ShipmentOrderRepository $orderRepository,
         private readonly FulfillmentSenderProfileRepository $senderRepository,
-        private readonly DhlPayloadMapper $mapper,
+        private readonly DhlSettingsResolver $settingsResolver,
         private readonly AuditLogger $auditLogger,
         private readonly LoggerInterface $logger,
     ) {
@@ -51,15 +53,17 @@ class DhlShipmentBookingService
 
         try {
             return DB::transaction(function () use ($order, $senderProfile, $options): DhlBookingResult {
-                $payload = $this->mapper->mapToBookingPayload(
+                $payload = DhlBookingRequestDto::fromShipmentOrder(
                     $order,
                     $senderProfile,
-                    $options
-                );
+                    $options,
+                    $this->settingsResolver,
+                    $order->freightProfileId(),
+                )->toArray();
 
                 $this->logger->info('DHL booking request', [
                     'order_id' => $order->id()->toInt(),
-                    'product_id' => $options->productId(),
+                    'product_code' => $options->productCode()?->value ?? $options->productId(),
                     'payload' => $payload,
                 ]);
 
@@ -117,7 +121,7 @@ class DhlShipmentBookingService
 
                 $updated = $this->updateOrderWithBookingSuccess(
                     $order,
-                    $options->productId(),
+                    $options->productCode()?->value ?? $options->productId(),
                     $payload,
                     $response,
                     $shipmentId,

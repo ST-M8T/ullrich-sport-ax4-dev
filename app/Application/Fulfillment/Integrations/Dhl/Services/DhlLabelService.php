@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Fulfillment\Integrations\Dhl\Services;
 
+use App\Application\Fulfillment\Integrations\Dhl\DTOs\DhlLabelRequestDto;
 use App\Application\Fulfillment\Integrations\Dhl\DTOs\DhlLabelResponseDto;
 use App\Application\Monitoring\AuditLogger;
 use App\Domain\Fulfillment\Orders\Contracts\ShipmentOrderRepository;
@@ -20,7 +21,6 @@ final class DhlLabelService
     public function __construct(
         private readonly DhlFreightGateway $gateway,
         private readonly ShipmentOrderRepository $orderRepository,
-        private readonly DhlPayloadMapper $mapper,
         private readonly AuditLogger $auditLogger,
         private readonly LoggerInterface $logger,
     ) {
@@ -46,7 +46,7 @@ final class DhlLabelService
 
         try {
             return DB::transaction(function () use ($order, $shipmentId, $options): DhlLabelResult {
-                $requestPayload = $this->mapper->mapToLabelRequest($shipmentId, $options);
+                $requestPayload = (new DhlLabelRequestDto($shipmentId, $options))->toArray();
 
                 $this->logger->info('DHL label request', [
                     'order_id' => $order->id()->toInt(),

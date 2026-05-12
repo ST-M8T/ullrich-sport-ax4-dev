@@ -8,7 +8,6 @@ use App\Application\Fulfillment\Exports\ListShipmentExportFiles;
 use App\Application\Fulfillment\Exports\ListShipmentExportJobs;
 use App\Application\Fulfillment\Exports\ShipmentExportManager;
 use App\Application\Fulfillment\Integrations\Dhl\Services\DhlLabelService;
-use App\Application\Fulfillment\Integrations\Dhl\Services\DhlPayloadMapper;
 use App\Application\Fulfillment\Integrations\Dhl\Services\DhlPriceQuoteService;
 use App\Application\Fulfillment\Integrations\Dhl\Services\DhlShipmentBookingService;
 use App\Application\Fulfillment\Masterdata\Queries\GetFulfillmentMasterdataCatalog;
@@ -37,8 +36,12 @@ use App\Domain\Fulfillment\Masterdata\Contracts\FulfillmentPackagingProfileRepos
 use App\Domain\Fulfillment\Masterdata\Contracts\FulfillmentSenderProfileRepository;
 use App\Domain\Fulfillment\Masterdata\Contracts\FulfillmentSenderRuleRepository;
 use App\Domain\Fulfillment\Masterdata\Contracts\FulfillmentVariationProfileRepository;
+use App\Application\Fulfillment\Integrations\Dhl\Settings\DhlSettingsResolver;
+use App\Application\Fulfillment\Integrations\Dhl\Settings\PayerCodeResolver;
 use App\Domain\Fulfillment\Orders\Contracts\ShipmentOrderRepository;
 use App\Domain\Fulfillment\Shipments\Contracts\ShipmentRepository as FulfillmentShipmentRepository;
+use App\Domain\Fulfillment\Shipping\Dhl\Configuration\DhlConfigurationRepository;
+use App\Infrastructure\Persistence\Eloquent\Fulfillment\Shipping\Dhl\EloquentDhlConfigurationRepository;
 use App\Infrastructure\Persistence\Fulfillment\Eloquent\Masterdata\EloquentFulfillmentAssemblyOptionRepository;
 use App\Infrastructure\Persistence\Fulfillment\Eloquent\Masterdata\EloquentFulfillmentFreightProfileRepository;
 use App\Infrastructure\Persistence\Fulfillment\Eloquent\Masterdata\EloquentFulfillmentPackagingProfileRepository;
@@ -60,6 +63,9 @@ final class FulfillmentServiceProvider extends ServiceProvider
         $this->app->bind(FulfillmentSenderProfileRepository::class, EloquentFulfillmentSenderProfileRepository::class);
         $this->app->bind(FulfillmentSenderRuleRepository::class, EloquentFulfillmentSenderRuleRepository::class);
         $this->app->bind(FulfillmentFreightProfileRepository::class, EloquentFulfillmentFreightProfileRepository::class);
+        $this->app->bind(DhlConfigurationRepository::class, EloquentDhlConfigurationRepository::class);
+        $this->app->singleton(DhlSettingsResolver::class);
+        $this->app->singleton(PayerCodeResolver::class);
         $this->app->bind(ShipmentOrderRepository::class, EloquentShipmentOrderRepository::class);
         $this->app->bind(FulfillmentShipmentRepository::class, EloquentShipmentRepository::class);
 
@@ -82,11 +88,6 @@ final class FulfillmentServiceProvider extends ServiceProvider
         $this->app->singleton(ListShipmentExportFiles::class);
         $this->app->singleton(ListShipmentExportJobs::class);
 
-        $this->app->singleton(DhlPayloadMapper::class, function ($app) {
-            $factor = (float) config('services.dhl_freight.volumetric_weight_factor', 250.0);
-
-            return new DhlPayloadMapper($factor);
-        });
         $this->app->singleton(DhlShipmentBookingService::class);
         $this->app->singleton(DhlLabelService::class);
         $this->app->singleton(DhlPriceQuoteService::class);

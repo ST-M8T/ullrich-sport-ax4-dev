@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace App\Application\Fulfillment\Integrations\Dhl\Services;
 
+use App\Application\Fulfillment\Integrations\Dhl\DTOs\DhlBookingOptions;
+use App\Application\Fulfillment\Integrations\Dhl\DTOs\DhlPriceQuoteRequestDto;
 use App\Application\Fulfillment\Integrations\Dhl\DTOs\DhlPriceQuoteResponseDto;
+use App\Application\Fulfillment\Integrations\Dhl\Settings\DhlSettingsResolver;
 use App\Domain\Fulfillment\Masterdata\Contracts\FulfillmentSenderProfileRepository;
 use App\Domain\Fulfillment\Orders\Contracts\ShipmentOrderRepository;
 use App\Domain\Integrations\Contracts\DhlFreightGateway;
@@ -18,19 +21,15 @@ final class DhlPriceQuoteService
         private readonly DhlFreightGateway $gateway,
         private readonly ShipmentOrderRepository $orderRepository,
         private readonly FulfillmentSenderProfileRepository $senderRepository,
-        private readonly DhlPayloadMapper $mapper,
+        private readonly DhlSettingsResolver $settingsResolver,
         private readonly LoggerInterface $logger,
     ) {
         // Dependencies injected by the container.
     }
 
-    /**
-     * @param  array<string,mixed>  $options
-     */
     public function getPriceQuote(
         Identifier $orderId,
-        ?string $productId = null,
-        array $options = [],
+        DhlBookingOptions $options,
     ): DhlPriceQuoteResult {
         $order = $this->orderRepository->getById($orderId);
         if ($order === null) {
@@ -47,11 +46,17 @@ final class DhlPriceQuoteService
         }
 
         try {
-            $payload = $this->mapper->mapToPriceQuoteRequest($order, $senderProfile, $productId, $options);
+            $payload = DhlPriceQuoteRequestDto::fromShipmentOrder(
+                $order,
+                $senderProfile,
+                $options,
+                $this->settingsResolver,
+                $order->freightProfileId(),
+            )->toArray();
 
             $this->logger->info('DHL price quote request', [
                 'order_id' => $order->id()->toInt(),
-                'product_id' => $productId,
+                'product_code' => $options->productCode()?->value ?? $options->productId(),
             ]);
 
             $response = $this->gateway->getPriceQuote($payload);

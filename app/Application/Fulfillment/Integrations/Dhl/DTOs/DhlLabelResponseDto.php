@@ -4,8 +4,20 @@ declare(strict_types=1);
 
 namespace App\Application\Fulfillment\Integrations\Dhl\DTOs;
 
+use App\Application\Fulfillment\Integrations\Dhl\DTOs\Concerns\HasDhlErrorParsing;
+
 final class DhlLabelResponseDto
 {
+    use HasDhlErrorParsing;
+
+    /**
+     * @return array<string,mixed>
+     */
+    protected function rawResponseArray(): array
+    {
+        return $this->response;
+    }
+
     /**
      * @param  array<string,mixed>  $response
      */
@@ -44,12 +56,4 @@ final class DhlLabelResponseDto
         return $this->labelUrl() !== null || $this->labelPdfBase64() !== null;
     }
 
-    public function errorMessage(): ?string
-    {
-        if ($this->isSuccess()) {
-            return null;
-        }
-
-        return $this->response['error'] ?? $this->response['message'] ?? $this->response['errorMessage'] ?? null;
-    }
 }

@@ -37,10 +37,25 @@ final class DhlBulkBookingService
         string $productId,
         array $additionalServices,
         ?string $pickupDate,
+        ?string $payerCode = null,
+        ?string $defaultPackageType = null,
     ): array {
         if ($orderIds === []) {
             return $this->emptyResult();
         }
+
+        // Build options once and forward to both sync and queued paths
+        // (DRY). product_code is omitted intentionally — fromArray() upgrades
+        // legacy product_id to a typed DhlProductCode when it fits the spec
+        // (≤ 3 alnum uppercase chars) and stays null otherwise, preserving
+        // backward compatibility for callers that still pass long legacy ids.
+        $options = DhlBookingOptions::fromArray([
+            'product_id' => $productId,
+            'additional_services' => $additionalServices,
+            'pickup_date' => $pickupDate,
+            'payer_code' => $payerCode,
+            'default_package_type' => $defaultPackageType,
+        ]);
 
         if (count($orderIds) > self::SYNC_THRESHOLD) {
             $this->logger->info('Bulk booking delegated to queue', [
@@ -48,33 +63,24 @@ final class DhlBulkBookingService
                 'threshold' => self::SYNC_THRESHOLD,
             ]);
 
-            return $this->queuedResult($orderIds);
+            return $this->queuedResult($orderIds, $options);
         }
 
-        return $this->processSynchronously($orderIds, $productId, $additionalServices, $pickupDate);
+        return $this->processSynchronously($orderIds, $options);
     }
 
     /**
      * @param  array<int>  $orderIds
      * @return array{results: array<int,array{orderId:int,success:bool,shipmentId?:string,trackingNumbers?:array<int,string>,error?:string}>, total:int, succeeded:int, failed:int, queued:bool}
      */
-    private function processSynchronously(
-        array $orderIds,
-        string $productId,
-        array $additionalServices,
-        ?string $pickupDate,
-    ): array {
+    private function processSynchronously(array $orderIds, DhlBookingOptions $options): array
+    {
         $results = [];
         $succeeded = 0;
         $failed = 0;
 
         foreach ($orderIds as $orderId) {
-            $result = $this->bookSingle(
-                Identifier::fromInt($orderId),
-                $productId,
-                $additionalServices,
-                $pickupDate,
-            );
+            $result = $this->bookSingle(Identifier::fromInt($orderId), $options);
 
             $results[] = $result;
 
@@ -97,20 +103,10 @@ final class DhlBulkBookingService
     /**
      * @return array{orderId:int,success:bool,shipmentId?:string,trackingNumbers?:array<int,string>,error?:string}
      */
-    private function bookSingle(
-        Identifier $orderId,
-        string $productId,
-        array $additionalServices,
-        ?string $pickupDate,
-    ): array {
+    private function bookSingle(Identifier $orderId, DhlBookingOptions $options): array
+    {
         try {
-            $options = new DhlBookingOptions(
-                $productId,
-                \App\Application\Fulfillment\Integrations\Dhl\DTOs\DhlServiceOptionCollection::fromArray($additionalServices),
-                $pickupDate,
-            );
-
-            $result = DB::transaction(function () use ($orderId, $options): \App\Application\Fulfillment\Integrations\Dhl\Services\DhlBookingResult {
+            $result = DB::transaction(function () use ($orderId, $options): DhlBookingResult {
                 return ($this->bookingService)->bookShipment($orderId, $options);
             });
 
@@ -166,9 +162,9 @@ final class DhlBulkBookingService
     /**
      * @param  array<int>  $orderIds
      */
-    private function queuedResult(array $orderIds): array
+    private function queuedResult(array $orderIds, DhlBookingOptions $options): array
     {
-        $job = new \App\Jobs\ProcessDhlBulkBookingJob($orderIds);
+        $job = new \App\Jobs\ProcessDhlBulkBookingJob($orderIds, $options);
         dispatch($job);
 
         return [

@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Jobs;
 
 use App\Application\Fulfillment\Integrations\Dhl\DTOs\DhlBookingOptions;
-use App\Application\Fulfillment\Integrations\Dhl\DTOs\DhlServiceOptionCollection;
 use App\Application\Fulfillment\Integrations\Dhl\Services\DhlBookingResult;
 use App\Application\Fulfillment\Integrations\Dhl\Services\DhlShipmentBookingService;
 use App\Domain\Fulfillment\Orders\Contracts\ShipmentOrderRepository;
@@ -22,6 +21,12 @@ use Throwable;
 /**
  * Queue job for processing bulk DHL bookings that exceed the sync threshold.
  * Each order is processed within its own database transaction.
+ *
+ * The job receives the full {@see DhlBookingOptions} DTO so that productCode,
+ * payerCode, additionalServices, pickupDate and defaultPackageType survive the
+ * dispatch boundary unchanged. (See engineering handbook §25 — queue jobs must
+ * forward the use-case input completely; data loss between dispatch and handle
+ * is forbidden.)
  */
 final class ProcessDhlBulkBookingJob implements ShouldQueue
 {
@@ -36,13 +41,10 @@ final class ProcessDhlBulkBookingJob implements ShouldQueue
 
     /**
      * @param  array<int>  $orderIds
-     * @param  array<string>  $additionalServices
      */
     public function __construct(
         private readonly array $orderIds,
-        private readonly string $productId = '',
-        private readonly array $additionalServices = [],
-        private readonly ?string $pickupDate = null,
+        private readonly DhlBookingOptions $options,
         ?string $connection = null,
         ?string $queue = null,
     ) {
@@ -91,14 +93,8 @@ final class ProcessDhlBulkBookingJob implements ShouldQueue
         DhlShipmentBookingService $bookingService,
     ): array {
         try {
-            $options = new DhlBookingOptions(
-                $this->productId,
-                DhlServiceOptionCollection::fromArray($this->additionalServices),
-                $this->pickupDate,
-            );
-
             /** @var DhlBookingResult $result */
-            $result = DB::transaction(fn () => $bookingService->bookShipment($orderId, $options));
+            $result = DB::transaction(fn () => $bookingService->bookShipment($orderId, $this->options));
 
             if ($result->success) {
                 Log::info('DHL bulk booking job order success', [

@@ -225,7 +225,7 @@ final class DhlBulkBookingServiceTest extends TestCase
 
         Queue::fake();
 
-        // No booking service calls expected for queued orders
+        // No booking service calls expected synchronously when bulk is queued
         $result = $this->service->bookBulk($orderIds, $productId, $services, $pickupDate);
 
         $this->assertSame(11, $result['total']);
@@ -233,17 +233,18 @@ final class DhlBulkBookingServiceTest extends TestCase
         $this->assertSame(0, $result['failed']);
         $this->assertTrue($result['queued']);
 
-        Queue::assertPushed(ProcessDhlBulkBookingJob::class, function (ProcessDhlBulkBookingJob $job) use ($orderIds, $productId, $services, $pickupDate) {
-            $this->assertSame($orderIds, $job->orderIds);
-            $this->assertSame($productId, $job->productId);
-            $this->assertSame($services, $job->additionalServices);
-            $this->assertSame($pickupDate, $job->pickupDate);
+        // Outcome assertion: a job is pushed whose public surface (tags) reflects the order count.
+        // The job's effect is verified separately via handle() in
+        // test_queued_job_when_handled_books_each_order_via_booking_service.
+        Queue::assertPushed(ProcessDhlBulkBookingJob::class, function (ProcessDhlBulkBookingJob $job): bool {
+            $this->assertContains('dhl-bulk-booking', $job->tags());
+            $this->assertContains('orders:11', $job->tags());
 
             return true;
         });
     }
 
-    public function test_book_bulk_with_exactly_eleven_orders_dispatches_correct_job(): void
+    public function test_book_bulk_with_exactly_eleven_orders_dispatches_one_job_with_eleven_orders(): void
     {
         $orderIds = range(100, 110); // 11 orders starting at 100
         $productId = 'DHL_B2';
@@ -257,11 +258,72 @@ final class DhlBulkBookingServiceTest extends TestCase
         $this->assertSame(11, $result['total']);
         $this->assertTrue($result['queued']);
 
-        Queue::assertPushed(ProcessDhlBulkBookingJob::class);
-        Queue::assertNotPushed(ProcessDhlBulkBookingJob::class, function (ProcessDhlBulkBookingJob $job) {
-            // Verify no other jobs were pushed
-            return count($job->orderIds) !== 11;
+        // One job dispatched, tagged with the expected order count.
+        Queue::assertPushed(ProcessDhlBulkBookingJob::class, 1);
+        Queue::assertPushed(ProcessDhlBulkBookingJob::class, function (ProcessDhlBulkBookingJob $job): bool {
+            return in_array('orders:11', $job->tags(), true);
         });
+    }
+
+    /**
+     * Outcome verification for the queued path: instead of reading private constructor
+     * arguments off the dispatched job (whitebox), capture the job, invoke its handle()
+     * with a mocked booking service, and assert that bookShipment is called once per
+     * orderId originally passed to the bulk service.
+     */
+    public function test_queued_job_when_handled_books_each_order_via_booking_service(): void
+    {
+        $orderIds = range(1, 11);
+        $productId = 'V01'; // valid 3-char DhlProductCode → forwarded as productCode VO
+        $services = ['A1', 'B2'];
+        $pickupDate = '2026-05-15';
+        $payerCode = 'DAP';
+        $packageType = 'PLT';
+
+        Queue::fake();
+
+        $this->service->bookBulk($orderIds, $productId, $services, $pickupDate, $payerCode, $packageType);
+
+        $pushed = Queue::pushed(ProcessDhlBulkBookingJob::class);
+        $this->assertCount(1, $pushed);
+
+        /** @var ProcessDhlBulkBookingJob $job */
+        $job = $pushed->first();
+
+        $bookingService = Mockery::mock(DhlShipmentBookingService::class);
+        $orderRepository = Mockery::mock(ShipmentOrderRepository::class);
+
+        $seenOrderIds = [];
+        $seenOptions = [];
+        $bookingService
+            ->shouldReceive('bookShipment')
+            ->andReturnUsing(function ($id, $options) use (&$seenOrderIds, &$seenOptions) {
+                $seenOrderIds[] = $id->toInt();
+                $seenOptions[] = $options;
+
+                return new DhlBookingResult(true, 'shipment-'.$id->toInt(), ['T'.$id->toInt()], null);
+            });
+
+        DB::shouldReceive('transaction')->andReturnUsing(fn (callable $cb) => $cb());
+
+        $job->handle($bookingService, $orderRepository);
+
+        // Outcome: every orderId originally passed to the bulk service is forwarded
+        // to the booking service exactly once when the queued job is handled.
+        $this->assertSame($orderIds, $seenOrderIds);
+
+        // And the booking options survive the dispatch boundary unchanged.
+        $this->assertNotEmpty($seenOptions);
+        $first = $seenOptions[0];
+        $this->assertSame($productId, $first->productId());
+        $this->assertNotNull($first->productCode());
+        $this->assertSame($productId, (string) $first->productCode());
+        $this->assertNotNull($first->payerCode());
+        $this->assertSame($payerCode, $first->payerCode()->value);
+        $this->assertNotNull($first->defaultPackageType());
+        $this->assertSame($packageType, (string) $first->defaultPackageType());
+        $this->assertSame($pickupDate, $first->pickupDate());
+        $this->assertCount(count($services), $first->serviceOptions()->all());
     }
 
     public function test_book_bulk_empty_order_array_returns_empty_result(): void
