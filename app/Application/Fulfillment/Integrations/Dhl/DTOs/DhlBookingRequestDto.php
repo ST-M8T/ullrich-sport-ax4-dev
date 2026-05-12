@@ -44,10 +44,7 @@ final class DhlBookingRequestDto
             'sender' => self::mapSender($senderProfile),
             'receiver' => self::mapReceiver($order),
             'packages' => $packageData,
-            'references' => [
-                'orderReference' => (string) $order->externalOrderId(),
-                'customerReference' => $order->customerNumber() !== null ? (string) $order->customerNumber() : null,
-            ],
+            'references' => self::mapReferences($order),
         ];
 
         $serviceCollection = $options->serviceOptions();
@@ -60,6 +57,26 @@ final class DhlBookingRequestDto
         }
 
         return new self($payload);
+    }
+
+    /**
+     * @return list<array{qualifier: string, value: string}>
+     */
+    private static function mapReferences(ShipmentOrder $order): array
+    {
+        $references = [];
+
+        $orderRef = (string) $order->externalOrderId();
+        if ($orderRef !== '') {
+            $references[] = ['qualifier' => 'CNR', 'value' => substr($orderRef, 0, 35)];
+        }
+
+        $customerNumber = $order->customerNumber();
+        if ($customerNumber !== null && (string) $customerNumber !== '') {
+            $references[] = ['qualifier' => 'CNR', 'value' => substr((string) $customerNumber, 0, 35)];
+        }
+
+        return $references;
     }
 
     /**
