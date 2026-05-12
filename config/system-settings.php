@@ -6,6 +6,15 @@ return [
             'label' => 'DHL Integration',
             'description' => 'Komplette DHL-API-Konfiguration: Auth, Tracking, Push-Webhooks und Backend.',
             'submit_label' => 'DHL-Einstellungen speichern',
+            // Diese Gruppe wurde nach admin.settings.dhl-freight.index konsolidiert.
+            // Felder bleiben in der Persistenz (DhlConfigurationRepository liest sie weiter),
+            // werden aber nicht mehr direkt im Settings-Tab editierbar gerendert
+            // (Engineering-Handbuch §75: eine Stelle pro UI-Muster).
+            'redirect_to' => [
+                'route' => 'admin.settings.dhl-freight.index',
+                'label' => 'Zu Versand → DHL Freight',
+                'description' => 'DHL-Konfiguration (Auth, Freight, Defaults, Tracking, Push) wurde nach Versand → DHL Freight verschoben.',
+            ],
             'fields' => [
                 [
                     'key' => 'dhl_auth_base_url',

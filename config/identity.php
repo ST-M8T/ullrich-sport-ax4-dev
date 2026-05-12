@@ -30,6 +30,10 @@ return [
             'label' => 'Integrationen verwalten',
             'description' => 'Ermöglicht das Einsehen, Bearbeiten und Testen von Integration-Konfigurationen.',
         ],
+        'settings.dhl_freight.manage' => [
+            'label' => 'DHL Freight Einstellungen verwalten',
+            'description' => 'Ermöglicht das Bearbeiten der konsolidierten DHL Freight Konfiguration (Auth, API, Tracking, Push).',
+        ],
         'dispatch.lists.manage' => [
             'label' => 'Dispatch-Listen verwalten',
             'description' => 'Erlaubt den Zugriff auf Dispatch-Listen und die Ausführung von Aktionen.',
@@ -45,6 +49,10 @@ return [
         'fulfillment.orders.view' => [
             'label' => 'Aufträge einsehen',
             'description' => 'Erlaubt den Zugriff auf die Auftragsübersicht und -details.',
+        ],
+        'fulfillment.orders.manage' => [
+            'label' => 'Aufträge verwalten',
+            'description' => 'Erlaubt das Buchen, Stornieren und Bulk-Verarbeiten von Aufträgen (DHL Booking, Cancellation, Bulk).',
         ],
         'fulfillment.shipments.manage' => [
             'label' => 'Sendungen verwalten',
@@ -92,6 +100,7 @@ return [
             'permissions' => [
                 'admin.access',
                 'fulfillment.orders.view',
+                'fulfillment.orders.manage',
                 'fulfillment.shipments.manage',
                 'fulfillment.masterdata.manage',
                 'fulfillment.csv_export.manage',
@@ -108,6 +117,7 @@ return [
                 'configuration.integrations.manage',
                 'configuration.notifications.manage',
                 'configuration.mail_templates.manage',
+                'settings.dhl_freight.manage',
             ],
         ],
         'operations' => [
@@ -116,6 +126,7 @@ return [
             'permissions' => [
                 'admin.access',
                 'fulfillment.orders.view',
+                'fulfillment.orders.manage',
                 'fulfillment.shipments.manage',
                 'fulfillment.masterdata.manage',
                 'fulfillment.csv_export.manage',
@@ -148,6 +159,7 @@ return [
                 'configuration.integrations.manage',
                 'configuration.mail_templates.manage',
                 'configuration.notifications.manage',
+                'settings.dhl_freight.manage',
                 'admin.setup.view',
             ],
         ],

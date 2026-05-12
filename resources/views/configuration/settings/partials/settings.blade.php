@@ -26,6 +26,28 @@
 
     @foreach($processedGroups as $slug => $group)
         @if($activeGroup === $slug)
+            @if(!empty($group['redirect_to']))
+                @php $redirect = $group['redirect_to']; @endphp
+                <section class="card shadow-sm mb-4">
+                    <div class="card-header">
+                        <div>
+                            <h2 class="h5 mb-0">{{ $group['label'] }}</h2>
+                            <p class="text-muted mb-0 small">{{ $group['description'] ?? '' }}</p>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-info mb-0 d-flex justify-content-between align-items-center gap-3 flex-wrap">
+                            <div>
+                                {{ $redirect['description'] ?? 'Diese Einstellungen wurden konsolidiert.' }}
+                            </div>
+                            <a href="{{ route($redirect['route']) }}" class="btn btn-primary btn-sm">
+                                {{ $redirect['label'] ?? 'Zur neuen Seite' }}
+                            </a>
+                        </div>
+                    </div>
+                </section>
+                @continue
+            @endif
             <section class="card shadow-sm mb-4">
                 <div class="card-header">
                     <div>

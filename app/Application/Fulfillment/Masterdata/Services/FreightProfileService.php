@@ -41,6 +41,19 @@ final class FreightProfileService
     }
 
     /**
+     * @return array<int, FulfillmentFreightProfile>
+     */
+    public function all(): array
+    {
+        $profiles = [];
+        foreach ($this->freightProfiles->all() as $profile) {
+            $profiles[] = $profile;
+        }
+
+        return $profiles;
+    }
+
+    /**
      * @param  array<string,mixed>  $payload
      */
     public function update(int $shippingProfileId, array $payload): FulfillmentFreightProfile

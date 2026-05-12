@@ -19,6 +19,16 @@ use Illuminate\View\View;
  */
 final class IntegrationController
 {
+    /**
+     * Integrationen, deren Konfiguration nach Versand → DHL Freight
+     * (admin.settings.dhl-freight.index) konsolidiert wurde. Aufrufe der
+     * alten Routen werden umgeleitet, damit Bookmarks/Deep-Links bestehen
+     * bleiben (Engineering-Handbuch §72: bestehende Schnittstellen respektieren).
+     */
+    private const REDIRECTED_TO_DHL_FREIGHT_SETTINGS = [
+        'dhl_freight',
+    ];
+
     public function __construct(
         private readonly IntegrationSettingsService $integrationService,
         private readonly Redirector $redirector,
@@ -35,6 +45,10 @@ final class IntegrationController
 
     public function show(string $integrationKey): View|RedirectResponse
     {
+        if (in_array($integrationKey, self::REDIRECTED_TO_DHL_FREIGHT_SETTINGS, true)) {
+            return $this->redirectToDhlFreightSettings();
+        }
+
         $integrationService = app(\App\Application\Integrations\IntegrationRegistry::class);
         $provider = $integrationService->get($integrationKey);
 
@@ -56,6 +70,10 @@ final class IntegrationController
 
     public function update(string $integrationKey, Request $request): RedirectResponse
     {
+        if (in_array($integrationKey, self::REDIRECTED_TO_DHL_FREIGHT_SETTINGS, true)) {
+            return $this->redirectToDhlFreightSettings();
+        }
+
         $data = $request->validate([
             'configuration' => ['required', 'array'],
         ]);
@@ -81,6 +99,10 @@ final class IntegrationController
 
     public function test(string $integrationKey, Request $request): RedirectResponse
     {
+        if (in_array($integrationKey, self::REDIRECTED_TO_DHL_FREIGHT_SETTINGS, true)) {
+            return $this->redirectToDhlFreightSettings();
+        }
+
         $data = $request->validate([
             'configuration' => ['required', 'array'],
         ]);
@@ -99,5 +121,17 @@ final class IntegrationController
         return $this->redirector
             ->back()
             ->with('error', 'Verbindungstest fehlgeschlagen.');
+    }
+
+    /**
+     * Konsolidierte DHL-Freight-Settings leben unter Versand → DHL Freight.
+     * Alte Integrations-Routen leiten dorthin um (Engineering-Handbuch §75:
+     * eine Quelle der Wahrheit für DHL-Konfiguration).
+     */
+    private function redirectToDhlFreightSettings(): RedirectResponse
+    {
+        return $this->redirector
+            ->route('admin.settings.dhl-freight.index')
+            ->with('info', 'DHL Freight Einstellungen wurden zentralisiert unter Versand → DHL Freight.');
     }
 }

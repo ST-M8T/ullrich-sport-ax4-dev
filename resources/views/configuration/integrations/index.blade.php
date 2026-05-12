@@ -18,6 +18,32 @@
     @if(session('error'))
         <div class="alert alert-error">{{ session('error') }}</div>
     @endif
+    @if(session('info'))
+        <div class="alert alert-info">{{ session('info') }}</div>
+    @endif
+
+    <div class="alert alert-info d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <strong>Hinweis:</strong>
+            DHL Freight-Konfiguration (Auth, Freight, Defaults, Tracking, Push) wurde zentralisiert.
+        </div>
+        <a href="{{ route('admin.settings.dhl-freight.index') }}" class="btn btn-sm btn-primary">
+            Zu Versand → DHL Freight
+        </a>
+    </div>
+
+    @php
+        // dhl_freight wurde nach admin.settings.dhl-freight.index ausgelagert (siehe Banner oben).
+        // Provider bleibt im Registry registriert, damit interne Validierung erhalten bleibt
+        // (Engineering-Handbuch §75: keine doppelten UI-Strukturen).
+        $integrationsByType = collect($integrationsByType)
+            ->map(fn ($providers) => collect($providers)
+                ->reject(fn ($provider) => $provider->key() === 'dhl_freight')
+                ->values()
+                ->all())
+            ->reject(fn ($providers) => empty($providers))
+            ->all();
+    @endphp
 
     @foreach($integrationsByType as $typeKey => $providers)
         @php

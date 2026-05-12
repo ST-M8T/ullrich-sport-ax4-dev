@@ -56,7 +56,7 @@ final class NavigationServiceTest extends TestCase
             $count += count($group['children']);
         }
 
-        self::assertSame(18, $count, 'Wave 14: insgesamt 18 Sub-Items unter 6 Gruppen (Tracking erweitert um Jobs + Alerts).');
+        self::assertSame(19, $count, 'AX4 t10 (DHL Freight): insgesamt 19 Sub-Items — Konfiguration erweitert um "Versand: DHL Freight".');
     }
 
     public function test_every_sub_item_declares_exactly_one_permission(): void

@@ -180,6 +180,12 @@ final class NavigationService
                         'route' => 'configuration-integrations',
                         'permissions' => ['configuration.integrations.manage'],
                     ],
+                    [
+                        'key' => 'admin-settings-dhl-freight',
+                        'label' => 'Versand: DHL Freight',
+                        'route' => 'admin.settings.dhl-freight.index',
+                        'permissions' => ['settings.dhl_freight.manage'],
+                    ],
                 ],
             ],
         ];
