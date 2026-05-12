@@ -9,6 +9,7 @@ use App\Application\Fulfillment\Integrations\Dhl\Services\DhlShipmentBookingServ
 use App\Domain\Fulfillment\Orders\Contracts\ShipmentOrderRepository;
 use App\Domain\Shared\ValueObjects\Identifier;
 use App\Http\Controllers\Api\Admin\Concerns\InteractsWithJsonApiResponses;
+use App\Http\Requests\Fulfillment\DhlBookingRequest;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -26,15 +27,9 @@ final class DhlBookingController
      *
      * Creates a DHL shipment booking for an existing shipment order.
      */
-    public function store(Request $request): JsonResponse
+    public function store(DhlBookingRequest $request): JsonResponse
     {
-        $validated = $request->validate([
-            'order_id' => ['required', 'integer', 'min:1'],
-            'product_id' => ['nullable', 'string', 'max:64'],
-            'additional_services' => ['nullable', 'array'],
-            'additional_services.*' => ['string', 'max:64'],
-            'pickup_date' => ['nullable', 'date', 'after_or_equal:today'],
-        ]);
+        $validated = $request->validated();
 
         try {
             $orderId = Identifier::fromInt((int) $validated['order_id']);

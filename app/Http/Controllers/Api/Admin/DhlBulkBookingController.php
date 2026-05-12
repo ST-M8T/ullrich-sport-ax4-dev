@@ -6,9 +6,8 @@ namespace App\Http\Controllers\Api\Admin;
 
 use App\Application\Fulfillment\Integrations\Dhl\Services\DhlBulkBookingService;
 use App\Http\Controllers\Api\Admin\Concerns\InteractsWithJsonApiResponses;
+use App\Http\Requests\Fulfillment\DhlBulkBookingRequest;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 
 final class DhlBulkBookingController
 {
@@ -24,26 +23,28 @@ final class DhlBulkBookingController
      * Books DHL shipments for multiple orders in a single request.
      * When more than 10 orders are provided, processing is delegated to a queue job.
      *
-     * @param Request $request
+     * @param DhlBulkBookingRequest $request
      * @return JsonResponse
      */
-    public function store(Request $request): JsonResponse
+    public function store(DhlBulkBookingRequest $request): JsonResponse
     {
-        $validated = $request->validate([
-            'order_ids' => ['required', 'array', 'min:1'],
-            'order_ids.*' => ['required', 'integer', 'min:1'],
-            'product_id' => ['nullable', 'string', 'max:64'],
-            'additional_services' => ['nullable', 'array'],
-            'additional_services.*' => ['string', 'max:64'],
-            'pickup_date' => ['nullable', 'date', 'after_or_equal:today'],
-        ]);
+        $validated = $request->validated();
 
         try {
+            // Bulk-Service nimmt aktuell den legacy product_id-String entgegen.
+            // Wir bevorzugen den validierten product_code (3 Zeichen, uppercase),
+            // fallen fuer Backwards-Compat auf product_id zurueck.
+            $productString = isset($validated['product_code'])
+                ? (string) $validated['product_code']
+                : (string) ($validated['product_id'] ?? '');
+
             $result = ($this->bulkBookingService)->bookBulk(
                 (array) $validated['order_ids'],
-                (string) ($validated['product_id'] ?? ''),
+                $productString,
                 (array) ($validated['additional_services'] ?? []),
                 isset($validated['pickup_date']) ? (string) $validated['pickup_date'] : null,
+                isset($validated['payer_code']) ? (string) $validated['payer_code'] : null,
+                isset($validated['default_package_type']) ? (string) $validated['default_package_type'] : null,
             );
 
             if ($result['queued']) {

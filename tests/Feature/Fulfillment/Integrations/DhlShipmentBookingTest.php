@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Fulfillment\Integrations;
 
+use App\Application\Configuration\SystemSettingService;
 use App\Application\Fulfillment\Integrations\Dhl\DTOs\DhlBookingOptions;
 use App\Application\Fulfillment\Integrations\Dhl\Services\DhlShipmentBookingService;
 use App\Domain\Shared\ValueObjects\Identifier;
 use App\Infrastructure\Persistence\Fulfillment\Eloquent\Masterdata\FulfillmentSenderProfileModel;
 use App\Infrastructure\Persistence\Fulfillment\Eloquent\Orders\ShipmentOrderModel;
+use App\Infrastructure\Persistence\Fulfillment\Eloquent\Orders\ShipmentPackageModel;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
@@ -31,6 +33,19 @@ final class DhlShipmentBookingTest extends TestCase
             'services.dhl_freight.base_url' => 'https://api-sandbox.dhl.com/freight',
             'services.dhl_freight.api_key' => 'fallback-api-key',
         ]);
+
+        // EloquentDhlConfigurationRepository (production code path) reads from
+        // the system_settings table — not from config(). Seed the required keys
+        // so the booking service can resolve auth + freight credentials.
+        /** @var SystemSettingService $settings */
+        $settings = $this->app->make(SystemSettingService::class);
+        $settings->set('dhl_auth_base_url', 'https://api-sandbox.dhl.com', 'string');
+        $settings->set('dhl_auth_username', 'client-id', 'string');
+        $settings->set('dhl_auth_password', 'client-secret', 'secret');
+        $settings->set('dhl_freight_base_url', 'https://api-sandbox.dhl.com/freight', 'string');
+        $settings->set('dhl_freight_api_key', 'fallback-api-key', 'secret');
+        $settings->set('dhl_freight_api_secret', 'fallback-api-secret', 'secret');
+        $settings->set('dhl_default_account_number', '12345678', 'string');
 
         Cache::forget('dhl.auth.token:access_token');
     }
@@ -55,11 +70,18 @@ final class DhlShipmentBookingTest extends TestCase
             'sender_profile_id' => $senderProfile->id,
             'is_booked' => false,
         ]);
+        ShipmentPackageModel::factory()->create([
+            'shipment_order_id' => $order->id,
+        ]);
 
         $service = $this->app->make(DhlShipmentBookingService::class);
         $result = $service->bookShipment(
             Identifier::fromInt($order->id),
-            DhlBookingOptions::fromArray([])
+            DhlBookingOptions::fromArray([
+                'product_code' => 'EC',
+                'payer_code' => 'DAP',
+                'default_package_type' => 'PLT',
+            ])
         );
 
         $this->assertTrue($result->success);
@@ -90,11 +112,18 @@ final class DhlShipmentBookingTest extends TestCase
             'sender_profile_id' => $senderProfile->id,
             'is_booked' => false,
         ]);
+        ShipmentPackageModel::factory()->create([
+            'shipment_order_id' => $order->id,
+        ]);
 
         $service = $this->app->make(DhlShipmentBookingService::class);
         $result = $service->bookShipment(
             Identifier::fromInt($order->id),
-            DhlBookingOptions::fromArray([])
+            DhlBookingOptions::fromArray([
+                'product_code' => 'EC',
+                'payer_code' => 'DAP',
+                'default_package_type' => 'PLT',
+            ])
         );
 
         $this->assertFalse($result->success);

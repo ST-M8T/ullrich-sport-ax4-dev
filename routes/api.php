@@ -54,10 +54,12 @@ Route::prefix('admin')
             ->middleware('can:admin.setup.view');
 
         Route::get('dhl/products', [DhlProductCatalogController::class, 'listProducts'])
-            ->middleware('can:fulfillment.orders.view');
+            ->middleware('can:fulfillment.orders.view')
+            ->name('api.dhl.products');
 
         Route::get('dhl/services', [DhlProductCatalogController::class, 'listAdditionalServices'])
-            ->middleware('can:fulfillment.orders.view');
+            ->middleware('can:fulfillment.orders.view')
+            ->name('api.dhl.services');
 
         Route::get('dhl/tracking/{trackingNumber}/events', [DhlTrackingEventsController::class, 'show'])
             ->where('trackingNumber', '.+')
@@ -65,7 +67,8 @@ Route::prefix('admin')
             ->name('dhl.tracking.events');
 
         Route::post('dhl/validate-services', [DhlProductCatalogController::class, 'validateServices'])
-            ->middleware('can:fulfillment.orders.view');
+            ->middleware('can:fulfillment.orders.view')
+            ->name('api.dhl.validate-services');
 
         Route::get('dhl/timetable', [DhlTimetableController::class, 'show'])
             ->middleware('can:fulfillment.orders.view');

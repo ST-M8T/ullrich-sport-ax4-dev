@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace Tests\Feature\Api;
 
 use App\Domain\Integrations\Contracts\DhlFreightGateway;
-use Illuminate\Http\Client\RequestException;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\Client\ConnectionException;
+use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
 /**
@@ -21,6 +23,8 @@ use Tests\TestCase;
  */
 final class DhlTimetableControllerTest extends TestCase
 {
+    use RefreshDatabase;
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -74,8 +78,8 @@ final class DhlTimetableControllerTest extends TestCase
 
     public function test_show_returns_403_when_user_lacks_permission(): void
     {
-        // viewer has admin.access but not fulfillment.orders.view
-        $this->signInWithRole('viewer');
+        // support has admin.access but not fulfillment.orders.view
+        $this->signInWithRole('support');
 
         $response = $this->getJson('/api/admin/dhl/timetable?'.http_build_query([
             'origin_postal_code' => '10115',
@@ -115,9 +119,7 @@ final class DhlTimetableControllerTest extends TestCase
     {
         Http::fake([
             'https://freight.example/info/time-table/v1/gettimetable' => function () {
-                throw new RequestException(
-                    Http::response(['message' => 'Gateway error'], 502),
-                );
+                throw new ConnectionException('Gateway unreachable');
             },
         ]);
 

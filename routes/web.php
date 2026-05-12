@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\Settings\DhlFreightSettingsController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Configuration\MailTemplateController;
 use App\Http\Controllers\Configuration\NotificationController;
@@ -384,6 +385,15 @@ Route::middleware(['web', 'auth', 'can:admin.access'])
             ->where('integrationKey', '[a-z0-9_\-]+')
             ->middleware('can:configuration.integrations.manage')
             ->name('configuration-integrations.test');
+
+        Route::prefix('settings/dhl-freight')
+            ->name('admin.settings.dhl-freight.')
+            ->middleware('can:settings.dhl_freight.manage')
+            ->group(function () {
+                Route::get('/', [DhlFreightSettingsController::class, 'index'])->name('index');
+                Route::put('/', [DhlFreightSettingsController::class, 'update'])->name('update');
+                Route::post('/test-connection', [DhlFreightSettingsController::class, 'testConnection'])->name('test-connection');
+            });
 
         Route::get('/monitoring/audit-logs', [AuditLogController::class, 'index'])
             ->middleware('can:monitoring.audit_logs.view')

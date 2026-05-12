@@ -5,7 +5,10 @@ declare(strict_types=1);
 namespace Tests\Feature\Integrations;
 
 use App\Infrastructure\Persistence\Fulfillment\Eloquent\Masterdata\FulfillmentSenderProfileModel;
+use App\Infrastructure\Persistence\Fulfillment\Eloquent\Orders\ShipmentModel;
 use App\Infrastructure\Persistence\Fulfillment\Eloquent\Orders\ShipmentOrderModel;
+use App\Infrastructure\Persistence\Fulfillment\Eloquent\Orders\ShipmentOrderShipmentModel;
+use App\Infrastructure\Persistence\Fulfillment\Eloquent\Orders\ShipmentPackageModel;
 use App\Infrastructure\Persistence\Identity\Eloquent\UserModel;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
@@ -45,7 +48,37 @@ final class DhlApiRoutesTest extends TestCase
         parent::setUp();
 
         $this->configureDhlConfig();
+        $this->seedDhlSystemSettings();
         $this->mockDhlAuthGateway();
+    }
+
+    /**
+     * Seed required DHL system_settings rows so EloquentDhlConfigurationRepository::load()
+     * does not throw DhlConfigurationException for missing 'dhl_*' keys.
+     *
+     * Engineering-Handbuch §15: technische Eingaben am Rand vorbefüllen,
+     * damit die Domain-Invariante (Pflicht-Settings) im Test erfüllt ist.
+     */
+    private function seedDhlSystemSettings(): void
+    {
+        /** @var \App\Application\Configuration\SystemSettingService $settings */
+        $settings = $this->app->make(\App\Application\Configuration\SystemSettingService::class);
+
+        $required = [
+            'dhl_auth_base_url' => ['https://test-auth.example', 'string'],
+            'dhl_auth_username' => ['test', 'string'],
+            'dhl_auth_password' => ['test', 'secret'],
+            'dhl_freight_base_url' => ['https://freight.example', 'string'],
+            'dhl_freight_api_key' => ['test-key', 'string'],
+            'dhl_freight_api_secret' => ['test-secret', 'secret'],
+            'dhl_default_account_number' => ['12345', 'string'],
+            'dhl_freight_timeout' => ['30', 'int'],
+            'dhl_freight_verify_ssl' => ['1', 'bool'],
+        ];
+
+        foreach ($required as $key => [$value, $type]) {
+            $settings->set($key, $value, $type);
+        }
     }
 
     // -------------------------------------------------------------------------
@@ -80,6 +113,13 @@ final class DhlApiRoutesTest extends TestCase
                 'paths' => [
                     'timetable' => '/info/time-table/v1/gettimetable',
                     'products' => '/info/products/services/v1/products',
+                    'additional_services' => '/info/products/services/v1/products/{productId}/additionalservices',
+                    'additional_services_validation' => '/info/products/services/v1/products/{productId}/additionalservices/validationresults',
+                    'shipments' => '/shipping/orders/v1/sendtransportinstruction',
+                    'price_quote' => '/info/pricequote/v1/quoteforprice',
+                    'label' => '/shipping/labels/v1/printdocumentsbyid',
+                    'print_documents' => '/shipping/labels/v1/printdocuments',
+                    'print_multiple_documents' => '/shipping/labels/v1/printmultipledocuments',
                 ],
                 'timeout' => 5,
                 'connect_timeout' => 2,
@@ -119,11 +159,35 @@ final class DhlApiRoutesTest extends TestCase
     }
 
     /**
-     * Sign in as a viewer (has admin access but NOT fulfillment.orders permissions).
+     * Sign in as a viewer (has admin access AND fulfillment.orders.view, but NOT fulfillment.orders.manage).
+     * Use this for `.manage`-route 403 expectations.
      */
     private function signInAsViewer(): UserModel
     {
         return $this->signInWithRole('viewer');
+    }
+
+    /**
+     * Sign in as a user with admin.access but NO fulfillment.orders.* permissions.
+     * Use this for `.view`-route 403 expectations.
+     */
+    private function signInAsNoOrderAccess(): UserModel
+    {
+        return $this->signInWithRole('support');
+    }
+
+    /**
+     * Attach a shipment with the given tracking number to a shipment order via the
+     * shipment_order_shipments pivot. Domain ShipmentOrder hydrates trackingNumbers
+     * from this relation — there is no `tracking_numbers` column on shipment_orders.
+     */
+    private function attachTrackingNumber(ShipmentOrderModel $order, string $trackingNumber): void
+    {
+        $shipment = ShipmentModel::factory()->create(['tracking_number' => $trackingNumber]);
+        ShipmentOrderShipmentModel::factory()->create([
+            'shipment_order_id' => $order->id,
+            'shipment_id' => $shipment->id,
+        ]);
     }
 
     /**
@@ -133,9 +197,32 @@ final class DhlApiRoutesTest extends TestCase
     {
         $senderProfile = FulfillmentSenderProfileModel::factory()->create();
 
-        return ShipmentOrderModel::factory()->create([
+        $order = ShipmentOrderModel::factory()->create([
             'sender_profile_id' => $senderProfile->id,
             'is_booked' => false,
+            'receiver_street' => 'Teststrasse 1',
+            'receiver_postal_code' => '80331',
+            'receiver_city_name' => 'Munich',
+            'receiver_country_code' => 'DE',
+            'receiver_company_name' => 'Acme GmbH',
+            'receiver_contact_name' => 'Max Mustermann',
+            'receiver_email' => 'max@example.com',
+            'receiver_phone' => '+49 89 12345678',
+        ]);
+
+        $this->attachPackage($order);
+
+        return $order;
+    }
+
+    /**
+     * Attach at least one ShipmentPackage to an order so DhlPayloadAssembler
+     * can assemble a valid 'pieces' array (DHL spec requires >= 1 piece).
+     */
+    private function attachPackage(ShipmentOrderModel $order, int $count = 1): void
+    {
+        ShipmentPackageModel::factory()->count($count)->create([
+            'shipment_order_id' => $order->id,
         ]);
     }
 
@@ -156,7 +243,7 @@ final class DhlApiRoutesTest extends TestCase
 
     public function test_timetable_returns_403_when_user_lacks_permission(): void
     {
-        $this->signInAsViewer();
+        $this->signInAsNoOrderAccess();
 
         $response = $this->getJson(self::BASE_URL.'/timetable?'.http_build_query([
             'origin_postal_code' => '10115',
@@ -216,7 +303,7 @@ final class DhlApiRoutesTest extends TestCase
 
     public function test_products_returns_403_when_user_lacks_permission(): void
     {
-        $this->signInAsViewer();
+        $this->signInAsNoOrderAccess();
 
         $response = $this->getJson(self::BASE_URL.'/products');
 
@@ -264,7 +351,7 @@ final class DhlApiRoutesTest extends TestCase
 
     public function test_services_returns_403_when_user_lacks_permission(): void
     {
-        $this->signInAsViewer();
+        $this->signInAsNoOrderAccess();
 
         $response = $this->getJson(self::BASE_URL.'/services?product_id=EXPRESS');
 
@@ -278,13 +365,14 @@ final class DhlApiRoutesTest extends TestCase
         $response = $this->getJson(self::BASE_URL.'/services');
 
         $response->assertStatus(422);
-        $response->assertJsonValidationErrors(['product_id']);
+        // Controller emits JSON-API error format (see InteractsWithJsonApiResponses)
+        $response->assertJsonPath('errors.0.source.pointer', '/product_id');
     }
 
     public function test_services_returns_valid_json_api_response_when_authenticated_and_authorized(): void
     {
         Http::fake([
-            'https://freight.example/info/products/services/v1/products/EXPRESS/services' => Http::response([
+            'https://freight.example/info/products/services/v1/products/EXPRESS/additionalservices' => Http::response([
                 [
                     'serviceCode' => 'S1',
                     'name' => 'Saturday Delivery',
@@ -324,7 +412,7 @@ final class DhlApiRoutesTest extends TestCase
 
     public function test_validate_services_returns_403_when_user_lacks_permission(): void
     {
-        $this->signInAsViewer();
+        $this->signInAsNoOrderAccess();
 
         $response = $this->postJson(self::BASE_URL.'/validate-services', [
             'product_id' => 'EXPRESS',
@@ -389,7 +477,7 @@ final class DhlApiRoutesTest extends TestCase
     public function test_price_quote_returns_403_when_user_lacks_permission(): void
     {
         $order = $this->makeShipmentOrder();
-        $this->signInAsViewer();
+        $this->signInAsNoOrderAccess();
 
         $response = $this->getJson(self::BASE_URL.'/price-quote?order_id='.$order->id);
 
@@ -424,7 +512,10 @@ final class DhlApiRoutesTest extends TestCase
 
         $this->signInAsAdmin();
 
-        $response = $this->getJson(self::BASE_URL.'/price-quote?order_id='.$order->id);
+        $response = $this->getJson(self::BASE_URL.'/price-quote?'.http_build_query([
+            'order_id' => $order->id,
+            'product_id' => 'EUP',
+        ]));
 
         $response->assertOk();
         $response->assertHeader('Content-Type', 'application/vnd.api+json');
@@ -473,7 +564,16 @@ final class DhlApiRoutesTest extends TestCase
     {
         $this->signInAsAdmin();
 
+        // Send all OTHER required fields so only order_id is missing.
+        // order_id uses 'sometimes' (web route uses path param) — but when
+        // the API body omits it AND no route binding exists, the booking
+        // service must fail validation. Here we expect 422 because product_code
+        // alone is not enough; missing order_id must surface as a 422 with
+        // an order_id validation error from the DhlBookingRequest enforcement.
         $response = $this->postJson(self::BASE_URL.'/booking', [
+            'product_code' => 'EUP',
+            'payer_code' => 'DAP',
+            'default_package_type' => 'EUP',
             'product_id' => 'EXPRESS',
         ]);
 
@@ -497,12 +597,10 @@ final class DhlApiRoutesTest extends TestCase
 
         $response = $this->postJson(self::BASE_URL.'/booking', [
             'order_id' => $order->id,
-            'product_id' => 'EXPRESS',
+            'product_code' => 'EUP',
+            'payer_code' => 'DAP',
+            'default_package_type' => 'EUP',
         ]);
-
-        // DEBUG: dump response content
-        dump('booking status:', $response->getStatusCode());
-        dump('booking content:', $response->getContent());
 
         $response->assertCreated();
         $response->assertHeader('Content-Type', 'application/vnd.api+json');
@@ -533,7 +631,7 @@ final class DhlApiRoutesTest extends TestCase
     public function test_booking_show_returns_403_when_user_lacks_permission(): void
     {
         $order = $this->makeShipmentOrder();
-        $this->signInAsViewer();
+        $this->signInAsNoOrderAccess();
 
         $response = $this->getJson(self::BASE_URL.'/booking/'.$order->id);
 
@@ -594,7 +692,9 @@ final class DhlApiRoutesTest extends TestCase
     public function test_label_returns_403_when_user_lacks_permission(): void
     {
         $order = $this->makeShipmentOrder();
-        $this->signInAsViewer();
+        // Route uses can:fulfillment.orders.view; viewer HAS that. Use a role
+        // without fulfillment.orders.* permissions (support) to exercise 403.
+        $this->signInAsNoOrderAccess();
 
         $response = $this->getJson(self::BASE_URL.'/label/'.$order->id);
 
@@ -620,6 +720,7 @@ final class DhlApiRoutesTest extends TestCase
             'is_booked' => true,
             'dhl_shipment_id' => 'DHL-12345',
         ]);
+        $this->attachPackage($order);
 
         Http::fake([
             'https://freight.example/*' => Http::response([
@@ -670,7 +771,15 @@ final class DhlApiRoutesTest extends TestCase
 
     public function test_cancel_returns_valid_json_api_response_when_authenticated_and_authorized(): void
     {
-        $order = $this->makeShipmentOrder();
+        // Cancellation requires a booked order with a dhl_shipment_id.
+        // Otherwise DhlCancellationService returns success=false → 422.
+        $senderProfile = FulfillmentSenderProfileModel::factory()->create();
+        $order = ShipmentOrderModel::factory()->create([
+            'sender_profile_id' => $senderProfile->id,
+            'is_booked' => true,
+            'dhl_shipment_id' => 'DHL-CANCEL-TEST',
+        ]);
+        $this->attachPackage($order);
 
         Http::fake([
             'https://freight.example/*' => Http::response([
@@ -759,18 +868,10 @@ final class DhlApiRoutesTest extends TestCase
 
         $response = $this->postJson(self::BASE_URL.'/bulk-book', [
             'order_ids' => [$order1->id, $order2->id],
-            'product_id' => 'EXPRESS',
+            'product_code' => 'EUP',
+            'payer_code' => 'DAP',
+            'default_package_type' => 'EUP',
         ]);
-
-        // DEBUG: dump response content
-        dump('bulk-book status:', $response->getStatusCode());
-        $content = $response->getContent();
-        dump('bulk-book content length:', strlen($content));
-        if (strlen($content) < 2000) {
-            dump('bulk-book content:', $content);
-        } else {
-            dump('bulk-book content preview:', substr($content, 0, 500));
-        }
 
         $response->assertOk();
         $response->assertHeader('Content-Type', 'application/vnd.api+json');
@@ -870,7 +971,9 @@ final class DhlApiRoutesTest extends TestCase
 
     public function test_tracking_events_returns_403_when_user_lacks_permission(): void
     {
-        $this->signInAsViewer();
+        // Route uses can:fulfillment.orders.view; viewer HAS that. Use a role
+        // without fulfillment.orders.* permissions (support) to exercise 403.
+        $this->signInAsNoOrderAccess();
 
         $response = $this->getJson(self::BASE_URL.'/tracking/TRACK12345678/events');
 
@@ -891,10 +994,11 @@ final class DhlApiRoutesTest extends TestCase
         $senderProfile = FulfillmentSenderProfileModel::factory()->create();
         $order = ShipmentOrderModel::factory()->create([
             'sender_profile_id' => $senderProfile->id,
- 'is_booked' => true,
+            'is_booked' => true,
             'dhl_shipment_id' => 'DHL-12345',
-            'tracking_numbers' => ['TRACK12345678'],
         ]);
+        $this->attachPackage($order);
+        $this->attachTrackingNumber($order, 'TRACK12345678');
 
         // The GetShipmentDetail query fetches from DB, not from DHL gateway
         $this->signInAsAdmin();

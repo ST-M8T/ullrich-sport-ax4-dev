@@ -34,6 +34,18 @@ final class ShipmentOrderModelFactory extends Factory
             'booked_by' => $isBooked ? $this->faker->name() : null,
             'shipped_at' => $this->faker->optional()->dateTimeBetween('-3 days', 'now'),
             'last_export_filename' => $this->faker->optional()->lexify('export-????.csv'),
+            // Receiver address (typed columns) — required by ShipmentReceiverAddress hydration
+            // in EloquentShipmentOrderRepository::mapReceiverAddress(). DhlPartyMapper
+            // (DhlPartyMapper::consigneeFromOrder) raises a LogicException if missing.
+            'receiver_company_name' => $this->faker->company(),
+            'receiver_contact_name' => $this->faker->name(),
+            'receiver_street' => mb_substr($this->faker->streetAddress(), 0, 50),
+            'receiver_additional_address_info' => null,
+            'receiver_postal_code' => mb_substr($this->faker->postcode(), 0, 10),
+            'receiver_city_name' => mb_substr($this->faker->city(), 0, 35),
+            'receiver_country_code' => 'DE',
+            'receiver_email' => $this->faker->safeEmail(),
+            'receiver_phone' => mb_substr($this->faker->phoneNumber(), 0, 20),
             'metadata' => [
                 'channel' => $this->faker->randomElement(['plenty', 'manual']),
                 'priority' => $this->faker->randomElement(['normal', 'express']),

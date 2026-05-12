@@ -6,10 +6,9 @@ use App\Application\Monitoring\AuditLogger;
 use App\Application\Monitoring\DomainEventService;
 use App\Domain\Fulfillment\Orders\Contracts\ShipmentOrderRepository;
 use App\Domain\Fulfillment\Orders\ShipmentOrder;
-use App\Domain\Fulfillment\Orders\ShipmentOrderItem;
 use App\Domain\Integrations\Contracts\PlentyOrderGateway;
-use App\Domain\Shared\ValueObjects\Identifier;
 use DateTimeImmutable;
+use InvalidArgumentException;
 
 final class PlentyOrderSyncService
 {
@@ -18,6 +17,7 @@ final class PlentyOrderSyncService
         private readonly ShipmentOrderRepository $orders,
         private readonly DomainEventService $events,
         private readonly AuditLogger $auditLogger,
+        private readonly PlentyOrderMapper $mapper = new PlentyOrderMapper(),
     ) {}
 
     /**
@@ -118,34 +118,18 @@ final class PlentyOrderSyncService
      */
     private function persistOrderFromPayload(array $orderData): ?array
     {
-        $orderId = (int) ($orderData['id'] ?? 0);
-        if ($orderId <= 0) {
+        try {
+            $mapped = $this->mapper->mapToOrderData($orderData);
+        } catch (InvalidArgumentException) {
             return null;
         }
+
+        $orderId = $mapped['externalOrderId'];
 
         $existing = $this->orders->getByExternalOrderId($orderId);
         $identifier = $existing?->id() ?? $this->orders->nextIdentity();
 
-        $items = [];
-        foreach (($orderData['orderItems'] ?? []) as $item) {
-            $itemId = (int) ($item['id'] ?? 0);
-            if ($itemId <= 0) {
-                continue;
-            }
-
-            $items[] = ShipmentOrderItem::hydrate(
-                Identifier::fromInt($itemId),
-                $identifier,
-                $item['itemId'] ?? null,
-                $item['variationId'] ?? null,
-                $item['sku'] ?? null,
-                $item['text'] ?? null,
-                (int) ($item['quantity'] ?? 1),
-                null,
-                null,
-                false,
-            );
-        }
+        $items = $this->mapper->mapItems($orderData, $identifier);
 
         $packages = $existing?->packages() ?? [];
         $trackingNumbers = $existing?->trackingNumbers() ?? [];
@@ -153,28 +137,26 @@ final class PlentyOrderSyncService
         $metadata = $existing?->metadata() ?? [];
         $metadata['plenty'] = $orderData;
 
-        $processedAt = $existing?->processedAt() ?? $this->parseDate($orderData['processedAt'] ?? null);
-        $bookedAt = $this->parseDate($orderData['bookedAt'] ?? null) ?? $existing?->bookedAt();
-        $shippedAt = $this->parseDate($orderData['shippedAt'] ?? null) ?? $existing?->shippedAt();
-        $createdAt = $existing?->createdAt() ?? $this->parseDate($orderData['createdAt'] ?? null) ?? new DateTimeImmutable;
-        $updatedAt = $this->parseDate($orderData['updatedAt'] ?? null) ?? new DateTimeImmutable;
+        $processedAt = $existing?->processedAt() ?? $mapped['processedAt'];
+        $bookedAt = $mapped['bookedAt'] ?? $existing?->bookedAt();
+        $shippedAt = $mapped['shippedAt'] ?? $existing?->shippedAt();
+        $createdAt = $existing?->createdAt() ?? $mapped['createdAt'] ?? new DateTimeImmutable;
+        $updatedAt = $mapped['updatedAt'] ?? new DateTimeImmutable;
 
         $senderProfileId = $existing?->senderProfileId();
-        $senderCode = $existing?->senderCode() ?? ($orderData['sender']['company'] ?? null);
-        $contactEmail = $orderData['receiver']['email'] ?? $existing?->contactEmail();
-        $contactPhone = $orderData['receiver']['phone'] ?? $existing?->contactPhone();
-        $destinationCountry = $orderData['receiver']['country'] ?? $existing?->destinationCountry();
-        $currency = $orderData['currency'] ?? $existing?->currency() ?? 'EUR';
-        $totalAmount = isset($orderData['amounts'][0]['grossTotal'])
-            ? (float) $orderData['amounts'][0]['grossTotal']
-            : $existing?->totalAmount();
+        $senderCode = $existing?->senderCode() ?? $mapped['senderCompany'];
+        $contactEmail = $mapped['contactEmail'] ?? $existing?->contactEmail();
+        $contactPhone = $mapped['contactPhone'] ?? $existing?->contactPhone();
+        $destinationCountry = $mapped['destinationCountry'] ?? $existing?->destinationCountry();
+        $currency = $mapped['currency'] ?? $existing?->currency() ?? 'EUR';
+        $totalAmount = $mapped['totalAmount'] ?? $existing?->totalAmount();
 
         $order = ShipmentOrder::hydrate(
             $identifier,
             $orderId,
-            $orderData['contactId'] ?? null,
-            $orderData['plentyId'] ?? null,
-            $orderData['type'] ?? null,
+            $mapped['customerNumberAsInt'],
+            $mapped['plentyId'],
+            $mapped['type'],
             $senderProfileId,
             $senderCode,
             $contactEmail,
@@ -183,9 +165,9 @@ final class PlentyOrderSyncService
             $currency,
             $totalAmount,
             $processedAt,
-            ($orderData['status'] ?? '') === 'BOOKED',
+            $mapped['isBooked'],
             $bookedAt,
-            $orderData['bookedBy'] ?? null,
+            $mapped['bookedBy'],
             $shippedAt,
             $existing?->lastExportFilename(),
             $items,
@@ -206,7 +188,7 @@ final class PlentyOrderSyncService
             (string) $order->id()->toInt(),
             [
                 'external_order_id' => $order->externalOrderId(),
-                'status' => $orderData['status'] ?? null,
+                'status' => $mapped['status'],
                 'synced_at' => (new DateTimeImmutable)->format(DATE_ATOM),
                 'is_update' => $wasUpdate,
             ],
@@ -234,14 +216,5 @@ final class PlentyOrderSyncService
             'order' => $order,
             'wasUpdate' => $wasUpdate,
         ];
-    }
-
-    private function parseDate(?string $value): ?DateTimeImmutable
-    {
-        if (! $value) {
-            return null;
-        }
-
-        return new DateTimeImmutable($value);
     }
 }

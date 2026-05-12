@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Infrastructure\Persistence\Fulfillment\Eloquent\Masterdata\FulfillmentFreightProfileModel;
 use App\Infrastructure\Persistence\Fulfillment\Eloquent\Orders\ShipmentModel;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -16,7 +17,7 @@ final class ShipmentModelFactory extends Factory
     {
         return [
             'carrier_code' => $this->faker->randomElement(['dhl', 'ups', 'dpd']),
-            'shipping_profile_id' => $this->faker->optional()->numberBetween(1, 9999),
+            'shipping_profile_id' => fn () => FulfillmentFreightProfileModel::factory()->create()->shipping_profile_id,
             'tracking_number' => strtoupper($this->faker->bothify('TRK########')),
             'status_code' => $this->faker->randomElement(['CREATED', 'IN_TRANSIT', 'DELIVERED']),
             'status_description' => $this->faker->sentence(3),

@@ -6,6 +6,8 @@ namespace App\Http\Controllers\Api\Admin;
 
 use App\Domain\Integrations\Contracts\DhlFreightGateway;
 use App\Http\Controllers\Api\Admin\Concerns\InteractsWithJsonApiResponses;
+use Illuminate\Http\Client\ConnectionException;
+use Illuminate\Http\Client\RequestException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -44,6 +46,8 @@ final class DhlTimetableController
                     'attributes' => $response,
                 ],
             ]);
+        } catch (RequestException|ConnectionException $exception) {
+            return $this->jsonApiError(502, 'Bad Gateway', $exception->getMessage());
         } catch (\Throwable $exception) {
             return $this->jsonApiError(500, 'Internal Server Error', $exception->getMessage());
         }

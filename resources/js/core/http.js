@@ -4,6 +4,24 @@
  */
 
 /**
+ * Reads the CSRF token from the standard Laravel meta tag.
+ * Fallback: hidden `_token` input (used in classic Blade forms).
+ *
+ * Engineering-Handbuch §75.4: Eine Stelle für jede API-Header-Logik —
+ * keine duplizierten `meta[name="csrf-token"]`-Lookups.
+ *
+ * @returns {string} The CSRF token, or an empty string if none is present.
+ */
+export const getCsrfToken = () => {
+    const meta = document.querySelector('meta[name="csrf-token"]');
+    if (meta?.getAttribute('content')) {
+        return meta.getAttribute('content');
+    }
+    const input = document.querySelector('input[name="_token"]');
+    return input?.value ?? '';
+};
+
+/**
  * Fetches JSON data from an endpoint
  * @param {string} url - The URL to fetch
  * @param {Object} options - Fetch options

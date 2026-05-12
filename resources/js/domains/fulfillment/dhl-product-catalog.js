@@ -4,6 +4,7 @@
  */
 
 import { BaseModal } from '../../components/modal/base';
+import { getCsrfToken } from '../../core/http';
 
 class DhlProductCatalogModal extends BaseModal {
     constructor() {
@@ -369,7 +370,7 @@ class DhlProductCatalogModal extends BaseModal {
             const csrfInput = document.createElement('input');
             csrfInput.type = 'hidden';
             csrfInput.name = '_token';
-            csrfInput.value = this.getCsrfToken();
+            csrfInput.value = getCsrfToken();
             form.appendChild(csrfInput);
 
             const productInput = document.createElement('input');
@@ -398,11 +399,6 @@ class DhlProductCatalogModal extends BaseModal {
             this.renderContent();
             this.renderFooter();
         }
-    }
-
-    getCsrfToken() {
-        const meta = document.querySelector('meta[name="csrf-token"]');
-        return meta?.content || document.querySelector('input[name="_token"]')?.value || '';
     }
 
     escapeHtml(str) {

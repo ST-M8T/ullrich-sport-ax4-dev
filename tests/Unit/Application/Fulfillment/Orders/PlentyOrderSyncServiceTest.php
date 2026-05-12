@@ -68,6 +68,7 @@ final class PlentyOrderSyncServiceTest extends TestCase
             ->once()
             ->withArgs(function (ShipmentOrder $order): bool {
                 $this->assertSame(120, $order->externalOrderId());
+                $this->assertSame(44, $order->customerNumber());
                 $this->assertSame('SenderCo', $order->senderCode());
                 $this->assertSame('customer@example.test', $order->contactEmail());
                 $this->assertSame('EUR', $order->currency());
@@ -173,7 +174,9 @@ final class PlentyOrderSyncServiceTest extends TestCase
     {
         return [
             'id' => $orderId,
-            'contactId' => 44,
+            'billingAddress' => [
+                'contactId' => 44,
+            ],
             'plentyId' => 1234,
             'type' => 'order',
             'sender' => ['company' => 'SenderCo'],

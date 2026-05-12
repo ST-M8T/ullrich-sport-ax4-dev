@@ -9,6 +9,7 @@ use App\Domain\Shared\ValueObjects\Identifier;
 use App\Infrastructure\Persistence\Fulfillment\Eloquent\Masterdata\FulfillmentSenderProfileModel;
 use App\Infrastructure\Persistence\Fulfillment\Eloquent\Orders\ShipmentOrderModel;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
@@ -16,9 +17,31 @@ final class DhlLabelServiceTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        config([
+            'services.dhl_auth.base_url' => 'https://api-sandbox.dhl.com',
+            'services.dhl_auth.username' => 'client-id',
+            'services.dhl_auth.password' => 'client-secret',
+            'services.dhl_auth.path' => '/auth/v1/token',
+            'services.dhl_auth.token_cache_ttl' => 0,
+            'services.dhl_freight.base_url' => 'https://api-sandbox.dhl.com/freight',
+            'services.dhl_freight.api_key' => 'fallback-api-key',
+        ]);
+
+        Cache::forget('dhl.auth.token:access_token');
+    }
+
     public function test_generate_label_success(): void
     {
         Http::fake([
+            'https://api-sandbox.dhl.com/auth/v1/token' => Http::response([
+                'access_token' => 'test-token',
+                'token_type' => 'Bearer',
+                'expires_in' => 3600,
+            ], 200),
             'api-sandbox.dhl.com/*' => Http::response([
                 'labelUrl' => 'https://example.com/label.pdf',
                 'pdfBase64' => base64_encode('PDF_CONTENT'),

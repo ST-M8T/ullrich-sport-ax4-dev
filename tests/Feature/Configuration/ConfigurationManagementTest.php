@@ -200,16 +200,13 @@ final class ConfigurationManagementTest extends TestCase
 
     public function test_integration_form_test_action_uses_post_without_put_spoofing(): void
     {
+        // DHL Freight Konfiguration ist nach Versand → DHL Freight konsolidiert.
+        // Die Integrations-Show-Route leitet daher um (siehe IntegrationController).
         $response = $this->get(route('configuration-integrations.show', [
             'integrationKey' => 'dhl_freight',
         ]));
 
-        $response->assertOk();
-        $response->assertSee('Verbindung testen');
-        $response->assertSee('formaction="'.route('configuration-integrations.test', [
-            'integrationKey' => 'dhl_freight',
-        ]).'"', false);
-        $response->assertDontSee('name="_method"', false);
+        $response->assertRedirect(route('admin.settings.dhl-freight.index'));
     }
 
     public function test_dhl_freight_connection_test_accepts_post_from_configuration_form(): void
@@ -232,8 +229,11 @@ final class ConfigurationManagementTest extends TestCase
             ],
         ]);
 
-        $response->assertRedirect();
-        $response->assertSessionHas('success', 'Verbindung erfolgreich getestet.');
+        // DHL Freight Konfiguration ist nach Versand → DHL Freight konsolidiert
+        // (siehe IntegrationController::REDIRECTED_TO_DHL_FREIGHT_SETTINGS).
+        // Der Verbindungstest läuft jetzt unter admin.settings.dhl-freight.index.
+        $response->assertRedirect(route('admin.settings.dhl-freight.index'));
+        $response->assertSessionHas('info');
     }
 
     public function test_notification_channel_settings_validation(): void
