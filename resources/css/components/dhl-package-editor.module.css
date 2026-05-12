@@ -1,0 +1,26 @@
+/*
+ * DHL Package Editor — Spalten-Breiten als CSS-Klassen.
+ *
+ * Engineering-Handbuch §47/§48: keine Inline-Styles im Markup,
+ * kein Magic-Hex; Spaltenbreiten als benannte Utility-Klassen.
+ */
+
+.dhl-pkg-col-count {
+    width: 7rem;
+}
+
+.dhl-pkg-col-type {
+    width: 7rem;
+}
+
+.dhl-pkg-col-weight {
+    width: 8rem;
+}
+
+.dhl-pkg-col-dim {
+    width: 6.5rem;
+}
+
+.dhl-pkg-col-action {
+    width: 4rem;
+}

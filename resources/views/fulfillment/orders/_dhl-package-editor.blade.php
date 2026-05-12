@@ -125,23 +125,35 @@
 
         <div class="row g-2 mb-3">
             <div class="col-md-4">
-                <label for="dhl-pkg-product-code" class="form-label">
-                    Produkt-Code (3 Zeichen) <span class="text-danger">*</span>
+                <label for="dhl-product-select" class="form-label">
+                    DHL-Produkt <span class="text-danger">*</span>
                 </label>
-                <input
-                    type="text"
-                    id="dhl-pkg-product-code"
-                    name="product_code"
-                    class="form-control"
-                    maxlength="3"
-                    minlength="3"
-                    pattern="[A-Z0-9]{3}"
-                    value="{{ old('product_code', $editorProductCode) }}"
-                    required
-                    aria-describedby="dhl-pkg-product-code-help"
-                    data-dhl-product-code-input
+                <div
+                    data-dhl-product-selector
+                    data-products-url="{{ url('/api/admin/dhl/products') }}"
+                    data-default-product-code="{{ old('product_code', $editorProductCode) }}"
                 >
-                <small id="dhl-pkg-product-code-help" class="text-muted">z.B. V01, V53. Bestimmt die verfuegbaren Zusatzleistungen.</small>
+                    <select
+                        id="dhl-product-select"
+                        name="product_code"
+                        class="form-select"
+                        required
+                        aria-busy="true"
+                        aria-describedby="dhl-pkg-product-code-help"
+                        data-dhl-product-select
+                        data-dhl-product-code-input
+                        disabled
+                    >
+                        <option value="">Lade Produkte …</option>
+                    </select>
+                    <small
+                        id="dhl-pkg-product-code-help"
+                        class="form-text text-muted"
+                        role="status"
+                        aria-live="polite"
+                        data-dhl-product-status
+                    >Produkte werden geladen …</small>
+                </div>
             </div>
             <div class="col-md-4">
                 <label for="dhl-pkg-default-type" class="form-label">Standard-Pakettyp <span class="text-danger">*</span></label>
@@ -274,14 +286,14 @@
             <table class="table table-sm align-middle" data-package-editor-table>
                 <thead>
                     <tr>
-                        <th scope="col" style="width: 8rem;">Anzahl</th>
-                        <th scope="col" style="width: 7rem;">Typ</th>
-                        <th scope="col" style="width: 9rem;">Gewicht (kg)</th>
-                        <th scope="col" style="width: 7rem;">Länge (cm)</th>
-                        <th scope="col" style="width: 7rem;">Breite (cm)</th>
-                        <th scope="col" style="width: 7rem;">Höhe (cm)</th>
+                        <th scope="col" class="dhl-pkg-col-count">Anzahl</th>
+                        <th scope="col" class="dhl-pkg-col-type">Typ</th>
+                        <th scope="col" class="dhl-pkg-col-weight">Gewicht (kg)</th>
+                        <th scope="col" class="dhl-pkg-col-dim">Länge (cm)</th>
+                        <th scope="col" class="dhl-pkg-col-dim">Breite (cm)</th>
+                        <th scope="col" class="dhl-pkg-col-dim">Höhe (cm)</th>
                         <th scope="col">Marks/Numbers</th>
-                        <th scope="col" style="width: 4rem;" class="text-end">Aktion</th>
+                        <th scope="col" class="dhl-pkg-col-action text-end">Aktion</th>
                     </tr>
                 </thead>
                 <tbody data-package-editor-rows>

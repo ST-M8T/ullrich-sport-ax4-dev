@@ -125,62 +125,19 @@
                 @endif
 
                 @if(!$order->isBooked())
-                    <div class="mb-3">
-                        <x-forms.form method="POST" action="{{ route('fulfillment-orders.book', $order->id()->toInt()) }}">
-                            <input type="hidden" name="redirect_to" value="{{ request()->fullUrl() }}">
-                            <x-slot:actions>
-                                <button type="submit" class="btn btn-primary w-100">Auftrag buchen</button>
-                            </x-slot:actions>
-                        </x-forms.form>
-                    </div>
-                    <p class="text-muted small mb-3">
+                    <x-forms.form method="POST" action="{{ route('fulfillment-orders.book', $order->id()->toInt()) }}">
+                        <input type="hidden" name="redirect_to" value="{{ request()->fullUrl() }}">
+                        <x-slot:actions>
+                            <button type="submit" class="btn btn-primary w-100">Auftrag buchen</button>
+                        </x-slot:actions>
+                    </x-forms.form>
+                    <p class="text-muted small mt-2 mb-0">
                         Der Auftrag wird als gebucht markiert und mit aktuellem Zeitstempel versehen.
                     </p>
-                    <hr>
-                    <h3 class="h6 mb-3">DHL-Buchung</h3>
-                    @if($hasBookableSenderProfile)
-                        @php
-                            $dhlProductsUrl = url('/api/admin/dhl/products');
-                            $dhlProductDefault = old('product_code', $dhlProductIdDefault ?? '');
-                        @endphp
-                        <x-forms.form method="POST" action="{{ route('fulfillment-orders.dhl.book', $order->id()->toInt()) }}">
-                            <input type="hidden" name="redirect_to" value="{{ request()->fullUrl() }}">
-                            <div class="col-12 mb-3"
-                                 data-dhl-product-selector
-                                 data-products-url="{{ $dhlProductsUrl }}"
-                                 data-default-product-code="{{ $dhlProductDefault }}">
-                                <label for="dhl-product-select" class="form-label">
-                                    DHL-Produkt <span class="text-danger">*</span>
-                                </label>
-                                <select
-                                    id="dhl-product-select"
-                                    name="product_code"
-                                    class="form-select form-select-sm"
-                                    required
-                                    aria-busy="true"
-                                    data-dhl-product-select
-                                    disabled
-                                >
-                                    <option value="">Lade Produkte …</option>
-                                </select>
-                                <div class="form-text small text-muted"
-                                     role="status"
-                                     aria-live="polite"
-                                     data-dhl-product-status>
-                                    Produkte werden geladen …
-                                </div>
-                            </div>
-                            <x-slot:actions>
-                                <button type="submit" class="btn btn-outline-primary w-100 mt-3">Bei DHL buchen</button>
-                            </x-slot:actions>
-                        </x-forms.form>
-                        <p class="text-muted small mt-2 mb-0">
-                            Bucht den Auftrag direkt bei DHL und erstellt eine Sendung.
-                        </p>
-                    @else
-                        <button type="button" class="btn btn-outline-primary w-100" disabled>Bei DHL buchen</button>
-                        <p class="text-muted small mt-2 mb-0">
-                            Ordne zuerst ein Senderprofil zu.
+                    @if(!$hasBookableSenderProfile)
+                        <hr>
+                        <p class="text-muted small mb-0">
+                            Für die DHL-Buchung wird ein Senderprofil benötigt.
                         </p>
                     @endif
                 @else
@@ -238,13 +195,19 @@
                                     Label generieren
                                 </a>
                             @endif
-                            <button type="button" class="btn btn-outline-info w-100 mb-2" onclick="loadPriceQuote({{ $order->id()->toInt() }})">
+                            <button
+                                type="button"
+                                class="btn btn-outline-info w-100 mb-2"
+                                data-dhl-price-quote-trigger
+                                data-dhl-price-quote-url="{{ route('fulfillment-orders.dhl.price-quote', $order->id()->toInt()) }}"
+                                data-dhl-price-quote-result="#dhl-price-quote-result"
+                            >
                                 Preisabfrage
                             </button>
                             <button type="button" class="btn btn-outline-danger w-100" data-bs-toggle="modal" data-bs-target="#cancelDhlModal">
                                 DHL-Sendung stornieren
                             </button>
-                            <div id="price-quote-result" class="mt-2 hidden"></div>
+                            <div id="dhl-price-quote-result" class="mt-2"></div>
                         @endif
                     @elseif($hasBookableSenderProfile)
                         <hr>
@@ -264,34 +227,6 @@
             </x-ui.action-card>
         </div>
     </div>
-
-    @if($order->dhlShipmentId())
-        <script>
-            function loadPriceQuote(orderId) {
-                const resultDiv = document.getElementById('price-quote-result');
-                resultDiv.style.display = 'block';
-                resultDiv.innerHTML = '<div class="text-muted">Lade Preisabfrage...</div>';
-
-                fetch('{{ route('fulfillment-orders.dhl.price-quote', $order->id()->toInt()) }}?product_id=' + (document.getElementById('dhl_product_id_booked')?.value || ''))
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            resultDiv.innerHTML = `
-                                <div class="alert alert-success">
-                                    <strong>Preis:</strong> ${data.price.toFixed(2)} ${data.currency || 'EUR'}<br>
-                                    ${data.breakdown && Object.keys(data.breakdown).length > 0 ? '<small>Details verfügbar</small>' : ''}
-                                </div>
-                            `;
-                        } else {
-                            resultDiv.innerHTML = `<div class="alert alert-danger">${data.error || 'Fehler bei Preisabfrage'}</div>`;
-                        }
-                    })
-                    .catch(error => {
-                        resultDiv.innerHTML = `<div class="alert alert-danger">Fehler: ${error.message}</div>`;
-                    });
-            }
-        </script>
-    @endif
 
     @if(!$order->isBooked() && $hasBookableSenderProfile)
         @include('fulfillment.orders._dhl-package-editor', [

@@ -98,7 +98,7 @@ class ShipmentOrdersTest extends TestCase
         $response->assertOk();
         $response->assertSee('Vor der DHL-Buchung muss ein Senderprofil zugeordnet werden.');
         $response->assertSee('AX4 Versand (ax4)');
-        $response->assertSee('Ordne zuerst ein Senderprofil zu.');
+        $response->assertSee('Für die DHL-Buchung wird ein Senderprofil benötigt.');
 
         $assignResponse = $this->post(route('fulfillment-orders.sender-profile', $order->getKey()), [
             'sender_profile_id' => $senderProfile->getKey(),

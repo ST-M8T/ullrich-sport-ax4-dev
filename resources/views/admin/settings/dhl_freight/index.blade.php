@@ -215,7 +215,7 @@
                                 :value="$configurationData['tracking_origin_country_code']"
                                 maxlength="2"
                                 placeholder="DE"
-                                style="text-transform: uppercase" />
+                                class="text-uppercase" />
 
                             <x-forms.input
                                 name="tracking_requester_country_code"
@@ -223,7 +223,7 @@
                                 :value="$configurationData['tracking_requester_country_code']"
                                 maxlength="2"
                                 placeholder="DE"
-                                style="text-transform: uppercase" />
+                                class="text-uppercase" />
                         </div>
                     </div>
                 </div>

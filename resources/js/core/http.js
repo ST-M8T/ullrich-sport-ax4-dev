@@ -32,8 +32,8 @@ export const getCsrfToken = () => {
  * @throws {Error} If the request fails
  */
 export const fetchJson = async (url, { method = 'GET', body = undefined, csrfToken = '' } = {}) => {
-    const headers = { Accept: 'application/json' };
-    const options = { method, headers };
+    const headers = { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' };
+    const options = { method, headers, credentials: 'same-origin' };
 
     if (method !== 'GET') {
         headers['Content-Type'] = 'application/json';

@@ -27,6 +27,7 @@ import './domains/fulfillment/dhl-product-catalog';
 import './domains/fulfillment/dhl-freight-settings';
 import './domains/fulfillment/dhl-booking-form';
 import './domains/fulfillment/dhl-package-editor';
+import './domains/fulfillment/dhl-price-quote';
 import './domains/dispatch/scans-modal';
 import './domains/tracking/overview';
 
