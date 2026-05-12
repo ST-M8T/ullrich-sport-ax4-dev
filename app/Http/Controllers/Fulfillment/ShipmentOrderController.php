@@ -9,6 +9,7 @@ use App\Application\Fulfillment\Integrations\Dhl\Services\DhlCancellationService
 use App\Application\Fulfillment\Integrations\Dhl\Services\DhlLabelService;
 use App\Application\Fulfillment\Integrations\Dhl\Services\DhlPriceQuoteService;
 use App\Application\Fulfillment\Integrations\Dhl\Services\DhlShipmentBookingService;
+use App\Application\Fulfillment\Masterdata\Services\FreightProfileService;
 use App\Application\Fulfillment\Masterdata\Services\SenderProfileService;
 use App\Application\Fulfillment\Orders\Commands\AssignShipmentOrderSenderProfile;
 use App\Application\Fulfillment\Orders\Commands\BookShipmentOrder;
@@ -35,6 +36,7 @@ final class ShipmentOrderController
         private readonly ListShipmentOrders $listOrders,
         private readonly ShipmentOrderViewService $orderViews,
         private readonly SenderProfileService $senderProfiles,
+        private readonly FreightProfileService $freightProfiles,
         private readonly AssignShipmentOrderSenderProfile $assignShipmentOrderSenderProfile,
         private readonly BookShipmentOrder $bookShipmentOrder,
         private readonly TransferShipmentOrderTracking $transferShipmentOrderTracking,
@@ -184,6 +186,7 @@ final class ShipmentOrderController
             'shipments' => $details['shipments'],
             'shipmentsWithLabels' => $shipmentsWithLabels,
             'senderProfiles' => $this->senderProfiles->all(),
+            'freightProfiles' => $this->freightProfiles->all(),
         ]);
     }
 
@@ -267,8 +270,16 @@ final class ShipmentOrderController
             $validated = $request->validated();
             $options = DhlBookingOptions::fromArray([
                 'product_id' => $validated['product_id'] ?? null,
+                'product_code' => $validated['product_code'] ?? null,
+                'payer_code' => $validated['payer_code'] ?? null,
+                'default_package_type' => $validated['default_package_type'] ?? null,
                 'additional_services' => $validated['additional_services'] ?? [],
                 'pickup_date' => $validated['pickup_date'] ?? null,
+                // Form-Override fuer Pieces (UI-Eingabe). Ohne diese Weitergabe
+                // werden die im Formular gewaehlten Packstuecke verworfen
+                // (siehe DhlPayloadAssembler::buildPieces — Override hat Vorrang
+                // vor ShipmentOrder.packages()).
+                'pieces' => $validated['pieces'] ?? null,
             ]);
 
             $result = $this->dhlBookingService->bookShipment($identifier, $options);
@@ -389,7 +400,11 @@ final class ShipmentOrderController
 
         try {
             $productId = request()->input('product_id');
-            $result = $this->dhlPriceQuoteService->getPriceQuote($identifier, $productId);
+            $options = DhlBookingOptions::fromArray([
+                'product_id' => $productId,
+                'product_code' => $productId,
+            ]);
+            $result = $this->dhlPriceQuoteService->getPriceQuote($identifier, $options);
 
             if ($result->success === false) {
                 return response()->json([

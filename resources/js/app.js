@@ -24,6 +24,9 @@ import './components/settings-modal';
 import './domains/monitoring/modal';
 import './domains/fulfillment/masterdata';
 import './domains/fulfillment/dhl-product-catalog';
+import './domains/fulfillment/dhl-freight-settings';
+import './domains/fulfillment/dhl-booking-form';
+import './domains/fulfillment/dhl-package-editor';
 import './domains/dispatch/scans-modal';
 import './domains/tracking/overview';
 

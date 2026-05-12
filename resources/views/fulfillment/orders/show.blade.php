@@ -139,17 +139,37 @@
                     <hr>
                     <h3 class="h6 mb-3">DHL-Buchung</h3>
                     @if($hasBookableSenderProfile)
+                        @php
+                            $dhlProductsUrl = url('/api/admin/dhl/products');
+                            $dhlProductDefault = old('product_code', $dhlProductIdDefault ?? '');
+                        @endphp
                         <x-forms.form method="POST" action="{{ route('fulfillment-orders.dhl.book', $order->id()->toInt()) }}">
                             <input type="hidden" name="redirect_to" value="{{ request()->fullUrl() }}">
-                            <x-forms.input
-                                name="product_id"
-                                label="Produkt-ID (optional)"
-                                type="text"
-                                :value="old('product_id')"
-                                placeholder="Standard-Produkt"
-                                class="form-control-sm"
-                                col-class="col-12"
-                            />
+                            <div class="col-12 mb-3"
+                                 data-dhl-product-selector
+                                 data-products-url="{{ $dhlProductsUrl }}"
+                                 data-default-product-code="{{ $dhlProductDefault }}">
+                                <label for="dhl-product-select" class="form-label">
+                                    DHL-Produkt <span class="text-danger">*</span>
+                                </label>
+                                <select
+                                    id="dhl-product-select"
+                                    name="product_code"
+                                    class="form-select form-select-sm"
+                                    required
+                                    aria-busy="true"
+                                    data-dhl-product-select
+                                    disabled
+                                >
+                                    <option value="">Lade Produkte …</option>
+                                </select>
+                                <div class="form-text small text-muted"
+                                     role="status"
+                                     aria-live="polite"
+                                     data-dhl-product-status>
+                                    Produkte werden geladen …
+                                </div>
+                            </div>
                             <x-slot:actions>
                                 <button type="submit" class="btn btn-outline-primary w-100 mt-3">Bei DHL buchen</button>
                             </x-slot:actions>
@@ -271,6 +291,17 @@
                     });
             }
         </script>
+    @endif
+
+    @if(!$order->isBooked() && $hasBookableSenderProfile)
+        @include('fulfillment.orders._dhl-package-editor', [
+            'order' => $order,
+            'packages' => $packages,
+            'defaultPackageType' => 'PAL',
+            'bookingActionUrl' => route('fulfillment-orders.dhl.book', $order->id()->toInt()),
+            'productCode' => old('product_code', ''),
+            'payerCode' => old('payer_code', ''),
+        ])
     @endif
 
     <x-ui.info-card title="Artikel ({{ $totalItemCount }})">
