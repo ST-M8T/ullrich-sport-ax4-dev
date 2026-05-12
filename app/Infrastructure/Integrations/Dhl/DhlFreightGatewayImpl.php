@@ -285,6 +285,9 @@ final class DhlFreightGatewayImpl implements DhlFreightGateway
             $status = $exception instanceof RequestException && $exception->response
                 ? $exception->response->status()
                 : null;
+            $responseBody = $exception instanceof RequestException && $exception->response
+                ? $exception->response->body()
+                : null;
 
             $this->logger->error('[DHL Freight] Request failed', [
                 'operation' => $operation,
@@ -292,6 +295,7 @@ final class DhlFreightGatewayImpl implements DhlFreightGateway
                 'status' => $status,
                 'duration_ms' => $durationMs,
                 'error' => $exception->getMessage(),
+                'response_body' => $responseBody,
             ]);
 
             throw $exception;

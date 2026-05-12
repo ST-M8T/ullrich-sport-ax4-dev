@@ -18,7 +18,7 @@ use Illuminate\Support\Facades\DB;
 use Psr\Log\LoggerInterface;
 use Throwable;
 
-final class DhlShipmentBookingService
+class DhlShipmentBookingService
 {
     public function __construct(
         private readonly DhlFreightGateway $gateway,
@@ -60,6 +60,7 @@ final class DhlShipmentBookingService
                 $this->logger->info('DHL booking request', [
                     'order_id' => $order->id()->toInt(),
                     'product_id' => $options->productId(),
+                    'payload' => $payload,
                 ]);
 
                 try {
@@ -74,6 +75,8 @@ final class DhlShipmentBookingService
                         'order_id' => $order->id()->toInt(),
                         'status' => $requestException->response->status(),
                         'error' => $errorMessage,
+                        'response_body' => $requestException->response->body(),
+                        'request_payload' => $payload,
                     ]);
 
                     $updated = $this->updateOrderWithBookingError($order, $payload, is_array($response) ? $response : [], $errorMessage);
