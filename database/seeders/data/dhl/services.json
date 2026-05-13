@@ -1,0 +1,16 @@
+[
+    {
+        "code": "NOT",
+        "name": "Notification",
+        "description": "Consignee notification before delivery via e-mail or SMS.",
+        "category": "notification",
+        "parameter_schema": {
+            "type": "object",
+            "properties": {
+                "email": {"type": "string"},
+                "phone": {"type": "string"}
+            }
+        },
+        "source": "seed"
+    }
+]

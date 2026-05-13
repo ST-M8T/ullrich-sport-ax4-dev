@@ -1,0 +1,18 @@
+{
+    "dhl_api_version": "v2",
+    "dhl_api_base_url_host": "api-sandbox.dhl.com",
+    "fetched_at": "2026-05-12T12:40:00Z",
+    "from_countries": ["DE"],
+    "to_countries": ["DE", "AT", "FR", "NL", "BE", "PL", "CH"],
+    "payer_codes": ["DAP", "DDP"],
+    "counts": {
+        "products": 1,
+        "services": 1,
+        "assignments": 1
+    },
+    "duration_ms": 0,
+    "sandbox": true,
+    "generated_by": "manual-mock-fallback",
+    "generator_version": "PROJ-2",
+    "note": "Sandbox credentials (DHL_FREIGHT_API_KEY) are empty in this environment. These fixtures are a minimum viable mock set per PROJ-2 fallback requirement so the seeder remains testable. Replace by running `php artisan dhl:catalog:bootstrap --force` once credentials are configured."
+}

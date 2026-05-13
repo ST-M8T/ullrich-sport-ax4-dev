@@ -1,0 +1,18 @@
+[
+    {
+        "code": "ECI",
+        "name": "Euroconnect International",
+        "description": "DHL Freight Euroconnect International — palletised LTL service across Europe.",
+        "market_availability": "B2B",
+        "from_countries": ["DE"],
+        "to_countries": ["DE", "AT", "FR", "NL", "BE", "PL", "CH"],
+        "allowed_package_types": ["PLT"],
+        "weight_min_kg": 0.0,
+        "weight_max_kg": 2500.0,
+        "dim_max_l_cm": 240.0,
+        "dim_max_b_cm": 120.0,
+        "dim_max_h_cm": 220.0,
+        "valid_from": "2020-01-01T00:00:00Z",
+        "source": "seed"
+    }
+]

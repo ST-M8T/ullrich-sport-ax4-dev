@@ -1,0 +1,12 @@
+[
+    {
+        "product_code": "ECI",
+        "service_code": "NOT",
+        "from_country": "DE",
+        "to_country": "DE",
+        "payer_code": "DAP",
+        "requirement": "allowed",
+        "default_parameters": {},
+        "source": "seed"
+    }
+]
