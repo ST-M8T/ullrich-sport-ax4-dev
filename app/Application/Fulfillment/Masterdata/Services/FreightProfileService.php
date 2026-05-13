@@ -3,10 +3,10 @@
 namespace App\Application\Fulfillment\Masterdata\Services;
 
 use App\Domain\Fulfillment\Masterdata\Contracts\FulfillmentFreightProfileRepository;
+use App\Domain\Fulfillment\Masterdata\Exceptions\FreightProfileNotFoundException;
 use App\Domain\Fulfillment\Masterdata\FulfillmentFreightProfile;
 use App\Domain\Shared\ValueObjects\Identifier;
 use App\Domain\Shared\ValueObjects\Pagination\PaginatedResult;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use InvalidArgumentException;
 
 final class FreightProfileService
@@ -90,8 +90,7 @@ final class FreightProfileService
     {
         $identifier = Identifier::fromInt($shippingProfileId);
         if (! $this->freightProfiles->getById($identifier)) {
-            /** @phpstan-ignore-next-line ModelNotFoundException::setModel akzeptiert pragmatisch auch Domain-FQNs (siehe Backlog ARCH-8). */
-            throw (new ModelNotFoundException)->setModel(FulfillmentFreightProfile::class, [$shippingProfileId]);
+            throw new FreightProfileNotFoundException($shippingProfileId);
         }
 
         $this->freightProfiles->delete($identifier);
