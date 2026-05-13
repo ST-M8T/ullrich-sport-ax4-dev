@@ -2,7 +2,16 @@
 .DS_Store
 .env
 .env.backup
+.env.backup_*
+.env.bak
+.env.mysql_verify
 .env.production
+/.claude/goal.lock
+/.claude/goal.md
+/.claude/goal.log
+/ax4_verify
+/phpunit.xml.mysql
+/phpunit.xml.mysql.bak
 .phpactor.json
 .phpunit.result.cache
 /.fleet

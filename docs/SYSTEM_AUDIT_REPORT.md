@@ -106,3 +106,45 @@ Stand: 2026-05-11 05:13:07
 | Mitarbeiter | operations | 65 | Logs · domain-events, Monitoring · system-jobs, Monitoring · tracking |
 | Leiter | leiter | 98 | Logs · audit-logs, Logs · domain-events, Logs · system-logs, Monitoring · system-jobs, Monitoring · system-status, Monitoring · tracking, Verwaltung · identity-users, Verwaltung · notifications |
 | Admin | admin | 106 | Logs · audit-logs, Logs · domain-events, Logs · system-logs, Monitoring · system-jobs, Monitoring · system-status, Monitoring · tracking, Verwaltung · identity-users, Verwaltung · notifications |
+
+## Test-Suite-Recovery (2026-05-13)
+
+### Befund
+- **Vorher (Wave-2-Stand):** 973 Tests, 76 Errors, 47 Failures
+- **Nachher (tracked baseline):** 689 Tests, 0 Errors, 0 Failures
+- **Nachher (inkl. WIP-Working-Tree):** 973 Tests, 76 Errors, 45 Failures
+
+### Root-Causes
+
+#### 1) Tracked-Baseline-Drift (2 Failures, jetzt grün)
+- **`AdminLayoutSnapshotTest`** (1 Failure): Stale Snapshot — Commit `f795a65` (consolidated "Versand → DHL Freight" settings page) hat einen neuen Nav-Eintrag im Admin-Layout hinzugefügt, der Snapshot war veraltet. **Fix:** Snapshot regeneriert (semantisch identisch, nur ein zusätzlicher legitimer Menüpunkt).
+- **`FormAccessibilityTest::test_tabs_use_aria_current_instead_of_aria_pressed`** (1 Failure): Test-Bug. Test-Name sagt explizit „use aria-current", aber Assertion forderte `aria-selected="true"`. Die `tabs.blade.php`-Komponente verwendet korrekt `aria-current="page"` (Tabs sind Page-Links, kein WAI-ARIA Tab-Widget). **Fix:** Assertion auf `aria-current="page"` korrigiert.
+
+#### 2) WIP-Working-Tree „DHL Catalog"-Feature (76 Errors + 45 Failures, blockiert)
+Cluster (alle untracked / `?? ` in `git status`):
+| Test-Cluster | Anzahl | Ursache |
+| --- | ---: | --- |
+| `EloquentDhl*RepositoryTest` (Products/AdditionalService/Assignment/SyncStatus) | 24 | Migrations für `dhl_products`, `dhl_additional_services`, `dhl_product_service_assignments`, `dhl_catalog_sync_status` sind WIP, Schema/Factories inkonsistent zum Repo-Code |
+| `DhlCatalog*ControllerTest` (Index/Product/Service/Audit/SyncTrigger) | 27 | **Routen nicht in `routes/` registriert** → alle Endpoints liefern 404 statt 302/200/403/409 |
+| `AllowedDhlServicesControllerTest` + `*IntersectionTest` | 12 | API-Routen + Permissions noch nicht verdrahtet |
+| `FreightProfileDhlCatalogValidationTest` + `StoreFreightProfileRequestTest` | 9 | `FormRequest`-Trait für `dhl_product_code`/`dhl_service_codes` ist in untrackten Concerns, Wire-Up fehlt |
+| `Console\\*DhlCatalog*CommandTest` (Bootstrap/Sync/SetSuccessor/Unset/List) | 15 | Artisan-Commands existieren als untrackte Files, nicht in `app/Console/Kernel`-Schedule |
+| `Mail\\DhlCatalogSyncFailedMailTest` | 4 | Mailable-Klasse referenziert untrackten View-Pfad |
+| `Database\\Seeders\\DhlCatalogSeederTest` | 2 | `DhlCatalogSeeder` + `database/data/`-JSON-Quellen untracked |
+| `Application\\...\\SynchroniseDhlCatalogServiceTest` | 9 | DTOs/Mapper/Domain-VOs für Catalog-Sync untracked |
+| `Unit\\Application\\Fulfillment\\Masterdata\\*ProfileServiceTest` (4 Files) | 12 | Tests überschreiben bestehende `FreightProfileServiceTest`-Erwartungen mit `dhl_product_code`-Feldern + erwarten neue Exception-Klassen (`FreightProfileNotFoundException`), die als untrackte Files existieren aber nicht zu der getrackten Service-Implementierung passen |
+| `Listeners`, `View`, sonstige WIP-Tests | 9 | WIP-Komponenten/Listener noch nicht in `EventServiceProvider` registriert |
+
+**Klassifizierung:** Klasse (d) WIP-Code — Tests referenzieren Klassen/Routen/Migrations/Views, die als untrackte Files existieren aber nicht vollständig integriert sind. Es handelt sich um eine **halb-fertige Feature-Implementierung** (DHL Catalog), nicht um eine Regression.
+
+### Geblieben (akzeptiert — benötigt User-Entscheidung)
+- **76 Errors + 45 Failures** in untrackten WIP-Test-Files.
+- **Blocker:** Pro Task-Constraint dürfen WIP-Files nicht ohne User-Rücksprache entfernt oder modifiziert werden, und `markTestSkipped` auf dutzende untrackte Tests wäre eine Mutation des User-Working-Tree, die das eigentliche Feature-Wiring verschleiert.
+- **Empfehlung:** User entscheidet:
+  1. **Option A:** WIP-Feature „DHL Catalog" zu Ende implementieren (Routen registrieren, FormRequests verdrahten, Migrations laufen lassen, Commands in Kernel registrieren, Mail-Views committen). Eigener Task / Goal.
+  2. **Option B:** WIP-Files temporär stashen (`git stash -u`) bis das Feature implementiert ist → baseline 689/689 grün.
+  3. **Option C:** WIP-Test-Files mit `markTestSkipped('DHL Catalog feature WIP — pending integration')` versehen (User-Approval nötig, da untrackte Files modifiziert werden).
+
+### Geänderte Files
+- `tests/__snapshots__/layout-admin.snap.html` (regeneriert)
+- `tests/Feature/Forms/FormAccessibilityTest.php` (Assertion korrigiert)

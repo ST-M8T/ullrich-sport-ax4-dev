@@ -120,6 +120,8 @@ final class FormAccessibilityTest extends TestCase
         $this->assertStringNotContainsString('aria-pressed', $html);
         $this->assertStringNotContainsString('role="tab"', $html);
         $this->assertStringNotContainsString('role="tablist"', $html);
-        $this->assertStringContainsString('aria-selected="true"', $html);
+        // Tabs sind Page-Links (kein WAI-ARIA Tab-Widget) → aria-current="page" ist
+        // semantisch korrekt (siehe resources/views/components/tabs.blade.php).
+        $this->assertStringContainsString('aria-current="page"', $html);
     }
 }
