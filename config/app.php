@@ -79,6 +79,7 @@ return [
             \App\Providers\ConfigurationServiceProvider::class,
             \App\Providers\IntegrationsServiceProvider::class,
             \App\Providers\IntegrationServiceProvider::class,
+            \App\Providers\DhlCatalogServiceProvider::class,
         ],
         env('TELESCOPE_ENABLED', env('APP_ENV') === 'local')
             ? [\App\Providers\TelescopeServiceProvider::class]
