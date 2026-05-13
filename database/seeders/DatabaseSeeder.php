@@ -22,6 +22,8 @@ class DatabaseSeeder extends Seeder
 
         User::factory()->count(4)->create();
 
+        $this->call(TestUsersSeeder::class);
+
         $this->call(DomainDemoSeeder::class);
     }
 }
